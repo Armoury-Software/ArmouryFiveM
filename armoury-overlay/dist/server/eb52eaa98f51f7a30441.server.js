@@ -1,0 +1,1 @@
+(()=>{"use strict";exports("updateItem",((e,r)=>{TriggerClientEvent("armoury-overlay:update-item",e,r)})),exports("showMoneyGainOverlay",((e,r)=>{TriggerClientEvent(`${GetCurrentResourceName()}:show-money-overlay`,e,r)}))})();

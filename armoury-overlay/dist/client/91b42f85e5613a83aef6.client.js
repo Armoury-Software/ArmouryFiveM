@@ -1,0 +1,1 @@
+(()=>{"use strict";onNet("armoury-overlay:update-item",(e=>{SendNuiMessage(JSON.stringify({type:"update",stat:e.id,icon:e.icon,value:e.value}))})),onNet(`${GetCurrentResourceName()}:show-money-overlay`,(e=>{SendNuiMessage(JSON.stringify({type:"moneygain",gain:e}))}))})();

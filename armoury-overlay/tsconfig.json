@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": ["types/*"]
+    },
+    "outDir": "./dist/",
+    "noImplicitAny": false,
+    "module": "es6",
+    "target": "es6",
+    "allowJs": true,
+    "lib": ["es2017"],
+    "types": ["@citizenfx/client", "@citizenfx/server", "fivem-js", "@types/node"],
+    "moduleResolution": "node"
+  },
+  "include": ["./src/**/*"],
+  "exclude": []
+}
