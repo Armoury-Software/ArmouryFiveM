@@ -1,4 +1,4 @@
-import { isJSON, isPlayerInRangeOfPoint } from "../utils";
+import { isJSON } from "../utils";
 import { ServerController } from "./server.controller";
 
 export class ServerDBDependentController<T extends { id: number }> extends ServerController {
@@ -11,7 +11,12 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         super();
 
         this.loadDBEntities();
+        this._assignExports();
         this.assignDBEntityCommunicationListeners();
+    }
+
+    protected getEntities(): T[] {
+        return this._entities;
     }
 
     protected createEntity(entity: T): Promise<T> {
@@ -144,5 +149,9 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
     protected syncWithClients(client?: number): void {
         // TODO: Probable performance issue cause. Entity updates should be sent to clients only for a specific property, so they don't need to wipe ALL data and rewrite it back.
         TriggerClientEvent(`${GetCurrentResourceName()}:db-send-entities`, client || -1, this.entities);
+    }
+
+    private _assignExports(): void {
+        exports('getEntities', this.getEntities.bind(this));
     }
 }

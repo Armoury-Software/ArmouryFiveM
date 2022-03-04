@@ -67,6 +67,7 @@ export class ClientWithUIController extends ClientController implements IClientW
         this.onIncomingUIMessageEvent.on(name, (eventData) => { this.onIncomingUIMessage.call(this, name, eventData); });
     }
 
+    /** Remember that you NEED to use addUIListener in order to be able to listen for events */
     protected onIncomingUIMessage(eventName: string, eventData: any): void { }
 
     public onForceShowUI(data: any): void {

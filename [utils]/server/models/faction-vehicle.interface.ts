@@ -1,4 +1,5 @@
 export interface FactionVehicle {
-    pos: number[],
-    modelHash: any
+    pos: number[];
+    modelHash: any;
+    color?: number[];
 }

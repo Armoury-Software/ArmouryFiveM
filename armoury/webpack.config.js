@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const RemovePlugin = require('remove-files-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const glob = require('glob');
 
 const buildPath = path.resolve(__dirname, 'dist');
 

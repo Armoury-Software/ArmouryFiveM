@@ -1,101 +1,180 @@
 import { authenticationDTO } from '../shared/models/authentication.model';
-import { Player } from '../shared/models/player.model';
+import { Player, PlayerBase, PlayerMonitored } from '../shared/models/player.model';
+import { toThousandsString, numberWithCommas } from '../../../[utils]/utils';
+import { whirlpool } from 'hash-wasm';
 
 const cachedPlayerProperties: string[] = [];
+const authenticatedPlayers: Map<number, PlayerMonitored> = new Map();
 
 onNet('authentication:authenticate', (data: authenticationDTO) => {
-    const target: number = source;
-    if (!data.isAuthenticating) {
-        setImmediate(async () => {
-            try {
-                const result: Player = await global.exports['oxmysql'].insert_async(
-                    'INSERT INTO `players`(`name`, `password`, `email`) VALUES (?, ?, ?)', ['blank atm', data.password, data.email]
-                );
-    
-                if (result) {
-                    AssignRecords(target, result);
-                    TriggerClientEvent('authentication:success', target, 'test');
-                    TriggerServerEvent('authentication:player-authenticated', target);
-                } else {
-                    throw new Error();
-                }
-            }
-            catch (error) {
-                TriggerClientEvent('authentication:register-error', target, 'Registration failed - that email already exists.');
-            }
-        });
-    } else {
-        setImmediate(async () => {
-            const result: Player = await global.exports['oxmysql'].single_async(
-                'SELECT * FROM `players` WHERE email=? AND password=?', [data.email, data.password]
-            );
+  const target: number = source;
+  setImmediate(async () => {
+    const hashedPassword: string = await whirlpool(getHashPasswordWithSalt(data.password, data.email));
 
-            if (result) {
-                AssignRecords(target, result);
-                TriggerClientEvent('authentication:success', target, 'test');
-                emit('authentication:player-authenticated', target);
-            } else {
-                TriggerClientEvent('authentication:login-error', target, 'Authentication failed - incorrect email and password combination.');
-            }
-        });
+    if (!data.isAuthenticating) {
+      try {
+        const result: Player = await global.exports['oxmysql'].insert_async(
+          'INSERT INTO `players`(`name`, `password`, `email`) VALUES (?, ?, ?)', [GetPlayerName(target), hashedPassword, data.email]
+        );
+
+        if (result) {
+          AuthenticatePlayer(target, result);
+        } else {
+          throw new Error();
+        }
+      }
+      catch (error) {
+        TriggerClientEvent('authentication:register-error', target, 'Registration failed - that email already exists.');
+      }
+    } else {
+      const result: Player = await global.exports['oxmysql'].single_async(
+        'SELECT * FROM `players` WHERE email=? AND password=?', [data.email, hashedPassword]
+      );
+
+      if (result) {
+        AuthenticatePlayer(target, result);
+      } else {
+        TriggerClientEvent('authentication:login-error', target, 'Authentication failed - incorrect email and password combination.');
+      }
     }
+  });
 })
 
-function setPlayerInfo(source: number, stat: string, _value: number | string | number[] | string[], ignoreSQLCommand: boolean = true): void {
-    let value = _value;
+function getHashPasswordWithSalt(password: string, email: string): string {
+  return email.slice(0, 3) + password + email.slice(3, 6);
+}
 
-    if (Array.isArray(_value)) {
-        value = _value.join(';ARM;,');
+function setPlayerInfo(source: number, stat: string, _value: number | string | number[] | string[], ignoreSQLCommand: boolean = true, ...additionalValues: { stat: string, _value: number | string | number[] | string[] }[]): void {
+  let value = _value;
+
+  if (Array.isArray(_value)) {
+    value = _value.join(';ARM;,');
+  }
+  
+  if (stat === 'cash') {
+    global.exports['armoury-overlay'].updateItem(source, { id: stat, icon: 'attach_money', value: '$' + (Math.abs(<number>value) < 1000 ? numberWithCommas(<number>value) : toThousandsString(<number>value, 2)) });
+
+    const previousValue: number = getPlayerInfo(source, 'cash');
+    const difference: number = Number(value) - Number(previousValue || 0);
+    if (difference !== 0 && previousValue !== 0) {
+      global.exports['armoury-overlay'].showMoneyGainOverlay(source, difference);
     }
-    
-    if (stat === 'cash') {
-        global.exports['armoury-overlay'].updateItem(source, { id: 'cash', icon: 'attach_money', value });
+  }
 
-        const previousValue: number = getPlayerInfo(source, 'cash');
-        const difference: number = Number(value) - Number(previousValue || 0);
-        if (difference !== 0 && previousValue !== 0) {
-            global.exports['armoury-overlay'].showMoneyGainOverlay(source, difference);
-        }
-    }
+  if (stat === 'bank') {
+    global.exports['armoury-overlay'].updateItem(source, { id: stat, icon: 'account_balance', value: '$' + (Math.abs(<number>value) < 1000 ? numberWithCommas(<number>value) : toThousandsString(<number>value, 2)) });
+  }
 
-    SetConvarReplicated(`${source}_PI_${stat}`, value.toString());
+  SetConvarReplicated(`${source}_PI_${stat}`, value.toString());
 
-    if (!ignoreSQLCommand) {
-        global.exports['oxmysql'].update(`UPDATE \`players\` SET ${stat} = ? WHERE id = ?`, [value, getPlayerInfo(source, 'id')]);
-    }
+  if (!ignoreSQLCommand) {
+    let statsString: string = `${stat} = ?`;
+    additionalValues.forEach((additionalValue) => {
+      statsString += `, ${additionalValue.stat} = ?`
+    });
+
+    global.exports['oxmysql'].update_async(
+      `UPDATE \`players\` SET ${statsString} WHERE id = ?`,
+      [
+        value,
+        ...additionalValues.map((additionalValue) => Array.isArray(additionalValue._value) ? additionalValue._value.join(';ARM;,') : additionalValue._value),
+        getPlayerInfo(source, 'id')
+      ]
+    );
+  }
 }
 
 function getPlayerInfo<T extends string | number | string[] | number[]>(source: number, stat: string): T {
-    let value: string | number | string[] | number[] = GetConvar(`${source}_PI_${stat}`, '-1');
-    
-    if (value.toString().includes(';ARM;,')) {
-        value = value.split(';ARM;,');
-    }
-    
-    return <T> value;
+  let value: string | number | string[] | number[] = GetConvar(`${source}_PI_${stat}`, '-1');
+  
+  if (value.toString().includes(';ARM;,')) {
+    value = value.split(';ARM;,');
+  }
+
+  if (stat === 'hoursPlayed') {
+    const computedHoursPlayed: number = Number(value) + computeHoursPlayed(source);
+    setPlayerInfo(source, stat, computedHoursPlayed);
+
+    return <T> computedHoursPlayed;
+  }
+  
+  return <T> value;
 }
 
 function clearPlayerInfo(source: number): void {
-    cachedPlayerProperties.forEach((property: string) => {
-        SetConvarReplicated(`${source}_PI_${property}`, '-1');
-    });
+  cachedPlayerProperties.forEach((property: string) => {
+    SetConvarReplicated(`${source}_PI_${property}`, '-1');
+  });
+}
+
+function computeHoursPlayed(source: number): number {
+  let computedHoursPlayed: number = 0;
+  if (authenticatedPlayers.has(source)) {
+    computedHoursPlayed = Math.floor(Math.abs(authenticatedPlayers.get(source).lastHoursPlayedCheck.getTime() - new Date().getTime()) / (1000 * 60) % 60) * 0.017;
+    authenticatedPlayers.set(source, { ...authenticatedPlayers.get(source), lastHoursPlayedCheck: new Date() });
+  }
+
+  return computedHoursPlayed;
+}
+
+function getAuthenticatedPlayers() {
+  return Array.from(authenticatedPlayers.keys());
 }
 
 exports('getPlayerInfo', getPlayerInfo);
 exports('setPlayerInfo', setPlayerInfo);
+exports('getAuthenticatedPlayers', getAuthenticatedPlayers)
 
-const AssignRecords = (target: number, stats: Player) => {
-    for (var property in stats) {
-        if (stats.hasOwnProperty(property)) {
-            setPlayerInfo(target, property, stats[property]);
-            if (cachedPlayerProperties.indexOf(property) != -1) {
-                cachedPlayerProperties.push(property);
-            }
-        }
+const AuthenticatePlayer = (target: number, stats: Player) => {
+  /* Set up overlays */
+  global.exports['armoury-overlay'].updateItem(target, { id: 'cash', icon: 'attach_money', value: '' });
+  global.exports['armoury-overlay'].updateItem(target, { id: 'bank', icon: 'account_balance', value: '' });
+  global.exports['armoury-overlay'].updateItem(target, { id: 'level', icon: 'hourglass_bottom', value: 'Level 1' });
+  global.exports['armoury-overlay'].updateItem(target, { id: 'hunger', icon: 'lunch_dining', value: '100%' });
+  global.exports['armoury-overlay'].updateItem(target, { id: 'thirst', icon: 'water_drop', value: '100%' });
+  global.exports['armoury-overlay'].updateItem(target, { id: 'mic', icon: 'mic', value: '100%' });
+
+  for (var property in stats) {
+    if (stats.hasOwnProperty(property)) {
+      setPlayerInfo(target, property, stats[property]);
+      if (cachedPlayerProperties.indexOf(property) === -1) {
+        cachedPlayerProperties.push(property);
+      }
     }
+  }
+
+  authenticatedPlayers.set(target, { ...<PlayerMonitored>(<PlayerBase>stats), lastHoursPlayedCheck: new Date() });
+  TriggerClientEvent('authentication:success', target, 'test');
+  emit('authentication:player-authenticated', target, stats);
 }
 
-on('playerDropped', (reason: string) => {
-    console.log(`Player ${GetPlayerName(global.source)} dropped (Reason: ${reason}).`);
-    clearPlayerInfo(global.source);
+function savePlayerCriticalStats(player: number): void {
+  if (authenticatedPlayers.has(player)) {
+    // Saves critical and/or frequently-updated data into MySQL Database
+    setPlayerInfo(
+      player,
+      'hoursPlayed',
+      Number(getPlayerInfo(player, 'hoursPlayed')),
+      false,
+      { stat: 'cash', _value: Number(getPlayerInfo(player, 'cash')) },
+      { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) }
+    );
+    authenticatedPlayers.delete(player);
+  }
+}
+
+onNet('onResourceStop', (resourceName: string) => {
+  if (resourceName === GetCurrentResourceName()) {
+    Array.from(authenticatedPlayers.keys()).forEach((player: number) => {
+      savePlayerCriticalStats(player);
+    });
+
+    authenticatedPlayers.clear();
+  }
+});
+
+on('playerDropped', (_reason: string) => {
+  savePlayerCriticalStats(source);
+  emit('authentication:player-logout', source);
+  clearPlayerInfo(global.source);
 })

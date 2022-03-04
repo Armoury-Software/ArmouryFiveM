@@ -5,7 +5,7 @@ onNet('armoury-overlay:update-item', (data: OverlayItem) => {
         type: 'update',
         stat: data.id,
         icon: data.icon,
-        value: data.value
+        value: data.value.toString()
     }));
 });
 
