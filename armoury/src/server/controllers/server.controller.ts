@@ -42,6 +42,7 @@ export class Server extends ServerController {
         switch (args[0]) {
             case 'trucker': {
                 SetEntityCoords(GetPlayerPed(source), 124.60220336914062, -2682.474609375, 10.229248046875, true, false, false, false);
+				break;
             }
 			case 'garbageman':{
 				SetEntityCoords(GetPlayerPed(source), -267.5868225097656,197.41978454589844,85.22119140625+4, true, false, false, false);
