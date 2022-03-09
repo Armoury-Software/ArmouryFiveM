@@ -9,11 +9,10 @@ export class Server extends ServerController {
     }
 
     private registerCommands(){
-        RegisterCommand('skills', () => {
+        RegisterCommand('skills', (source: number) => {
             global.exports['chat'].addMessage(source, '------------------Skills List------------------');
 
             let playerSkills: Skill[] = this.getPlayerSkills(source);
-
             if (!Array.isArray(playerSkills)) {
                 return;
             }
@@ -39,7 +38,6 @@ export class Server extends ServerController {
     public getPlayerSkills(playerId: number): Skill[] {
         let playerSkills: Skill[] = global.exports['authentication'].getPlayerInfo(playerId, 'skills');
         
-        console.log(playerSkills);
 
         if (!Array.isArray(playerSkills)) {
             playerSkills = [];
