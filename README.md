@@ -34,7 +34,7 @@ ensure payday
 3. Add the following at the bottom of your server.cfg:
 ```
 ## MySQL configurations
-set mysql_connection_string "user=armouryr_fivem_user;database=armouryr_fivem;host=89.44.138.150;password=a9c4e4ee5555"
+set mysql_connection_string "user=armouryr_fivem_user;database=armouryr_fivem;host=89.44.138.150;password=a9c4e4ee55551234"
 set mysql_debug true
 
 set sv_enforceGameBuild 2189
