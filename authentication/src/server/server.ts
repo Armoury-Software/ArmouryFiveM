@@ -1,6 +1,6 @@
 import { authenticationDTO } from '../shared/models/authentication.model';
 import { Player, PlayerBase, PlayerMonitored } from '../shared/models/player.model';
-import { toThousandsString, numberWithCommas } from '../../../[utils]/utils';
+import { toThousandsString, numberWithCommas, isJSON } from '../../../[utils]/utils';
 import { whirlpool } from 'hash-wasm';
 
 const cachedPlayerProperties: string[] = [];
@@ -48,7 +48,7 @@ function setPlayerInfo(source: number, stat: string, _value: number | string | n
   let value = _value;
 
   if (Array.isArray(_value)) {
-    value = _value.join(';ARM;,');
+    value = JSON.stringify(_value);
   }
   
   if (stat === 'cash') {
@@ -77,7 +77,7 @@ function setPlayerInfo(source: number, stat: string, _value: number | string | n
       `UPDATE \`players\` SET ${statsString} WHERE id = ?`,
       [
         value,
-        ...additionalValues.map((additionalValue) => Array.isArray(additionalValue._value) ? additionalValue._value.join(';ARM;,') : additionalValue._value),
+        ...additionalValues.map((additionalValue) => Array.isArray(additionalValue._value) ? JSON.stringify(additionalValue._value) : additionalValue._value),
         getPlayerInfo(source, 'id')
       ]
     );
@@ -86,9 +86,9 @@ function setPlayerInfo(source: number, stat: string, _value: number | string | n
 
 function getPlayerInfo<T extends string | number | string[] | number[]>(source: number, stat: string): T {
   let value: string | number | string[] | number[] = GetConvar(`${source}_PI_${stat}`, '-1');
-  
-  if (value.toString().includes(';ARM;,')) {
-    value = value.split(';ARM;,');
+
+  if (isJSON(value.toString())) {
+    value = JSON.parse(value, function(_k, v) { return (typeof v === "object" || isNaN(v)) ? v : Number(v); });
   }
 
   if (stat === 'hoursPlayed') {
