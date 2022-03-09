@@ -4,6 +4,7 @@ import { Skill } from '../../shared/models/skill.model';
 export class Server extends ServerController {
     public constructor(){
         super();
+
         this.assignExports();
         this.registerCommands();
     }
@@ -23,7 +24,7 @@ export class Server extends ServerController {
         }, false);
     }
 
-    private updatePlayerSkill(playerId: number, skill: string, value: number): void{
+    private updatePlayerSkill(playerId: number, skill: string, value: number): void {
 
         const currentPlayerSkills: Skill[] = this.getPlayerSkills(playerId);
 
@@ -46,9 +47,9 @@ export class Server extends ServerController {
         return playerSkills;
     }
 
-    public getPlayerSkill(playerId: number, skill:string): Skill {
+    public getPlayerSkill(playerId: number, skill: string): Skill {
         let playerSkills: Skill[] = this.getPlayerSkills(playerId);
-        let playerSkill: Skill = playerSkills.find((_entity: Skill) => _entity.name === skill);
+        let playerSkill: Skill = playerSkills.find((_skill: Skill) => _skill.name === skill);
 
         if (!playerSkill) {
             playerSkill = {
