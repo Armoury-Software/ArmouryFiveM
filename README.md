@@ -1,3 +1,5 @@
+__DON'T PUSH INTO MASTER BRANCH!!!!!!!!!!!! PUSH INTO YOUR OWN SEPARATE BRANCHES!!!__
+
 # ArmouryFiveM
 
 In order to be able to run the server:
