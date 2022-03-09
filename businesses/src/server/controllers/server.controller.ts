@@ -44,6 +44,8 @@ export class Server extends ServerEntityWithEntranceController<Business> {
                 return;
             }
 
+            test
+
             this.createEntity({
                 owner: '',
                 level,
