@@ -12,9 +12,12 @@ export class Server extends ServerController {
         RegisterCommand('skills', () => {
             let playerSkills: Skill[] = this.getPlayerSkills(source);
             global.exports['chat'].addMessage(source, '------------------Skills List------------------')
-            playerSkills.forEach((skill: Skill) => {
+            for (const skill of playerSkills){
                 global.exports['chat'].addMessage(source, skill.name + ': ' + skill.value);
-            })
+            }
+            // playerSkills.forEach((skill: Skill) => {
+            //     global.exports['chat'].addMessage(source, skill.name + ': ' + skill.value);
+            // })
         }, false);
     }
 
