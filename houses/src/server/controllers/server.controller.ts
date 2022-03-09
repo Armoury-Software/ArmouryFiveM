@@ -41,7 +41,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
             const position: number[] = GetEntityCoords(GetPlayerPed(source), true);
 
             this.createEntity({
-                owner: 'nobody',
+                owner: '',
                 level,
                 entranceX: position[0],
                 entranceY: position[1],
@@ -175,8 +175,8 @@ export class Server extends ServerEntityWithEntranceController<House> {
         onNet(`${GetCurrentResourceName()}:request-purchase-house`, () => {
             const house: House = this.getClosestEntityOfSameTypeToPlayer(source);
 
-            if (house.owner !== 'nobody' && house.sellingPrice > 0 || house.owner === 'nobody' && house.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(source, 'cash'))) {
-                const housePrice: number = house.owner === 'nobody' ? house.firstPurchasePrice : house.sellingPrice;
+            if (house.owner && house.sellingPrice > 0 || !house.owner && house.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(source, 'cash'))) {
+                const housePrice: number = !house.owner ? house.firstPurchasePrice : house.sellingPrice;
                 
                 TriggerClientEvent(`${GetCurrentResourceName()}:show-dialog`, source, <UIDialog>{
                     title: 'Purchase this house?',
@@ -190,8 +190,8 @@ export class Server extends ServerEntityWithEntranceController<House> {
         onNet(`${GetCurrentResourceName()}:confirm-purchase-house`, async (_source: number) => {
             const house: House = this.getClosestEntityOfSameTypeToPlayer(_source);
 
-            if (house.owner !== 'nobody' && house.sellingPrice > 0 || house.owner === 'nobody' && house.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(_source, 'cash'))) {
-                const housePrice: number = house.owner === 'nobody' ? house.firstPurchasePrice : house.sellingPrice;
+            if (house.owner && house.sellingPrice > 0 || !house.owner && house.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(_source, 'cash'))) {
+                const housePrice: number = !house.owner ? house.firstPurchasePrice : house.sellingPrice;
                 const housePreviousOwner: string = house.owner;
                 
                 house.owner = global.exports['authentication'].getPlayerInfo(_source, 'name');
@@ -213,7 +213,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
             const house: House = this.getClosestEntityOfSameTypeToPlayer(source);
             const playerDBId: number = Number(global.exports['authentication'].getPlayerInfo(source, 'id'));
 
-            if (house.owner !== 'nobody' && house.rentPrice > 0 && house.rentPrice <= Number(global.exports['authentication'].getPlayerInfo(source, 'cash'))) {
+            if (house.owner && house.rentPrice > 0 && house.rentPrice <= Number(global.exports['authentication'].getPlayerInfo(source, 'cash'))) {
                 const rentPrice: number = house.rentPrice;
                 const alreadyRentedHouse: House = this.entities.find((_house: House) => getTenants(house).includes(playerDBId));
 

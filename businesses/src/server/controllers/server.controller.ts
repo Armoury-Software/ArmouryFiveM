@@ -45,7 +45,7 @@ export class Server extends ServerEntityWithEntranceController<Business> {
             }
 
             this.createEntity({
-                owner: 'nobody',
+                owner: '',
                 level,
                 name: BUSINESS_INTERIORS[businessType].name,
                 entranceX: position[0],
@@ -164,8 +164,8 @@ export class Server extends ServerEntityWithEntranceController<Business> {
         onNet(`${GetCurrentResourceName()}:request-purchase-business`, () => {
             const business: Business = this.getClosestEntityOfSameTypeToPlayer(source);
 
-            if (business.owner !== 'nobody' && business.sellingPrice > 0 || business.owner === 'nobody' && business.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(source, 'cash'))) {
-                const businessPrice: number = business.owner === 'nobody' ? business.firstPurchasePrice : business.sellingPrice;
+            if (business.owner && business.sellingPrice > 0 || !business.owner && business.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(source, 'cash'))) {
+                const businessPrice: number = !business.owner ? business.firstPurchasePrice : business.sellingPrice;
                 
                 TriggerClientEvent(`${GetCurrentResourceName()}:show-dialog`, source, <UIDialog>{
                     title: 'Purchase this business?',
@@ -179,8 +179,8 @@ export class Server extends ServerEntityWithEntranceController<Business> {
         onNet(`${GetCurrentResourceName()}:confirm-purchase-business`, async (_source: number) => {
             const business: Business = this.getClosestEntityOfSameTypeToPlayer(_source);
 
-            if (business.owner !== 'nobody' && business.sellingPrice > 0 || business.owner === 'nobody' && business.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(_source, 'cash'))) {
-                const businessPrice: number = business.owner === 'nobody' ? business.firstPurchasePrice : business.sellingPrice;
+            if (business.owner && business.sellingPrice > 0 || !business.owner && business.firstPurchasePrice <= Number(global.exports['authentication'].getPlayerInfo(_source, 'cash'))) {
+                const businessPrice: number = !business.owner ? business.firstPurchasePrice : business.sellingPrice;
                 const businessPreviousOwner: string = business.owner;
                 
                 business.owner = global.exports['authentication'].getPlayerInfo(_source, 'name');

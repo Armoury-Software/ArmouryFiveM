@@ -24,7 +24,7 @@ export class Client extends ClientWithUIController {
 
     private updateUIData(business: Business): void {
         const isOwnedByMe: boolean = business.owner === this.getPlayerInfo('name');
-        const isUnowned: boolean = business.owner === 'nobody';
+        const isUnowned: boolean = !business.owner;
         const businessPrice: number = !isUnowned ? business.sellingPrice : business.firstPurchasePrice;
 
         let title: string = '';
@@ -124,8 +124,8 @@ export class Client extends ClientWithUIController {
             businesses.forEach((business: Business) => {
                 const isOwnedByMe: boolean = (business.owner === this.getPlayerInfo('name'));
                 const amIPartner: boolean = (business.partnerIds.includes(Number(this.getPlayerInfo('id'))));
-                const businessPrice: number = (business.owner === 'nobody' ? business.firstPurchasePrice : (business.sellingPrice > 0 ? business.sellingPrice: 0));
-                const isUnowned: boolean = business.owner === 'nobody';
+                const businessPrice: number = (!business.owner ? business.firstPurchasePrice : (business.sellingPrice > 0 ? business.sellingPrice: 0));
+                const isUnowned: boolean = !business.owner;
 
                 this.createMarkers([{
                     marker: 29,

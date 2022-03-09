@@ -24,7 +24,7 @@ export class Client extends ClientWithUIController {
 
     private updateUIData(house: House): void {
         const isOwnedByMe: boolean = house.owner === this.getPlayerInfo('name');
-        const isUnowned: boolean = house.owner === 'nobody';
+        const isUnowned: boolean = !house.owner;
         const housePrice: number = !isUnowned ? house.sellingPrice : house.firstPurchasePrice;
 
         let title: string = '';
@@ -126,7 +126,7 @@ export class Client extends ClientWithUIController {
 
             houses.forEach((house: House) => {
                 const isOwnedByMe: boolean = (house.owner === this.getPlayerInfo('name'));
-                const isUnowned: boolean = house.owner === 'nobody';
+                const isUnowned: boolean = !house.owner;
 
                 this.createMarkers([{
                     marker: 9,
@@ -163,7 +163,7 @@ export class Client extends ClientWithUIController {
                             DisableControlAction(0, 29, true);
                             
                             BeginTextCommandDisplayHelp("STRING");
-                            AddTextComponentSubstringPlayerName(`Press ~INPUT_PICKUP~ to enter the house.${house.owner !== 'nobody' && house.sellingPrice > 0 ? `~n~Press ~INPUT_SPECIAL_ABILITY_SECONDARY~ to buy for $${numberWithCommas(house.sellingPrice)}.` : ''}`);
+                            AddTextComponentSubstringPlayerName(`Press ~INPUT_PICKUP~ to enter the house.${house.owner && house.sellingPrice > 0 ? `~n~Press ~INPUT_SPECIAL_ABILITY_SECONDARY~ to buy for $${numberWithCommas(house.sellingPrice)}.` : ''}`);
                             EndTextCommandDisplayHelp(0, false, true, 1);
                             
                             if (IsDisabledControlJustPressed(0, 38)) {
