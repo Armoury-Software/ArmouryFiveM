@@ -11,23 +11,37 @@ export class Server extends ServerController {
     private registerCommands(){
         RegisterCommand('skills', () => {
             let playerSkills: Skill[] = this.getPlayerSkills(source);
-            global.exports['chat'].addMessage(source, '------------------Skills List------------------')
-            for (const skill of playerSkills){
-                global.exports['chat'].addMessage(source, skill.name + ': ' + skill.value);
+
+            if (!Array.isArray(playerSkills)) {
+                return;
             }
-            // playerSkills.forEach((skill: Skill) => {
-            //     global.exports['chat'].addMessage(source, skill.name + ': ' + skill.value);
-            // })
+
+            global.exports['chat'].addMessage(source, '------------------Skills List------------------');
+
+            playerSkills.forEach((skill: Skill) => {
+                global.exports['chat'].addMessage(source, skill.name + ': ' + skill.value);
+            })
         }, false);
     }
 
     private updatePlayerSkill(playerId: number, skill: string, value: number): void{
-        const updatedPlayerSkills: Skill[] = this.getPlayerSkills(playerId).map((_skill: Skill) => _skill.name === skill ? { ..._skill, value } : { ..._skill, value: _skill.value })
+
+        const currentPlayerSkills: Skill[] = this.getPlayerSkills(playerId);
+
+        if (!currentPlayerSkills.find((_skill: Skill) => _skill.name === skill)) {
+            currentPlayerSkills.push({ name: skill, value });
+        }
+
+        const updatedPlayerSkills: Skill[] = currentPlayerSkills.map((_skill: Skill) => _skill.name === skill ? { ..._skill, value } : { ..._skill, value: _skill.value })
         global.exports['authentication'].setPlayerInfo(playerId, 'skills', updatedPlayerSkills, false)
     }
 
     public getPlayerSkills(playerId: number): Skill[] {
-        const playerSkills: Skill[] = global.exports['authentication'].getPlayerInfo(playerId, 'skills');
+        let playerSkills: Skill[] = global.exports['authentication'].getPlayerInfo(playerId, 'skills');
+        
+        if (!Array.isArray(playerSkills)) {
+            playerSkills = [];
+        }
 
         return playerSkills;
     }
