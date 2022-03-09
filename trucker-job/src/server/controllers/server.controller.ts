@@ -42,6 +42,7 @@ export class Server extends ServerController {
                 if (isPlayerInRangeOfPoint(position[0], position[1], position[2], deliveryPoint.pos[0], deliveryPoint.pos[1], deliveryPoint.pos[2], 15.0)) {
                     exports['authentication'].setPlayerInfo(target, 'cash', Number(exports['authentication'].getPlayerInfo(target, 'cash')) + (1000 + Math.floor(Math.random() * 1000)), false);
                     TriggerClientEvent(`${GetCurrentResourceName()}:force-showui`, target);
+                    global.exports['skills'].incrementPlayerSkill(source, 'trucker', 0.05);
                     return;
                 }
             });

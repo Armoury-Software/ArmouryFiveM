@@ -1,3 +1,5 @@
+import { Skill } from '../../../../skills/src/shared/models/skill.model';
+
 export interface PlayerBase {
   hoursPlayed: number;
   id: number;
@@ -14,4 +16,5 @@ export interface Player extends PlayerBase {
   email: string;
   name: string;
   phone: number;
+  skills: Skill[];
 }
