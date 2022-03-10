@@ -57,15 +57,14 @@ export class Client extends ClientWithUIController {
 
     private addControllerListeners(): void {
         onNet(`${GetCurrentResourceName()}:begin-job`, async (deliveryPosition: { X: number, Y: number, Z: number }) => {
-            const checkpoint = CreateCheckpoint(2, deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z, null, null, null, 3, 71, 74, 147, 255, 0);
-            ClearGpsPlayerWaypoint();
-            SetNewWaypoint(deliveryPosition.X, deliveryPosition.Y);
-            
+            const deliveryPoint: number = this.createWaypoint([deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z], 'Job - Trucker - Delivery Point', 69, 652);
+
             this.createActionPoints(
                 {
                     pos: [deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z],
                     action: () => {
-                        this.finishDelivery(checkpoint);
+                        this.finishDelivery();
+                        this.clearWaypoint(deliveryPoint);
                     },
                     once: true
                 }
@@ -139,9 +138,8 @@ export class Client extends ClientWithUIController {
         }));
     }
 
-    private finishDelivery(checkpoint: number): void {
+    private finishDelivery(): void {
         emitNet(`${GetCurrentResourceName()}:job-finished`);
-        DeleteCheckpoint(checkpoint);
         DeleteEntity(GetVehicleTrailerVehicle(GetVehiclePedIsUsing(GetPlayerPed(-1)))[1]);
     }
 }

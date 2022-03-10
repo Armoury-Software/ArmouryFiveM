@@ -1,7 +1,9 @@
+import { COLOR_MAPPINGS } from './constants/color.mappings';
+import { ClientBase } from './client.base';
+
 import { Blip, BlipMonitored } from '../models/blip.model';
 import { Marker, MarkerMonitored } from '../models/marker.model';
 import { Delay, isPlayerInRangeOfPoint } from '../utils';
-import { ClientBase } from './client.base';
 
 export class ClientEntities extends ClientBase {
     private _blips: BlipMonitored[] = [];
@@ -24,6 +26,16 @@ export class ClientEntities extends ClientBase {
         return this._peds;
     }
 
+    private _waypoints: number[] = [];
+    protected get waypoints(): number[] {
+        return this._waypoints;
+    }
+
+    private _checkpoints: Map<number, number[]> = new Map();
+    protected get checkpoints(): Map<number, number[]> {
+        return this._checkpoints;
+    }
+
     public constructor() {
         super();
 
@@ -37,6 +49,20 @@ export class ClientEntities extends ClientBase {
         this.refreshBlips();
     }
 
+    protected createBlip(blip: Blip): number {
+        const _blip: number = AddBlipForCoord(blip.pos[0], blip.pos[1], blip.pos[2]);
+        SetBlipSprite(_blip, blip.id);
+        SetBlipDisplay(_blip, 4);
+        SetBlipScale(_blip, 1.0);
+        SetBlipColour(_blip, blip.color);
+        SetBlipAsShortRange(_blip, true);
+        BeginTextCommandSetBlipName('STRING');
+        AddTextComponentString(blip.title);
+        EndTextCommandSetBlipName(_blip);
+
+        return _blip;
+    }
+
     protected clearBlips(): void {
         this._blips.forEach((blip: BlipMonitored) => {
             RemoveBlip(blip.instance);
@@ -48,17 +74,92 @@ export class ClientEntities extends ClientBase {
     private refreshBlips(): void {
         this.blips.forEach((blip: BlipMonitored) => {
             if (!blip.instance) {
-                blip.instance = AddBlipForCoord(blip.pos[0], blip.pos[1], blip.pos[2]);
-                SetBlipSprite(blip.instance, blip.id);
-                SetBlipDisplay(blip.instance, 4);
-                SetBlipScale(blip.instance, 1.0);
-                SetBlipColour(blip.instance, blip.color);
-                SetBlipAsShortRange(blip.instance, true);
-                BeginTextCommandSetBlipName('STRING');
-                AddTextComponentString(blip.title);
-                EndTextCommandSetBlipName(blip.instance);
+                blip.instance = this.createBlip(blip);
             }
         });
+    }
+
+    /** Defines a custom, irreplaceable waypoint */
+    protected createWaypoint(pos: number[], title?: string, color?: number, id?: number, routeColor?: number): number {
+        const currentResource: string = GetCurrentResourceName().replace('-', ' ');
+        const defaultTitle: string = `${currentResource.slice(0, 1).toUpperCase()}${currentResource.slice(1)}`;
+
+        const _waypoint: number = this.createBlip({
+            id: id || 1,
+            color: color || 69,
+            title: title || defaultTitle,
+            pos
+        });
+        this.createCheckpoint(2, pos[0], pos[1], pos[2], null, null, null, 3, COLOR_MAPPINGS[color][0], COLOR_MAPPINGS[color][1], COLOR_MAPPINGS[color][2], 255, 0);
+        
+        SetBlipRoute(_waypoint, true);
+        if (routeColor) {
+            SetBlipRouteColour(_waypoint, routeColor);
+        }
+
+        this._waypoints.push(_waypoint);
+
+        return _waypoint;
+    }
+
+    protected clearWaypoints(): void {
+        this._waypoints.forEach((waypoint: number) => {
+            this.clearWaypoint(waypoint, true);
+        });
+
+        this._waypoints = [];
+    }
+
+    protected clearWaypoint(waypoint: number, ignoreSplice: boolean = false): void {
+        this.clearCheckpointByPosition(GetBlipCoords(waypoint));
+
+        SetBlipRoute(waypoint, false);
+        RemoveBlip(waypoint);
+
+        if (!ignoreSplice) {
+            this._waypoints.splice(this._waypoints.indexOf(waypoint), 1);
+        }
+    }
+
+    protected createCheckpoint(
+        type: number,
+        posX1: number,
+        posY1: number,
+        posZ1: number,
+        posX2: number,
+        posY2: number,
+        posZ2: number,
+        diameter: number, 
+		red: number, 
+		green: number, 
+		blue: number, 
+		alpha: number, 
+		reserved: number
+    ): number {
+        const checkpoint = CreateCheckpoint(type, posX1, posY1, posZ1, posX2, posY2, posZ2, diameter, red, green, blue, alpha, reserved);
+        this._checkpoints.set(checkpoint, [posX1, posY1, posZ1, posX2, posY2, posZ2]);
+
+        return checkpoint;
+    }
+
+    protected clearCheckpoint(checkpoint: number): void {
+        DeleteCheckpoint(checkpoint);
+        if (this._checkpoints.has(checkpoint)) {
+            this._checkpoints.delete(checkpoint);
+        }
+    }
+
+    protected clearCheckpointByPosition(pos: number[]): void {
+        const checkpoint: number = Array.from(this._checkpoints.keys()).find(
+            (_checkpoint: number) =>
+                this._checkpoints.get(_checkpoint)[0] === pos[0]
+                && this._checkpoints.get(_checkpoint)[1] === pos[1]
+                && this._checkpoints.get(_checkpoint)[2] === pos[2]
+        );
+
+        if (checkpoint) {
+            this.clearCheckpoint(checkpoint);
+        }
     }
 
     /** Defines permanent markers. Handles draw-per-tick automatically. */
