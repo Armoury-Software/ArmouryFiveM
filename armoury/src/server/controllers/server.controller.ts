@@ -41,13 +41,17 @@ export class Server extends ServerController {
       RegisterCommand('tp', (source: number, args: string[], _raw: boolean) => {
         switch (args[0]) {
             case 'trucker': {
-                SetEntityCoords(GetPlayerPed(source), 124.60220336914062, -2682.474609375, 10.229248046875, true, false, false, false);
-				break;
+              SetEntityCoords(GetPlayerPed(source), 124.60220336914062, -2682.474609375, 10.229248046875, true, false, false, false);
+				      break;
             }
-			case 'garbageman':{
-				SetEntityCoords(GetPlayerPed(source), -267.5868225097656,197.41978454589844,85.22119140625+4, true, false, false, false);
-				break;
-			}
+			      case 'garbageman':{
+				      SetEntityCoords(GetPlayerPed(source), -267.5868225097656,197.41978454589844,85.22119140625+4, true, false, false, false);
+				      break;
+			      }
+            case 'carrier': {
+              SetEntityCoords(GetPlayerPed(source), -438.3229, -2795.065, 7.295934+1, true, false, false, false);
+				      break;
+            }
         }
       }, false);
     }
