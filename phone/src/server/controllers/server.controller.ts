@@ -9,6 +9,7 @@ export class Server extends ServerDBDependentController<Phone> {
         super(dbTableName);
 
         this.registerListeners();
+        this.fetchOnlinePlayersPhones();
     }
 
     private registerListeners(): void {
@@ -56,15 +57,26 @@ export class Server extends ServerDBDependentController<Phone> {
             this.executeCall(source, callingTo);
         });
 
-        onNet(`${GetCurrentResourceName()}:answer-call`, (answeredTo: number) => {
+        onNet(`${GetCurrentResourceName()}:answer-call`, (answeredToPhone: number) => {
             const currentPlayerPhone: number = Number(global.exports['authentication'].getPlayerInfo(source, 'phone'));
-            this.answerCall(currentPlayerPhone, answeredTo);
+            this.answerCall(currentPlayerPhone, answeredToPhone);
         });
 
         onNet(`${GetCurrentResourceName()}:refuse-call`, (toRefused: number) => {
-            console.log('toRefused:', toRefused);
             const currentPlayerPhone: number = Number(global.exports['authentication'].getPlayerInfo(source, 'phone'));
-            this.refuseCall(currentPlayerPhone, toRefused);
+            
+            if (!toRefused) {
+                console.log('activeConversations:', Array.from(this.activeConversations.keys()), 'values:', Array.from(this.activeConversations.values()));
+                toRefused =
+                    Array.from(this.activeConversations.keys()).find((_phoneNumber: number) => this.activeConversations.get(_phoneNumber) === currentPlayerPhone);
+            }
+
+            if (toRefused) {
+                this.refuseCall(currentPlayerPhone, toRefused);
+            } else if (this.activeConversations.has(currentPlayerPhone)) {
+                console.log('calling this.hangUp (hanging up my own call..)');
+                this.hangUp(currentPlayerPhone, this.activeConversations.get(currentPlayerPhone));
+            }
         });
 
         onNet('authentication:player-authenticated', (playerAuthenticated: number, player: any) => {
@@ -90,10 +102,9 @@ export class Server extends ServerDBDependentController<Phone> {
 
         if (playerFound) {
             console.log('(server.ts:) found a player with that phone number');
-            // TriggerClientEvent(`${GetCurrentResourceName()}:execute-call`, byPlayer, callingTo);
-            // TriggerClientEvent(`${GetCurrentResourceName()}:being-called`, playerFound, callingTo);
-            this.activeConversations.set(byPlayerPhone, playerFound);
-            this.notifyPlayerIsBeingCalled(playerFound, byPlayer);
+            const playerFoundPhone: number = Number(global.exports['authentication'].getPlayerInfo(playerFound, 'phone'));
+            this.activeConversations.set(byPlayerPhone, playerFoundPhone);
+            this.notifyPlayerIsBeingCalled(playerFound, byPlayerPhone);
         } else {
             console.log('(server.ts:) found no player with that phone number');
             console.log('(server.ts:) current phones: ', Array.from(this.phones.keys()), Array.from(this.phones.values()));
@@ -116,27 +127,60 @@ export class Server extends ServerDBDependentController<Phone> {
     private answerCall(playerCalled: number, answeredTo: number): void {
         if (!(this.activeConversations.has(answeredTo) && this.activeConversations.get(answeredTo) === playerCalled)) {
             console.log('(server.ts:) removing active conversation because of issue..');
+            console.log(this.activeConversations);
+            console.log('answeredTo:', answeredTo, 'playerCalled:', playerCalled);
             this.activeConversations.delete(answeredTo);
             return;
         }
-        console.log('(server.ts:) assigning', GetPlayerName(playerCalled), 'and', GetPlayerName(answeredTo), 'into a call..');
+        const playerCalledId: number = this.phones.get(playerCalled);
+        const playerCallerId: number = this.phones.get(answeredTo);
+        console.log('(server.ts:) assigning', GetPlayerName(playerCalledId), 'and', GetPlayerName(playerCallerId), 'into a call..');
 
-        global.exports['pma-voice'].setPlayerCall(answeredTo, answeredTo);
-        global.exports['pma-voice'].setPlayerCall(playerCalled, answeredTo);
+        global.exports['pma-voice'].setPlayerCall(playerCallerId, playerCallerId);
+        global.exports['pma-voice'].setPlayerCall(playerCalledId, playerCallerId);
 
-        const answeredToPlayerID: number = this.phones.get(answeredTo);
-        TriggerClientEvent(`${GetCurrentResourceName()}:called-picked-up`, answeredToPlayerID);
+        TriggerClientEvent(`${GetCurrentResourceName()}:called-picked-up`, playerCallerId);
     }
 
     // First parameter: called player PHONE, second paramater: callER player PHONE
     private refuseCall(playerCalled: number, refusedTo: number): void {
-        console.log('(server.ts:) clearing', GetPlayerName(playerCalled), 'and', GetPlayerName(refusedTo), 'conversation..');
+        this.endCall(refusedTo);
 
-        if (this.activeConversations.has(refusedTo)) {
-            this.activeConversations.delete(refusedTo);
-        }
-
+        console.log('a call has been refused or hanged up on!');
+        console.log('playerCalled:', playerCalled, 'refusedTo:', refusedTo);
         const refusedToPlayerID: number = this.phones.get(refusedTo);
-        TriggerClientEvent(`${GetCurrentResourceName()}:called-refused-call`, refusedToPlayerID);
+        TriggerClientEvent(`${GetCurrentResourceName()}:call-ended`, refusedToPlayerID);
+    }
+
+    private hangUp(callerPhone: number, calledPhone: number): void {
+        this.endCall(callerPhone);
+
+        const calledPlayerId: number = this.phones.get(calledPhone);
+        TriggerClientEvent(`${GetCurrentResourceName()}:call-ended`, calledPlayerId);
+    }
+
+    private fetchOnlinePlayersPhones(): void {
+        const authenticatedPlayers: number[] = global.exports['authentication'].getAuthenticatedPlayers();
+
+        authenticatedPlayers.forEach((authenticatedPlayer: number) => {
+            this.phones.set(
+                Number(global.exports['authentication'].getPlayerInfo(authenticatedPlayer, 'phone')),
+                authenticatedPlayer
+            );
+        });
+
+        console.log('currently authenticated players phones:', this.phones);
+    }
+
+    private endCall(callerPhone: number): void {
+        if (this.activeConversations.has(callerPhone)) {
+            const callerPlayerId: number = this.phones.get(callerPhone);
+            const calledPlayerId: number = this.phones.get(this.activeConversations.get(callerPhone));
+
+            global.exports['pma-voice'].setPlayerCall(calledPlayerId, 0);
+            global.exports['pma-voice'].setPlayerCall(callerPlayerId, 0);
+
+            this.activeConversations.delete(callerPhone);
+        }
     }
 }

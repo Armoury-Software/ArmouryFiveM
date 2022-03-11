@@ -12,6 +12,7 @@ export class Client extends ClientWithUIController {
         this.addUIListener('execute-call');
         this.addUIListener('refuse-call');
         this.addUIListener('answer-call');
+        this.addUIListener('hangup-call');
         this.registerListeners();
         this.registerKeyBindings();
     }
@@ -73,6 +74,11 @@ export class Client extends ClientWithUIController {
             console.log('received refuse-call event. attempting to refuse a call..');
             console.log('event data: ', eventData);
             TriggerServerEvent(`${GetCurrentResourceName()}:refuse-call`, Number(eventData.refusedCaller));
+        }
+
+        if (eventName === 'hangup-call') {
+            console.log('received hangup-call event. attempting to hang up current call..');
+            TriggerServerEvent(`${GetCurrentResourceName()}:refuse-call`);
         }
     }
 
@@ -137,13 +143,15 @@ export class Client extends ClientWithUIController {
         });
 
         onNet(`${GetCurrentResourceName()}:called-picked-up`, () => {
+            console.log('(client.ts:) received called-picked-up event..');
             SendNuiMessage(JSON.stringify({
                 type: 'conversation-started',
                 data: JSON.stringify({})
             }));
         });
 
-        onNet(`${GetCurrentResourceName()}:called-refused-call`, () => {
+        onNet(`${GetCurrentResourceName()}:call-ended`, () => {
+            console.log('(client.ts:) received call-ended event..');
             SendNuiMessage(JSON.stringify({
                 type: 'conversation-ended',
                 data: JSON.stringify({})
