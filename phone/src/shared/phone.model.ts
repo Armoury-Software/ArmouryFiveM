@@ -2,6 +2,12 @@ export interface Phone {
     id: number;
     contacts: PhoneContact[];
     serviceAgents: ServiceContact[];
+    myNumber?: number;
+}
+
+export interface PhoneExtended extends Phone {
+    shouldStartClosed?: boolean;
+    isBeingCalledBy?: number;
 }
 
 export interface PhoneContact {

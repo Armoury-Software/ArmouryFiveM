@@ -1,4 +1,4 @@
-import { Phone, PhoneContact, ServiceContact } from '../../shared/phone.model';
+import { PhoneContact, PhoneExtended, ServiceContact } from '../../shared/phone.model';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { toThousandsString } from '../../../../[utils]/utils';
 
@@ -9,6 +9,9 @@ export class Client extends ClientWithUIController {
         this.addUIListener('add-contact');
         this.addUIListener('request-service-call');
         this.addUIListener('dialogbuttonclick');
+        this.addUIListener('execute-call');
+        this.addUIListener('refuse-call');
+        this.addUIListener('answer-call');
         this.registerListeners();
         this.registerKeyBindings();
     }
@@ -17,10 +20,11 @@ export class Client extends ClientWithUIController {
         super.onForceHideUI();
     }
 
-    public onForceShowUI(data: Phone): void {
+    public onForceShowUI(data: PhoneExtended): void {
+        const wasPreviouslyUsingPhone: boolean = this.isUIShowing();
         super.onForceShowUI(data);
 
-        this.showPhoneUI(data);
+        this.showPhoneUI(data, wasPreviouslyUsingPhone);
     }
 
     protected onIncomingUIMessage(eventName: string, eventData: any): void {
@@ -52,9 +56,27 @@ export class Client extends ClientWithUIController {
         if (eventName === 'dialogbuttonclick') {
             
         }
+
+        if (eventName === 'execute-call') {
+            console.log('received execute-call event. attempting to make a call..');
+            console.log('event data: ', eventData);
+            TriggerServerEvent(`${GetCurrentResourceName()}:execute-call`, Number(eventData.callingTo));
+        }
+
+        if (eventName === 'answer-call') {
+            console.log('received answer-call event. attempting to answer the call..');
+            console.log('event data: ', eventData);
+            TriggerServerEvent(`${GetCurrentResourceName()}:answer-call`, Number(eventData.answeredToCaller));
+        }
+
+        if (eventName === 'refuse-call') {
+            console.log('received refuse-call event. attempting to refuse a call..');
+            console.log('event data: ', eventData);
+            TriggerServerEvent(`${GetCurrentResourceName()}:refuse-call`, Number(eventData.refusedCaller));
+        }
     }
 
-    private showPhoneUI(data: Phone): void {
+    private showPhoneUI(data: PhoneExtended, wasPreviouslyUsingPhone: boolean): void {
         SendNuiMessage(JSON.stringify({
             type: 'update',
             resource: GetCurrentResourceName(),
@@ -91,7 +113,10 @@ export class Client extends ClientWithUIController {
                 }
             ],
             contacts: data.contacts.map((contact: PhoneContact) => ({ ...contact, phone: contact.phone.toString() })),
-            serviceAgents: data.serviceAgents
+            myNumber: data.myNumber,
+            isBeingCalledBy: data.isBeingCalledBy,
+            serviceAgents: data.serviceAgents,
+            shouldStartClosed: !wasPreviouslyUsingPhone && data.isBeingCalledBy != null,
         }));
     }
 
@@ -100,10 +125,28 @@ export class Client extends ClientWithUIController {
             this.showDialog(data);
         });
 
-        onNet(`${GetCurrentResourceName()}:execute-call`, (data: ServiceContact) => {
-            SendNuiMessage(JSON.stringify({
+        onNet(`${GetCurrentResourceName()}:execute-call`, (callingTo: number) => {
+            /*SendNuiMessage(JSON.stringify({
                 type: 'execute-call',
                 contact: data
+            }));*/
+        });
+
+        onNet(`${GetCurrentResourceName()}:being-called`, (calledBy: number) => {
+            
+        });
+
+        onNet(`${GetCurrentResourceName()}:called-picked-up`, () => {
+            SendNuiMessage(JSON.stringify({
+                type: 'conversation-started',
+                data: JSON.stringify({})
+            }));
+        });
+
+        onNet(`${GetCurrentResourceName()}:called-refused-call`, () => {
+            SendNuiMessage(JSON.stringify({
+                type: 'conversation-ended',
+                data: JSON.stringify({})
             }));
         });
     }
