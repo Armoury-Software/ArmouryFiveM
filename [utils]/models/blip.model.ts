@@ -3,6 +3,7 @@ export interface Blip {
     color: number;
     title: string;
     pos: number[];
+    longRange?: boolean;
 }
 
 export interface BlipMonitored extends Blip {

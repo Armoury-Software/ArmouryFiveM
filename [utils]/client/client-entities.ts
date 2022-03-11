@@ -55,7 +55,7 @@ export class ClientEntities extends ClientBase {
         SetBlipDisplay(_blip, 4);
         SetBlipScale(_blip, 1.0);
         SetBlipColour(_blip, blip.color);
-        SetBlipAsShortRange(_blip, true);
+        SetBlipAsShortRange(_blip, !blip.longRange);
         BeginTextCommandSetBlipName('STRING');
         AddTextComponentString(blip.title);
         EndTextCommandSetBlipName(_blip);
@@ -88,7 +88,8 @@ export class ClientEntities extends ClientBase {
             id: id || 1,
             color: color || 69,
             title: title || defaultTitle,
-            pos
+            pos,
+            longRange: true
         });
         this.createCheckpoint(2, pos[0], pos[1], pos[2], null, null, null, 3, COLOR_MAPPINGS[color][0], COLOR_MAPPINGS[color][1], COLOR_MAPPINGS[color][2], 255, 0);
         
@@ -152,9 +153,9 @@ export class ClientEntities extends ClientBase {
     protected clearCheckpointByPosition(pos: number[]): void {
         const checkpoint: number = Array.from(this._checkpoints.keys()).find(
             (_checkpoint: number) =>
-                this._checkpoints.get(_checkpoint)[0] === pos[0]
-                && this._checkpoints.get(_checkpoint)[1] === pos[1]
-                && this._checkpoints.get(_checkpoint)[2] === pos[2]
+                Math.floor(this._checkpoints.get(_checkpoint)[0]) === Math.floor(pos[0])
+                && Math.floor(this._checkpoints.get(_checkpoint)[1]) === Math.floor(pos[1])
+                && Math.floor(this._checkpoints.get(_checkpoint)[2]) === Math.floor(pos[2])
         );
 
         if (checkpoint) {
