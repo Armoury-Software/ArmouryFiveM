@@ -1,5 +1,6 @@
 import { ServerController } from '../../../../[utils]/server/server.controller';
 import { Skill } from '../../../../skills/src/shared/models/skill.model'
+import { WeaponHash } from 'fivem-js';
 
 export class Server extends ServerController {
     private createdVehicles: number[] = [];
@@ -185,7 +186,7 @@ export class Server extends ServerController {
             console.log(`${args[0]}'s cash was set to ${args[1]}$.`);
         }, false);
 
-        this.RegisterAdminCommand('givecash', 6 /* TODO: Change if not right */, (source: number, args: string[]) => {
+        this.RegisterAdminCommand('givecash', 5 /* TODO: Change if not right */, (source: number, args: string[]) => {
             if (args.length < 2) {
                 console.log('ERROR! You should use /givecash <player-name> <value>');
                 return;
@@ -206,6 +207,48 @@ export class Server extends ServerController {
 
             exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[1]) + playerCash, false);
             console.log(`${args[0]} received ${args[1]}$.`)
+        }, false);
+
+        this.RegisterAdminCommand('giveweapon', 4 /* TODO: Change if not right */, (source: number, args: string[]) => {
+            if (args.length < 3) {
+                console.log('ERROR! You should use /giveweapons <player-name> <weapon-name> <no-of-bullets>');
+                return;
+            }
+
+            const targetPlayer: number = this.findTargetPlayer(args[0]);
+
+            if (!this.checkTargetAvailability(targetPlayer)) {
+                return;
+            }
+
+            if (!Number(args[2])) {
+                console.log(`${args[2]} is not a valid value.`);
+                return;
+            }
+
+            const weapon: string = WeaponHash[args[1]];
+
+            if (!weapon) {
+                console.log(`Weapons ${args[1]} not found.`);
+                return;
+            }
+
+            GiveWeaponToPed(GetPlayerPed(targetPlayer), weapon, Number(args[2]), false, false);
+        }, false);
+
+        this.RegisterAdminCommand('removeweapons', 3 /* TODO: Change if not right */, (source: number, args: string[]) => {
+            if (!args.length) {
+                console.log('ERROR! You should use /removeweaopns <player-name>');
+                return;
+            }
+
+            const targetPlayer: number = this.findTargetPlayer(args[0]);
+
+            if (!this.checkTargetAvailability(targetPlayer)) {
+                return;
+            }
+
+            RemoveAllPedWeapons(GetPlayerPed(targetPlayer), true);
         }, false);
     }
 }
