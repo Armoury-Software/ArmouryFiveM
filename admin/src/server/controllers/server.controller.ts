@@ -10,6 +10,28 @@ export class Server extends ServerController {
         this.registerCommands();
     }
 
+    private findTargetPlayer(name: string): number {
+        const players: number[] = global.exports['armoury'].getPlayers()
+
+        let targetPlayer: number;
+
+        players.forEach((player: number) => {
+            if (global.exports['authentication'].getPlayerInfo(player, 'name').toLowerCase() === name.toLowerCase()) {
+                targetPlayer = player;
+            }
+        })
+
+        return targetPlayer;
+    }
+
+    private checkTargetAvailability(targetPlayer: number): boolean{
+        if(!targetPlayer) {
+                console.log(`No player found with specified name.`)
+                return false;
+        }
+        return true;
+    }
+
     private registerCommands(): void {
         RegisterCommand('veh', (source: number, args: string[], _raw: boolean) => {
             if (!args[0]) {
@@ -64,22 +86,18 @@ export class Server extends ServerController {
                 console.log('ERROR! You should use /goto <player-name>');
                 return;
             }
-            
-            const players: number[] = global.exports['armoury'].getPlayers()
+
             let targetPosition: number[];
+            const targetPlayer: number = this.findTargetPlayer(args[0]);
+            
 
-            players.forEach((player: number) => {
-                if (global.exports['authentication'].getPlayerInfo(player, 'name').toLowerCase() === args[0].toLowerCase()) {
-                    targetPosition = GetEntityCoords(GetPlayerPed(player), true);
-                    SetEntityCoords(GetPlayerPed(source), targetPosition[0]+1, targetPosition[1], targetPosition[2], true, false, false, true);
-                }
-            })
-
-            if(!targetPosition) {
-                console.log(`No player found with name ${args[0]}.`)
+            if(!this.checkTargetAvailability(targetPlayer)) {
                 return;
             }
 
+            targetPosition = GetEntityCoords(GetPlayerPed(targetPlayer), true);
+            SetEntityCoords(GetPlayerPed(source), targetPosition[0]+1, targetPosition[1], targetPosition[2], true, false, false, true);
+            
             console.log(`Teleported to ${args[0]}.`);
         }, false);
 
@@ -89,29 +107,21 @@ export class Server extends ServerController {
                 return;
             }
             
-            const players: number[] = global.exports['armoury'].getPlayers()
             const targetPosition: number[] = GetEntityCoords(GetPlayerPed(source), true);
 
-            let targetPlayer: number;
+            const targetPlayer: number = this.findTargetPlayer(args[0]);
 
-            players.forEach((player: number) => {
-                if (global.exports['authentication'].getPlayerInfo(player, 'name').toLowerCase() === args[0].toLowerCase()) {
-                    targetPlayer = player;
-                    SetEntityCoords(GetPlayerPed(player), targetPosition[0]+1, targetPosition[1], targetPosition[2], true, false, false, true);
-                }
-            })
-
-            if(!targetPlayer) {
-                console.log(`No player found with name ${args[0]}`)
+            if(!this.checkTargetAvailability(targetPlayer)) {
                 return;
             }
-
+            
+            SetEntityCoords(GetPlayerPed(targetPlayer), targetPosition[0]+1, targetPosition[1], targetPosition[2], true, false, false, true);
+            
             console.log(`Teleported ${args[0]} to you.`);
         }, false);
 
         this.RegisterAdminCommand('setstat', 5 /* TODO: Change if not right */,(source: number, args: string[]) => {
             const availableStats: string[] = [
-                'cash',
                 'skills'
             ];
 
@@ -122,34 +132,21 @@ export class Server extends ServerController {
                 return;
             }
 
-            const players: number[] = global.exports['armoury'].getPlayers()
+            let targetPlayer: number = this.findTargetPlayer(args[0]);
 
-            let targetPlayer: number;
-
-            players.forEach((player: number) => {
-                if (global.exports['authentication'].getPlayerInfo(player, 'name').toLowerCase() === args[0].toLowerCase()) {
-                    targetPlayer = player;
-                }
-            })
-
-            if(!targetPlayer) {
-                console.log(`No player found with name ${args[0]}`)
+            if(!this.checkTargetAvailability(targetPlayer)) {
                 return;
             }
 
             switch (args[1]) {
-                case 'cash': {
-                    if (Number(args[2])){
-                        exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[2]), false)
-                    } else {
-                        console.log(`${args[2]} is not a valid amount.`)
-                    }
-                    return;
-                }
-
                 case 'skills': {
-                    if(!args[3]){
+                    if (!args[3]) {
                         console.log(`Give a value to said skill, using /setstat <player-name> skills <skill> <value>`);
+                        return;
+                    }
+                    
+                    if (!Number(args[3])) {
+                        console.log(`${args[3]} is not a valid value.`);
                         return;
                     }
                     
@@ -165,6 +162,50 @@ export class Server extends ServerController {
                 }
             }
 
+        }, false);
+
+        this.RegisterAdminCommand('setcash', 5 /* TODO: Change if not right */,(source: number, args: string[]) => {
+            if (args.length < 2) {
+                console.log('ERROR! You should use /setcash <player-name> <value>');
+                return;
+            }
+
+            let targetPlayer: number = this.findTargetPlayer(args[0]);
+
+            if (!this.checkTargetAvailability(targetPlayer)){
+                return;
+            }
+
+            if (!Number(args[1])){
+                console.log(`${args[1]} is not a valid value`);
+                return;
+            }
+
+            exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[1]), false);
+            console.log(`${args[0]}'s cash was set to ${args[1]}$.`);
+        }, false);
+
+        this.RegisterAdminCommand('givecash', 6 /* TODO: Change if not right */, (source: number, args: string[]) => {
+            if (args.length < 2) {
+                console.log('ERROR! You should use /givecash <player-name> <value>');
+                return;
+            }
+
+            const targetPlayer: number = this.findTargetPlayer(args[0]);
+
+            if (!this.checkTargetAvailability(targetPlayer)) {
+                return;
+            }
+
+            if (!Number(args[1])) {
+                console.log(`${args[1]} is not a valid value.`);
+                return;
+            }
+
+            const playerCash: number = exports['authentication'].getPlayerInfo(targetPlayer, 'cash');
+
+            exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[1]) + playerCash, false);
+            console.log(`${args[0]} received ${args[1]}$.`)
         }, false);
     }
 }
