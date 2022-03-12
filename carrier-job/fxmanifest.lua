@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
 
-author 'Antonio'
+author 'Armoury Development Team'
 description 'Armoury Carrier Job'
 version '1.0.0'
 

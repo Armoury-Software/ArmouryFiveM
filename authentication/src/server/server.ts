@@ -127,8 +127,8 @@ exports('getAuthenticatedPlayers', getAuthenticatedPlayers)
 
 const AuthenticatePlayer = (target: number, stats: Player) => {
   /* Set up overlays */
-  global.exports['armoury-overlay'].updateItem(target, { id: 'cash', icon: 'attach_money', value: '' });
-  global.exports['armoury-overlay'].updateItem(target, { id: 'bank', icon: 'account_balance', value: '' });
+  global.exports['armoury-overlay'].updateItem(target, { id: 'cash', icon: 'attach_money', value: '$0' });
+  global.exports['armoury-overlay'].updateItem(target, { id: 'bank', icon: 'account_balance', value: '$0' });
   global.exports['armoury-overlay'].updateItem(target, { id: 'level', icon: 'hourglass_bottom', value: 'Level 1' });
   global.exports['armoury-overlay'].updateItem(target, { id: 'hunger', icon: 'lunch_dining', value: '100%' });
   global.exports['armoury-overlay'].updateItem(target, { id: 'thirst', icon: 'water_drop', value: '100%' });

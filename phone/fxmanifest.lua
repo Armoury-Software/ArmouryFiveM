@@ -13,5 +13,6 @@ files {
     'dist/ui/index.html',
     'dist/ui/*.js',
     'dist/ui/*.css',
-    'dist/ui/**/*.png'
+    'dist/ui/**/*.png',
+    'dist/ui/**/*.mp3'
 }

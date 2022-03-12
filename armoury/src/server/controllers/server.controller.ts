@@ -49,7 +49,7 @@ export class Server extends ServerController {
 				      break;
 			      }
             case 'carrier': {
-              SetEntityCoords(GetPlayerPed(source), -438.3229, -2795.065, 7.295934+1, true, false, false, false);
+              SetEntityCoords(GetPlayerPed(source), -439.8214, -2786.469, 6.000384+2, true, false, false, false);
 				      break;
             }
         }
