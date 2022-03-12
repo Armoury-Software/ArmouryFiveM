@@ -57,5 +57,55 @@ export class Server extends ServerController {
         RegisterCommand('stats', (source: number) => {
             console.log('Routing bucket:', GetEntityRoutingBucket(GetPlayerPed(source)));
         }, false);
+
+        this.RegisterAdminCommand('goto', 1 /* TODO: Change if not right */,(source: number, args: string[]) => {
+            if (!args.length) {
+                console.log('ERROR! You should use /goto <player-name>');
+                return;
+            }
+            
+            const players: number[] = global.exports['armoury'].getPlayers()
+            let targetPosition: number[];
+
+            players.forEach((player: number) => {
+                if (global.exports['authentication'].getPlayerInfo(player, 'name').toLowerCase() === args[0].toLowerCase()) {
+                    targetPosition = GetEntityCoords(GetPlayerPed(player), true);
+                    SetEntityCoords(GetPlayerPed(source), targetPosition[0]+1, targetPosition[1], targetPosition[2], true, false, false, true);
+                }
+            })
+
+            if(!targetPosition) {
+                console.log(`No player found with name ${args[0]}.`)
+                return;
+            }
+
+            console.log(`Teleported to ${args[0]}.`);
+        }, false);
+
+        this.RegisterAdminCommand('gethere', 1 /* TODO: Change if not right */,(source: number, args: string[]) => {
+            if (!args.length) {
+                console.log('ERROR! You should use /gethere <player-name>');
+                return;
+            }
+            
+            const players: number[] = global.exports['armoury'].getPlayers()
+            const targetPosition: number[] = GetEntityCoords(GetPlayerPed(source), true);
+
+            let targetPlayer: number;
+
+            players.forEach((player: number) => {
+                if (global.exports['authentication'].getPlayerInfo(player, 'name').toLowerCase() === args[0].toLowerCase()) {
+                    targetPlayer = player;
+                    SetEntityCoords(GetPlayerPed(player), targetPosition[0]+1, targetPosition[1], targetPosition[2], true, false, false, true);
+                }
+            })
+
+            if(!targetPlayer) {
+                console.log(`No player found with name ${args[0]}`)
+                return;
+            }
+
+            console.log(`Teleported ${args[0]} to you.`);
+        }, false);
     }
 }
