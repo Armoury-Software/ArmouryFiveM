@@ -233,12 +233,14 @@ export class Server extends ServerController {
                 return;
             }
 
-            GiveWeaponToPed(GetPlayerPed(targetPlayer), weapon, Number(args[2]), false, false);
+            global.exports['weapons'].givePlayerWeapon(source, args[1], Number(args[2]));
+            console.log(`Succesfuly gave ${args[0]} the following weapon: ${weapon}.`);
+            console.log(global.exports['authenticate'].getPlayerInfo(targetPlayer, 'weapons')); // TODO: Erase line after debug.
         }, false);
 
         this.RegisterAdminCommand('removeweapons', 3 /* TODO: Change if not right */, (source: number, args: string[]) => {
             if (!args.length) {
-                console.log('ERROR! You should use /removeweaopns <player-name>');
+                console.log('ERROR! You should use /removeweapons <player-name>');
                 return;
             }
 
@@ -248,7 +250,9 @@ export class Server extends ServerController {
                 return;
             }
 
-            RemoveAllPedWeapons(GetPlayerPed(targetPlayer), true);
+            global.exports['weapons'].removePlayerWeapons(targetPlayer);
+            console.log(`Succesfully removed ${args[0]}'s weapons.`)
+            console.log(global.exports['authenticate'].getPlayerInfo(targetPlayer, 'weapons')); // TODO: Erase line after debug.
         }, false);
     }
 }
