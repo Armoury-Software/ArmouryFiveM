@@ -1,4 +1,5 @@
 import { ServerController } from '../../../../[utils]/server/server.controller';
+import { Skill } from '../../../../skills/src/shared/models/skill.model'
 
 export class Server extends ServerController {
     private createdVehicles: number[] = [];
@@ -106,6 +107,64 @@ export class Server extends ServerController {
             }
 
             console.log(`Teleported ${args[0]} to you.`);
+        }, false);
+
+        this.RegisterAdminCommand('setstat', 5 /* TODO: Change if not right */,(source: number, args: string[]) => {
+            const availableStats: string[] = [
+                'cash',
+                'skills'
+            ];
+
+            if (args.length < 3) {
+                console.log('ERROR! You should use /setstat <player-name> <stat> <value>');
+                
+                console.log(`Stats you can set: ${availableStats.join(', ')}`);
+                return;
+            }
+
+            const players: number[] = global.exports['armoury'].getPlayers()
+
+            let targetPlayer: number;
+
+            players.forEach((player: number) => {
+                if (global.exports['authentication'].getPlayerInfo(player, 'name').toLowerCase() === args[0].toLowerCase()) {
+                    targetPlayer = player;
+                }
+            })
+
+            if(!targetPlayer) {
+                console.log(`No player found with name ${args[0]}`)
+                return;
+            }
+
+            switch (args[1]) {
+                case 'cash': {
+                    if (Number(args[2])){
+                        exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[2]), false)
+                    } else {
+                        console.log(`${args[2]} is not a valid amount.`)
+                    }
+                    return;
+                }
+
+                case 'skills': {
+                    if(!args[3]){
+                        console.log(`Give a value to said skill, using /setstat <player-name> skills <skill> <value>`);
+                        return;
+                    }
+                    
+                    global.exports['skills'].updatePlayerSkill(targetPlayer, args[2], args[3])
+                    console.log(`Skill ${args[2]} updated successfuly for player ${args[0]} `);
+                    
+                    return;
+                }
+
+                default: {
+                    console.log(`No stat with name ${args[1]} found`)
+                    return;
+                }
+            }
+
         }, false);
     }
 }
