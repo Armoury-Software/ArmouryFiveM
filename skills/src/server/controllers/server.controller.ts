@@ -19,7 +19,7 @@ export class Server extends ServerController {
             }
 
             playerSkills.forEach((skill: Skill) => {
-                global.exports['chat'].addMessage(source, skill.name + ': ' + skill.value);
+                global.exports['chat'].addMessage(source, skill.name + ': ' + (1 + Math.floor(skill.value)));
             })
         }, false);
     }

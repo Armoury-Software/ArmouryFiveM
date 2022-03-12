@@ -6,6 +6,9 @@ export interface Business {
     entranceX: number;
     entranceY: number;
     entranceZ: number;
+    depositX: number;
+    depositY: number;
+    depositZ: number;
     exitX: number;
     exitY: number;
     exitZ: number;

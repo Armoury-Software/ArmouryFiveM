@@ -14,6 +14,38 @@ export class Server extends ServerEntityWithEntranceController<Business> {
     }
 
     private registerCommands(): void {
+        this.RegisterAdminCommand('setdepositposition', 6, (source: number, args: any[]) => {
+            let business: Business;
+            const position: number[] = GetEntityCoords(GetPlayerPed(source), true);
+            if (args && args[0]) {
+                business = this.getEntityByDBId(Number(args[0]));
+            } else {
+                console.log('Syntax: /setdepositposition <business-id>!')
+            }
+
+            if (!business) {
+                console.log('Failed - Business undefined');
+                return;
+            }
+            business.depositX = position[0];
+            business.depositY = position[1];
+            business.depositZ = position[2];
+            console.log(global.exports['authentication'].getPlayerInfo(source, 'name'), `has set a new deposit position for business ID ${business.id} to X: ${business.depositX.toFixed(4)}, Y:${business.depositY.toFixed(4)}, Z:${business.depositZ.toFixed(4)}!`);
+            this.saveDBEntityAsync(business.id);
+        }, false);
+
+        this.RegisterAdminCommand('bizid', 1, (source:number) => {
+            let business: Business = this.getClosestEntityOfSameTypeToPlayer(source);
+            
+            if (!business) {
+                console.log("Failed - No business close to player.")
+                return;
+            }
+
+            console.log(`Closest business ID is: ${business.id}`);
+            return;
+        }, false)
+
         this.RegisterAdminCommand('removebusiness', 6, (source: number, args: any[]) => {
             let business: Business = this.getClosestEntityOfSameTypeToPlayer(source);
             if (args && args[0]) {
