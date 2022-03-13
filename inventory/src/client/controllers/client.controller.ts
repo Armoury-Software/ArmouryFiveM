@@ -23,7 +23,7 @@ export class Client extends ClientWithUIController {
       const phone: number = Number(this.getPlayerInfo('phone'));
 
       const items: ItemList = {
-        house_keys: (!Array.isArray(houseKeys) ? [houseKeys] : houseKeys).map((key: number) => ({
+        house_keys: (!Array.isArray(houseKeys) ? [houseKeys] : houseKeys).filter((key: number) => (key !== -1)).map((key: number) => ({
           topLeft: '1',
           bottomRight: '#' + key,
           outline: '#293577',
@@ -32,7 +32,7 @@ export class Client extends ClientWithUIController {
           type: 'house',
           description: `A clean key made of brass. Unlocks the door to House #${key}.`
         })),
-        business_keys: (!Array.isArray(businessKeys) ? [businessKeys] : businessKeys).map((key: number) => ({
+        business_keys: (!Array.isArray(businessKeys) ? [businessKeys] : businessKeys).filter((key: number) => (key !== -1)).map((key: number) => ({
           topLeft: '1',
           bottomRight: '#' + key,
           outline: '#31644f',
