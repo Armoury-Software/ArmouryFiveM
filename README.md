@@ -33,6 +33,7 @@ ensure phone
 ensure pma-voice
 ensure payday
 ensure skills
+ensure banking
 ```
 3. Add the following at the bottom of your server.cfg:
 ```
