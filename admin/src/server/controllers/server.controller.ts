@@ -234,8 +234,7 @@ export class Server extends ServerController {
             }
 
             global.exports['weapons'].givePlayerWeapon(source, args[1], Number(args[2]));
-            console.log(`Succesfuly gave ${args[0]} the following weapon: ${weapon}.`);
-            console.log(global.exports['authenticate'].getPlayerInfo(targetPlayer, 'weapons')); // TODO: Erase line after debug.
+            console.log(`Succesfuly gave ${args[0]} the following weapon: ${args[1]}.`);
         }, false);
 
         this.RegisterAdminCommand('removeweapons', 3 /* TODO: Change if not right */, (source: number, args: string[]) => {
@@ -251,8 +250,7 @@ export class Server extends ServerController {
             }
 
             global.exports['weapons'].removePlayerWeapons(targetPlayer);
-            console.log(`Succesfully removed ${args[0]}'s weapons.`)
-            console.log(global.exports['authenticate'].getPlayerInfo(targetPlayer, 'weapons')); // TODO: Erase line after debug.
+            console.log(`Succesfully removed ${args[0]}'s weapons.`);
         }, false);
     }
 }

@@ -1,4 +1,4 @@
-import { Weapon } from '../../shared/models/weapon.model';
+import { Weapon, Weapons } from '../../shared/models/weapon.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
 import { WeaponHash } from 'fivem-js';
 
@@ -10,14 +10,15 @@ export class Server extends ServerController {
     }
 
     public givePlayerWeapon(playerId: number, weapon: string, ammo: number): void {
-        const currentPlayerWeapons: Weapon[] = this.getPlayerWeapons(playerId);
+        const currentPlayerWeapons: Weapons = this.getPlayerWeapons(playerId);
 
-        if (!currentPlayerWeapons.find((_weapon: Weapon) => _weapon.name === weapon)) {
-            currentPlayerWeapons.push({ name: weapon, ammo });
+        if (!currentPlayerWeapons[weapon]) {
+            currentPlayerWeapons[weapon] = { ammo };
+        } else {
+            currentPlayerWeapons[weapon] = { ...currentPlayerWeapons[weapon], ammo: ammo + currentPlayerWeapons[weapon].ammo }
         }
 
-        const updatedPlayerSkills: Weapon[] = currentPlayerWeapons.map((_weapon: Weapon) => _weapon.name === weapon ? { ..._weapon, ammo } : { ..._weapon, value: _weapon.ammo });
-        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', updatedPlayerSkills, false);
+        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons, false);
 
         this.updatePedWeapons(playerId);
     }
@@ -39,13 +40,18 @@ export class Server extends ServerController {
     }
 
     public updatePedWeapons(playerId: number): void {
-        let playerWeapons: Weapon[] = this.getPlayerWeapons(playerId);
+        let playerWeapons: Weapons = this.getPlayerWeapons(playerId);
 
         RemoveAllPedWeapons(GetPlayerPed(playerId), true);
 
-        playerWeapons.forEach((_weapon: Weapon) => {
-            GiveWeaponToPed(GetPlayerPed(playerId), WeaponHash[_weapon.name], _weapon.ammo, false, false);
-        })
+        for (let weapon in playerWeapons) {
+            const _weapon: number = Number(weapon);
+            
+            GiveWeaponToPed(GetPlayerPed(playerId), WeaponHash[_weapon], playerWeapons[weapon], false, false);
+            const informatiiDespreArmaRespectiva: Weapon = playerWeapons[weapon];
+        }
+            GiveWeaponToPed(GetPlayerPed(playerId), WeaponHash[_weapon]], _weapon.ammo, false, false);
+        
     }
 
     private assignExports(): void {

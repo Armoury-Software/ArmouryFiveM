@@ -1,4 +1,7 @@
+export interface Weapons {
+    [weapon: number]: Weapon
+}
+
 export interface Weapon {
-    name: string,
     ammo: number
 }
