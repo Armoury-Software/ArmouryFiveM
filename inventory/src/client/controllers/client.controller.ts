@@ -1,7 +1,7 @@
 import { ItemList } from '../../shared/item-list.model';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { phoneFormatted } from '../../../../[utils]/utils';
-import { Weapon } from '../../../../weapons/src/shared/models/weapon.model'
+import { Weapons } from '../../../../weapons/src/shared/models/weapon.model'
 
 export class Client extends ClientWithUIController {
     public constructor() {
@@ -21,7 +21,7 @@ export class Client extends ClientWithUIController {
     private showInventoryUI(): void {
       let houseKeys: number | number[] = <number[]>this.getPlayerInfo('housekeys');
       let businessKeys: number | number[] = <number[]>this.getPlayerInfo('businesskeys');
-      let weapons: string | string[] = <string[]>this.getPlayerInfo('weapons');
+      let weapons: Weapons = this.getPlayerInfo('weapons');
       const phone: number = Number(this.getPlayerInfo('phone'));
 
       const items: ItemList = {
@@ -44,15 +44,15 @@ export class Client extends ClientWithUIController {
           description: `A clean key made of brass. Unlocks the door to Business #${key}.`
         })),
         vehicles: [],
-        weapons: (!Array.isArray(weapons) ? [weapons] : weapons).map((name: string) => ({
+        weapons: /*(!Array.isArray(weapons) ? [weapons] : weapons).map((name: string) => ({
           topLeft: '1',
-          bottomRight: name,
+          bottomRight: name + ', ' + weapons[name].ammo,
           outline: '#293577',
-          image: 'ak-47',
+          image: name,
           width: 65,
           type: 'weapons',
-          description: `A weapon, used for agressive things.`
-        })),
+          description: `A weapon.`
+        })),*/[],
         misc: [
           ...(phone > 0 ? [{
               topLeft: '1',
