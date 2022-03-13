@@ -8,6 +8,7 @@ export interface Phone {
 export interface PhoneExtended extends Phone {
     shouldStartClosed?: boolean;
     isBeingCalledBy?: number;
+    cachedTransactions?: any[];
 }
 
 export interface PhoneContact {

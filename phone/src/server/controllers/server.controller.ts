@@ -53,7 +53,6 @@ export class Server extends ServerDBDependentController<Phone> {
         });
 
         onNet(`${GetCurrentResourceName()}:execute-call`, (callingTo: number) => {
-            console.log('attempting to start a call on server.ts. source:', source, 'callingTo:', callingTo);
             this.executeCall(source, callingTo);
         });
 
@@ -66,7 +65,6 @@ export class Server extends ServerDBDependentController<Phone> {
             const currentPlayerPhone: number = Number(global.exports['authentication'].getPlayerInfo(source, 'phone'));
             
             if (!toRefused) {
-                console.log('activeConversations:', Array.from(this.activeConversations.keys()), 'values:', Array.from(this.activeConversations.values()));
                 toRefused =
                     Array.from(this.activeConversations.keys()).find((_phoneNumber: number) => this.activeConversations.get(_phoneNumber) === currentPlayerPhone);
             }
@@ -74,7 +72,6 @@ export class Server extends ServerDBDependentController<Phone> {
             if (toRefused) {
                 this.refuseCall(currentPlayerPhone, toRefused);
             } else if (this.activeConversations.has(currentPlayerPhone)) {
-                console.log('calling this.hangUp (hanging up my own call..)');
                 this.hangUp(currentPlayerPhone, this.activeConversations.get(currentPlayerPhone));
             }
         });
@@ -95,19 +92,13 @@ export class Server extends ServerDBDependentController<Phone> {
 
     // First parameter: caller player ID, second parameter: callED player PHONE
     private executeCall(byPlayer: number, callingTo: number): void {
-        console.log('(server.ts:) finding a player with that phone number (' + callingTo + ')');
-        console.log('(server.ts:) typeof callingTo: ', typeof(callingTo));
         const playerFound: number = this.phones.get(callingTo);
         const byPlayerPhone: number = Number(global.exports['authentication'].getPlayerInfo(byPlayer, 'phone'));
 
         if (playerFound) {
-            console.log('(server.ts:) found a player with that phone number');
             const playerFoundPhone: number = Number(global.exports['authentication'].getPlayerInfo(playerFound, 'phone'));
             this.activeConversations.set(byPlayerPhone, playerFoundPhone);
             this.notifyPlayerIsBeingCalled(playerFound, byPlayerPhone);
-        } else {
-            console.log('(server.ts:) found no player with that phone number');
-            console.log('(server.ts:) current phones: ', Array.from(this.phones.keys()), Array.from(this.phones.values()));
         }
     }
 
@@ -126,15 +117,11 @@ export class Server extends ServerDBDependentController<Phone> {
     // First parameter: called player PHONE, second parameter: callER player PHONE
     private answerCall(playerCalled: number, answeredTo: number): void {
         if (!(this.activeConversations.has(answeredTo) && this.activeConversations.get(answeredTo) === playerCalled)) {
-            console.log('(server.ts:) removing active conversation because of issue..');
-            console.log(this.activeConversations);
-            console.log('answeredTo:', answeredTo, 'playerCalled:', playerCalled);
             this.activeConversations.delete(answeredTo);
             return;
         }
         const playerCalledId: number = this.phones.get(playerCalled);
         const playerCallerId: number = this.phones.get(answeredTo);
-        console.log('(server.ts:) assigning', GetPlayerName(playerCalledId), 'and', GetPlayerName(playerCallerId), 'into a call..');
 
         global.exports['pma-voice'].setPlayerCall(playerCallerId, playerCallerId);
         global.exports['pma-voice'].setPlayerCall(playerCalledId, playerCallerId);
@@ -146,8 +133,6 @@ export class Server extends ServerDBDependentController<Phone> {
     private refuseCall(playerCalled: number, refusedTo: number): void {
         this.endCall(refusedTo);
 
-        console.log('a call has been refused or hanged up on!');
-        console.log('playerCalled:', playerCalled, 'refusedTo:', refusedTo);
         const refusedToPlayerID: number = this.phones.get(refusedTo);
         TriggerClientEvent(`${GetCurrentResourceName()}:call-ended`, refusedToPlayerID);
     }
@@ -168,8 +153,6 @@ export class Server extends ServerDBDependentController<Phone> {
                 authenticatedPlayer
             );
         });
-
-        console.log('currently authenticated players phones:', this.phones);
     }
 
     private endCall(callerPhone: number): void {
