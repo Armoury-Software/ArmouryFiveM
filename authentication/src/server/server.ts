@@ -1,7 +1,9 @@
+import { whirlpool } from 'hash-wasm';
+
 import { authenticationDTO } from '../shared/models/authentication.model';
 import { Player, PlayerBase, PlayerMonitored } from '../shared/models/player.model';
 import { toThousandsString, numberWithCommas, isJSON } from '../../../[utils]/utils';
-import { whirlpool } from 'hash-wasm';
+import { PlayerInfoType } from '../shared/models/player-info.type';
 
 const cachedPlayerProperties: string[] = [];
 const authenticatedPlayers: Map<number, PlayerMonitored> = new Map();
@@ -44,10 +46,10 @@ function getHashPasswordWithSalt(password: string, email: string): string {
   return email.slice(0, 3) + password + email.slice(3, 6);
 }
 
-function setPlayerInfo(source: number, stat: string, _value: number | string | number[] | string[], ignoreSQLCommand: boolean = true, ...additionalValues: { stat: string, _value: number | string | number[] | string[] }[]): void {
+function setPlayerInfo(source: number, stat: string, _value: PlayerInfoType, ignoreSQLCommand: boolean = true, ...additionalValues: { stat: string, _value: PlayerInfoType }[]): void {
   let value = _value;
 
-  if (Array.isArray(_value)) {
+  if (Array.isArray(_value) || typeof(_value) === 'object') {
     value = JSON.stringify(_value);
   }
   
@@ -84,8 +86,8 @@ function setPlayerInfo(source: number, stat: string, _value: number | string | n
   }
 }
 
-function getPlayerInfo<T extends string | number | string[] | number[]>(source: number, stat: string): T {
-  let value: string | number | string[] | number[] = GetConvar(`${source}_PI_${stat}`, '-1');
+function getPlayerInfo<T extends PlayerInfoType>(source: number, stat: string): T {
+  let value: PlayerInfoType = GetConvar(`${source}_PI_${stat}`, '-1');
 
   if (isJSON(value.toString())) {
     value = JSON.parse(value, function(_k, v) { return (typeof v === "object" || isNaN(v)) ? v : Number(v); });
