@@ -1,6 +1,7 @@
 import { ServerController } from '../../../../[utils]/server/server.controller';
-import { Skill } from '../../../../skills/src/shared/models/skill.model'
 import { WeaponHash } from 'fivem-js';
+import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon'
+import { assert } from 'console';
 
 export class Server extends ServerController {
     private createdVehicles: number[] = [];
@@ -229,11 +230,11 @@ export class Server extends ServerController {
             const weapon: string = WeaponHash[args[1]];
 
             if (!weapon) {
-                console.log(`Weapons ${args[1]} not found.`);
+                console.log(`Weapon ${args[1]} not found.`);
                 return;
             }
 
-            global.exports['weapons'].givePlayerWeapon(source, args[1], Number(args[2]));
+            global.exports['weapons'].givePlayerWeapon(targetPlayer, WeaponHash[args[1]], Number(args[2]));
             console.log(`Succesfuly gave ${args[0]} the following weapon: ${args[1]}.`);
         }, false);
 
@@ -252,5 +253,10 @@ export class Server extends ServerController {
             global.exports['weapons'].removePlayerWeapons(targetPlayer);
             console.log(`Succesfully removed ${args[0]}'s weapons.`);
         }, false);
+
+        this.RegisterAdminCommand('testc', 1, (source:number, args: string[]) => {
+            console.log(GetWeaponClipSize('MG'));
+            console.log(GetWeaponClipSize(WeaponHash.MG));
+        }, false)
     }
 }

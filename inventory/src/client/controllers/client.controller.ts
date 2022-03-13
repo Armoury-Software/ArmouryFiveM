@@ -2,6 +2,7 @@ import { ItemList } from '../../shared/item-list.model';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { phoneFormatted } from '../../../../[utils]/utils';
 import { Weapons } from '../../../../weapons/src/shared/models/weapon.model'
+import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon'
 
 export class Client extends ClientWithUIController {
     public constructor() {
@@ -55,8 +56,8 @@ export class Client extends ClientWithUIController {
         })),
         vehicles: [],
         weapons: mappedWeapons.map((weapon: { name: string, ammo: number }) => ({
-          topLeft: weapon.name,
-          bottomRight: `${weapon.ammo % 24}/${weapon.ammo / 24}`,
+          topLeft: WEAPON_NAMES[weapon.name],
+          bottomRight: `${weapon.ammo % GetWeaponClipSize(weapon.name)}/${weapon.ammo / GetWeaponClipSize(weapon.name)}`,
           outline: '#6e2937',
           image: 'ak-47',
           width: 100,

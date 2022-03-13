@@ -1,6 +1,5 @@
-import { Weapon, Weapons } from '../../shared/models/weapon.model';
+import { Weapons } from '../../shared/models/weapon.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
-import { WeaponHash } from 'fivem-js';
 
 export class Server extends ServerController {
     public constructor(){
@@ -18,24 +17,23 @@ export class Server extends ServerController {
             currentPlayerWeapons[weapon] = { ...currentPlayerWeapons[weapon], ammo: ammo + currentPlayerWeapons[weapon].ammo }
         }
 
-        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons, false);
+        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons);
         
         this.updatePedWeapons(playerId, weapon, ammo);
     }
 
     public removePlayerWeapons(playerId: number): void {
-        const playerWeapons: Weapon[] = [];
-        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', playerWeapons);
+        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', {});
         RemoveAllPedWeapons(GetPlayerPed(playerId), true);
     }
 
     public getPlayerWeapons(playerId: number): Weapons {
-        return global.exports['authentication'].getPlayerInfo(playerId, 'weapons');
+        return typeof(global.exports['authentication'].getPlayerInfo(playerId, 'weapons')) === 'object' ? <Weapons>global.exports['authentication'].getPlayerInfo(playerId, 'weapons') : {};
     }
 
     public updatePedWeapons(playerId: number, weapon?: string, ammo?: number): void {
         if (weapon) {
-            GiveWeaponToPed(GetPlayerPed(playerId), WeaponHash[weapon], ammo, false, false);
+            GiveWeaponToPed(GetPlayerPed(playerId), weapon, ammo, false, false);
             return;
         }
         
@@ -46,7 +44,7 @@ export class Server extends ServerController {
         for (let weapon in playerWeapons) {
             const _weapon: number = Number(weapon);
             const _weaponAmmo: number = playerWeapons[_weapon].ammo;
-            GiveWeaponToPed(GetPlayerPed(playerId), WeaponHash[_weapon], _weaponAmmo, false, false);
+            GiveWeaponToPed(GetPlayerPed(playerId), _weapon, _weaponAmmo, false, false);
         }
         
     }
