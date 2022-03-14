@@ -80,7 +80,7 @@ function setPlayerInfo(source: number, stat: string, _value: PlayerInfoType, ign
       `UPDATE \`players\` SET ${statsString} WHERE id = ?`,
       [
         value,
-        ...additionalValues.map((additionalValue) => Array.isArray(additionalValue._value) ? JSON.stringify(additionalValue._value) : additionalValue._value),
+        ...additionalValues.map((additionalValue) => (Array.isArray(additionalValue._value) || typeof(additionalValue._value) === 'object') ? JSON.stringify(additionalValue._value) : additionalValue._value),
         getPlayerInfo(source, 'id')
       ]
     );
