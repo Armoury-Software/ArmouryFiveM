@@ -1,7 +1,5 @@
 import { ServerController } from '../../../../[utils]/server/server.controller';
 import { WeaponHash } from 'fivem-js';
-import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon'
-import { assert } from 'console';
 
 export class Server extends ServerController {
     private createdVehicles: number[] = [];

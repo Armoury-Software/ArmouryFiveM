@@ -21,6 +21,7 @@ ensure hardcap
 ensure oxmysql
 ensure inventory
 ensure trucker-job
+ensure carrier-job
 ensure houses
 ensure houses-menu
 ensure businesses
@@ -33,6 +34,7 @@ ensure phone
 ensure pma-voice
 ensure payday
 ensure skills
+ensure banking
 ```
 3. Add the following at the bottom of your server.cfg:
 ```

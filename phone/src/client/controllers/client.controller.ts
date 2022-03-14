@@ -3,6 +3,8 @@ import { ClientWithUIController } from '../../../../[utils]/client/client-ui.con
 import { toThousandsString } from '../../../../[utils]/utils';
 
 export class Client extends ClientWithUIController {
+    private cachedTransactionsToAdd: any[] = [];
+
     public constructor() {
         super();
 
@@ -25,7 +27,17 @@ export class Client extends ClientWithUIController {
         const wasPreviouslyUsingPhone: boolean = this.isUIShowing();
         super.onForceShowUI(data);
 
-        this.showPhoneUI(data, wasPreviouslyUsingPhone);
+        this.showPhoneUI(
+            {
+                ...data,
+                ...(this.cachedTransactionsToAdd.length ? {
+                    cachedTransactions: this.cachedTransactionsToAdd
+                } : {})
+            },
+            wasPreviouslyUsingPhone
+        );
+
+        this.cachedTransactionsToAdd = [];
     }
 
     protected onIncomingUIMessage(eventName: string, eventData: any): void {
@@ -59,25 +71,18 @@ export class Client extends ClientWithUIController {
         }
 
         if (eventName === 'execute-call') {
-            console.log('received execute-call event. attempting to make a call..');
-            console.log('event data: ', eventData);
             TriggerServerEvent(`${GetCurrentResourceName()}:execute-call`, Number(eventData.callingTo));
         }
 
         if (eventName === 'answer-call') {
-            console.log('received answer-call event. attempting to answer the call..');
-            console.log('event data: ', eventData);
             TriggerServerEvent(`${GetCurrentResourceName()}:answer-call`, Number(eventData.answeredToCaller));
         }
 
         if (eventName === 'refuse-call') {
-            console.log('received refuse-call event. attempting to refuse a call..');
-            console.log('event data: ', eventData);
             TriggerServerEvent(`${GetCurrentResourceName()}:refuse-call`, Number(eventData.refusedCaller));
         }
 
         if (eventName === 'hangup-call') {
-            console.log('received hangup-call event. attempting to hang up current call..');
             TriggerServerEvent(`${GetCurrentResourceName()}:refuse-call`);
         }
     }
@@ -103,6 +108,11 @@ export class Client extends ClientWithUIController {
                     page: 'messages'
                 },
                 {
+                    icon: 'savings',
+                    text: 'Mobile Banking',
+                    page: 'mobile-banking'
+                },
+                {
                     icon: 'support',
                     text: 'Services',
                     page: 'services'
@@ -123,6 +133,9 @@ export class Client extends ClientWithUIController {
             isBeingCalledBy: data.isBeingCalledBy,
             serviceAgents: data.serviceAgents,
             shouldStartClosed: !wasPreviouslyUsingPhone && data.isBeingCalledBy != null,
+            bankAccount: Number(this.getPlayerInfo('bank')),
+            myName: this.getPlayerInfo('name'),
+            cachedTransactions: data.cachedTransactions
         }));
     }
 
@@ -143,7 +156,6 @@ export class Client extends ClientWithUIController {
         });
 
         onNet(`${GetCurrentResourceName()}:called-picked-up`, () => {
-            console.log('(client.ts:) received called-picked-up event..');
             SendNuiMessage(JSON.stringify({
                 type: 'conversation-started',
                 data: JSON.stringify({})
@@ -151,11 +163,24 @@ export class Client extends ClientWithUIController {
         });
 
         onNet(`${GetCurrentResourceName()}:call-ended`, () => {
-            console.log('(client.ts:) received call-ended event..');
             SendNuiMessage(JSON.stringify({
                 type: 'conversation-ended',
                 data: JSON.stringify({})
             }));
+        });
+
+        onNet(`${GetCurrentResourceName()}:banking-transaction-add`, (transaction) => {
+            if (this.isUIShowing()) {
+                SendNuiMessage(JSON.stringify({
+                    type: 'transaction-created',
+                    data: JSON.stringify({
+                        resource: GetCurrentResourceName(),
+                        transaction
+                    })
+                }));
+            } else {
+                this.cachedTransactionsToAdd.push(transaction);
+            }
         });
     }
 
@@ -176,6 +201,5 @@ export class Client extends ClientWithUIController {
         RegisterCommand('phone', () => {
             TriggerServerEvent(`${GetCurrentResourceName()}:request-use-phone`);
         }, false);
-
     }
 }

@@ -33,8 +33,8 @@ export class Server extends ServerController {
           const vehicleInsurance: number = /* TODO: Vehicle insurance */0;
           const vehicleContributions: number = /* TODO: Vehicle contributions */0;
 
-          const earnings: number = 
-            salary + interest
+          const totalTaxes: number =
+            0
             - (housePrice > 0 ? taxes.get('electricity') : 0)
             - (housePrice > 0 ? taxes.get('gas') : 0)
             - (housePrice > 0 ? houseTax : 0)
@@ -45,11 +45,12 @@ export class Server extends ServerController {
             - taxes.get('phone')
           ;
 
-          global.exports['authentication'].setPlayerInfo(
-            player,
-            'bank',
-            Number(global.exports['authentication'].getPlayerInfo(player, 'bank')) + earnings
-          );
+          if (interest > 0) {
+            global.exports['banking'].addBankMoney(player, interest, 'Interest', 'Based on your savings', true);
+          }
+
+          global.exports['banking'].addBankMoney(player, totalTaxes, 'Taxes', 'Services and insurances', true);
+          global.exports['banking'].addBankMoney(player, salary, 'Payday', 'Your latest paycheck', true);
 
           const payday: Payday = {
             gainings: [

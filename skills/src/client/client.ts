@@ -1,3 +1,4 @@
 import { Client } from './controllers/client.controller';
 
-var client = new Client();
+// eslint-disable-next-line no-unused-vars
+const client = new Client();
