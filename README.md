@@ -21,6 +21,7 @@ ensure hardcap
 ensure oxmysql
 ensure inventory
 ensure trucker-job
+ensure carrier-job
 ensure houses
 ensure houses-menu
 ensure businesses
