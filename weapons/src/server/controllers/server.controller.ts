@@ -1,6 +1,5 @@
 import { Weapons } from '../../shared/models/weapon.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
-import { WEAPON_NAMES } from '../../shared/weapon';
 
 export class Server extends ServerController {
     public constructor(){
@@ -20,8 +19,7 @@ export class Server extends ServerController {
         }
 
         global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons);
-        
-        this.updatePedWeapons(playerId, weapon, ammo);
+        this.loadPlayerWeapons(playerId);
     }
 
     public removePlayerWeapons(playerId: number): void {
@@ -33,17 +31,10 @@ export class Server extends ServerController {
         return typeof(global.exports['authentication'].getPlayerInfo(playerId, 'weapons')) === 'object' ? <Weapons>global.exports['authentication'].getPlayerInfo(playerId, 'weapons') : {};
     }
 
-    public updatePedWeapons(playerId: number, weapon?: string, ammo?: number): void {
-        if (weapon) {
-            GiveWeaponToPed(GetPlayerPed(playerId), weapon, ammo, false, false);
-            return;
-        }
-        
+    public loadPlayerWeapons(playerId: number): void {
         const playerWeapons: Weapons = this.getPlayerWeapons(playerId);
-        for (let __weapon in playerWeapons) {
-            const _weapon: number = Number(__weapon);
-            const _weaponAmmo: number = playerWeapons[_weapon].ammo;
-            GiveWeaponToPed(GetPlayerPed(playerId), _weapon, _weaponAmmo, false, false);
+        for (let weapon in playerWeapons) {
+            GiveWeaponToPed(GetPlayerPed(playerId), weapon, playerWeapons[weapon].ammo, false, false);
         }
     }
 
@@ -51,26 +42,16 @@ export class Server extends ServerController {
         exports('givePlayerWeapon', this.givePlayerWeapon.bind(this));
         exports('removePlayerWeapons', this.removePlayerWeapons.bind(this));
         exports('getPlayerWeapons', this.getPlayerWeapons.bind(this));
-        exports('updatePedWeapons', this.updatePedWeapons.bind(this));
+        exports('loadPlayerWeapons', this.loadPlayerWeapons.bind(this));
     }
 
     public assignListeners(): void {
         onNet("authentication:player-authenticated", (source: number) => {
-            setTimeout(() => { this.updatePedWeapons(source) }, 1000);
+            setTimeout(() => { this.loadPlayerWeapons(source) }, 1000);
         });
 
         onNet("armoury:onPlayerDeath", () => {
             this.removePlayerWeapons(source);
-        })
-
-        // onNet(`${GetCurrentResourceName()}:player-shot`, (source: number) => {
-        //     const weaponUsed: number = GetSelectedPedWeapon(GetPlayerPed(source));
-        //     let weapons: Weapons = global.exports['authentication'].getPlayerInfo(source, 'weapons');
-        //     weapons[weaponUsed].ammo -= 1;
-        //     console.log(source);
-        //     console.log(weapons);
-        //     console.log(weaponUsed);
-        //     global.exports['authentication'].setPlayerInfo(source, 'weapons', weapons);
-        // })
+        });
     }
 }
