@@ -56,14 +56,21 @@ export class Server extends ServerController {
 
     public assignListeners(): void {
         onNet("authentication:player-authenticated", (source: number) => {
-            this.updatePedWeapons(source);
+            setTimeout(() => { this.updatePedWeapons(source) }, 1000);
         });
 
-        on('CEventGunShot', (source: number) => {
-            const weaponUsed: number = GetSelectedPedWeapon(GetPlayerPed(source));
-            let weapons: Weapons = global.exports['authentication'].getPlayerInfo(source, 'weapons');
-            weapons[weaponUsed].ammo -= 1;
-            global.exports['authentication'].setPlayerInfo(source, 'weapons', weapons);
-        });
+        onNet("armoury:onPlayerDeath", () => {
+            this.removePlayerWeapons(source);
+        })
+
+        // onNet(`${GetCurrentResourceName()}:player-shot`, (source: number) => {
+        //     const weaponUsed: number = GetSelectedPedWeapon(GetPlayerPed(source));
+        //     let weapons: Weapons = global.exports['authentication'].getPlayerInfo(source, 'weapons');
+        //     weapons[weaponUsed].ammo -= 1;
+        //     console.log(source);
+        //     console.log(weapons);
+        //     console.log(weaponUsed);
+        //     global.exports['authentication'].setPlayerInfo(source, 'weapons', weapons);
+        // })
     }
 }
