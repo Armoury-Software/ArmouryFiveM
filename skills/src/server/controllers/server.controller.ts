@@ -24,14 +24,14 @@ export class Server extends ServerController {
         }, false);
     }
 
-    private updatePlayerSkill(playerId: number, skill: string, value: number): void {
+    public updatePlayerSkill(playerId: number, skill: string, value: number): void {
 
         const currentPlayerSkills: Skill[] = this.getPlayerSkills(playerId);
 
         if (!currentPlayerSkills.find((_skill: Skill) => _skill.name === skill)) {
             currentPlayerSkills.push({ name: skill, value });
         }
-
+        
         const updatedPlayerSkills: Skill[] = currentPlayerSkills.map((_skill: Skill) => _skill.name === skill ? { ..._skill, value } : { ..._skill, value: _skill.value });
         global.exports['authentication'].setPlayerInfo(playerId, 'skills', updatedPlayerSkills, false);
     }
@@ -76,6 +76,7 @@ export class Server extends ServerController {
     private assignExports(): void {
         exports('getPlayerSkills', this.getPlayerSkills.bind(this));
         exports('getPlayerSkill', this.getPlayerSkill.bind(this));
+        exports('updatePlayerSkill', this.updatePlayerSkill.bind(this));
         exports('incrementPlayerSkill', this.incrementPlayerSkill.bind(this));
         exports('decrementPlayerSkill', this.decrementPlayerSkill.bind(this));
     }

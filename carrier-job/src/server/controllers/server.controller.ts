@@ -106,7 +106,6 @@ export class Server extends ServerController {
                         } else {
                             this.beginRouteForPlayer(source, false);
                         }
-                        
                         return; 
                     }
                 }
