@@ -1,5 +1,6 @@
 import { Weapons } from '../../shared/models/weapon.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
+import { WEAPON_NAMES } from '../../shared/weapon';
 
 export class Server extends ServerController {
     public constructor(){
@@ -38,13 +39,11 @@ export class Server extends ServerController {
             return;
         }
         
-        let playerWeapons: Weapons = this.getPlayerWeapons(playerId);
-        console.log(playerWeapons);
-        for (let weapon in playerWeapons) {
-            const _weapon: string = weapon;
+        const playerWeapons: Weapons = this.getPlayerWeapons(playerId);
+        for (let __weapon in playerWeapons) {
+            const _weapon: number = Number(__weapon);
             const _weaponAmmo: number = playerWeapons[_weapon].ammo;
             GiveWeaponToPed(GetPlayerPed(playerId), _weapon, _weaponAmmo, false, false);
-            console.log(_weapon);
         }
     }
 
@@ -55,9 +54,16 @@ export class Server extends ServerController {
         exports('updatePedWeapons', this.updatePedWeapons.bind(this));
     }
 
-    private assignListeners(): void {
-        onNet("authentication:success", () => {
-            this.updatePedWeapons(GetPlayerPed(source));
+    public assignListeners(): void {
+        onNet("authentication:player-authenticated", (source: number) => {
+            this.updatePedWeapons(source);
+        });
+
+        on('CEventGunShot', (source: number) => {
+            const weaponUsed: number = GetSelectedPedWeapon(GetPlayerPed(source));
+            let weapons: Weapons = global.exports['authentication'].getPlayerInfo(source, 'weapons');
+            weapons[weaponUsed].ammo -= 1;
+            global.exports['authentication'].setPlayerInfo(source, 'weapons', weapons);
         });
     }
 }
