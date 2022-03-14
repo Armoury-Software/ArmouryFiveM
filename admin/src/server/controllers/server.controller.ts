@@ -257,12 +257,6 @@ export class Server extends ServerController {
         this.RegisterAdminCommand('testc', 1, (source:number, args: string[]) => {
             console.log(GetWeaponClipSize('MG'));
             console.log(GetWeaponClipSize(WeaponHash.MG));
-        }, false)
-
-        this.RegisterAdminCommand('getAllWeapons', 6, (source: number, args: string[]) => {
-            for (let weapon in WeaponHash) {
-                GiveWeaponToPed(GetPlayerPed(source), WeaponHash[weapon], 99999, false, false);
-            }
-        }, false)
+        }, false);
     }
 }
