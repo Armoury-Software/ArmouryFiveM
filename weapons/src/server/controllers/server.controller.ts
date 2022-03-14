@@ -6,6 +6,7 @@ export class Server extends ServerController {
         super();
 
         this.assignExports();
+        this.assignListeners();
     }
 
     public givePlayerWeapon(playerId: number, weapon: string, ammo: number): void {
@@ -38,15 +39,13 @@ export class Server extends ServerController {
         }
         
         let playerWeapons: Weapons = this.getPlayerWeapons(playerId);
-
-        RemoveAllPedWeapons(GetPlayerPed(playerId), true);
-
+        console.log(playerWeapons);
         for (let weapon in playerWeapons) {
-            const _weapon: number = Number(weapon);
+            const _weapon: string = weapon;
             const _weaponAmmo: number = playerWeapons[_weapon].ammo;
             GiveWeaponToPed(GetPlayerPed(playerId), _weapon, _weaponAmmo, false, false);
+            console.log(_weapon);
         }
-        
     }
 
     private assignExports(): void {
@@ -54,5 +53,11 @@ export class Server extends ServerController {
         exports('removePlayerWeapons', this.removePlayerWeapons.bind(this));
         exports('getPlayerWeapons', this.getPlayerWeapons.bind(this));
         exports('updatePedWeapons', this.updatePedWeapons.bind(this));
+    }
+
+    private assignListeners(): void {
+        onNet("authentication:success", () => {
+            this.updatePedWeapons(GetPlayerPed(source));
+        });
     }
 }

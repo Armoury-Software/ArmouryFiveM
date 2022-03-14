@@ -136,7 +136,6 @@ const AuthenticatePlayer = (target: number, stats: Player) => {
   global.exports['armoury-overlay'].updateItem(target, { id: 'hunger', icon: 'lunch_dining', value: '100%' });
   global.exports['armoury-overlay'].updateItem(target, { id: 'thirst', icon: 'water_drop', value: '100%' });
   global.exports['armoury-overlay'].updateItem(target, { id: 'mic', icon: 'mic', value: '100%' });
-  global.exports['weapons'].updatePedWeapons(target);
 
   for (var property in stats) {
     if (stats.hasOwnProperty(property)) {
