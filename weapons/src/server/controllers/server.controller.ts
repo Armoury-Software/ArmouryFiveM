@@ -19,7 +19,8 @@ export class Server extends ServerController {
         }
 
         global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons);
-        this.loadPlayerWeapons(playerId);
+
+        GiveWeaponToPed(GetPlayerPed(playerId), weapon, ammo, false, false);
     }
 
     public removePlayerWeapons(playerId: number): void {
@@ -34,7 +35,7 @@ export class Server extends ServerController {
     public loadPlayerWeapons(playerId: number): void {
         const playerWeapons: Weapons = this.getPlayerWeapons(playerId);
         for (let weapon in playerWeapons) {
-            GiveWeaponToPed(GetPlayerPed(playerId), weapon, playerWeapons[weapon].ammo, false, false);
+            this.givePlayerWeapon(playerId, weapon, playerWeapons[weapon].ammo);
         }
     }
 
