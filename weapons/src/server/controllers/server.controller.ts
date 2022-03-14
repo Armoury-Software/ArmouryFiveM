@@ -20,7 +20,7 @@ export class Server extends ServerController {
 
         global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons);
 
-        GiveWeaponToPed(GetPlayerPed(playerId), weapon, ammo, false, false);
+        GiveWeaponToPed(GetPlayerPed(playerId), Number(weapon), ammo, false, false);
     }
 
     public removePlayerWeapons(playerId: number): void {
