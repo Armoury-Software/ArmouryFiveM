@@ -12,18 +12,21 @@
     "remove-files-webpack-plugin": "^1.5.0"
   },
   "scripts": {
-    "build": "webpack --mode=production --config ./webpack.config.js",
-    "watch": "webpack --mode=development --watch true"
+    "build": "prettier --write . && webpack --mode=production --config ./webpack.config.js",
+    "watch": "webpack --mode=development --watch true",
+    "lint": "eslint -c .eslintrc.json --ext .ts src",
+    "lint:init": "eslint --init"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
-    "eslint": "^8.7.0",
-    "eslint-config-prettier": "^8.3.0",
+    "@typescript-eslint/eslint-plugin": "^5.14.0",
+    "@typescript-eslint/parser": "^5.14.0",
+    "eslint": "^8.11.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
     "eslint-webpack-plugin": "^3.1.1",
-    "prettier": "^2.5.1",
+    "prettier": "2.5.1",
     "ts-loader": "^9.2.6",
     "typescript": "^4.5.5",
     "webpack": "^5.67.0",

@@ -22,17 +22,13 @@ const server = {
     new webpack.DefinePlugin({ 'global.GENTLY': false }),
     new RemovePlugin({
       before: {
-        include: [
-          path.resolve(buildPath, 'server')
-        ]
+        include: [path.resolve(buildPath, 'server')],
       },
       watch: {
-        include: [
-          path.resolve(buildPath, 'server')
-        ]
-      }
+        include: [path.resolve(buildPath, 'server')],
+      },
     }),
-    new ESLintPlugin()
+    new ESLintPlugin(),
   ],
   optimization: {
     minimize: true,
@@ -42,7 +38,7 @@ const server = {
   },
   output: {
     filename: '[contenthash].server.js',
-    path: path.resolve(buildPath, 'server')
+    path: path.resolve(buildPath, 'server'),
   },
   target: 'node',
 };
@@ -62,17 +58,13 @@ const client = {
   plugins: [
     new RemovePlugin({
       before: {
-        include: [
-          path.resolve(buildPath, 'client')
-        ]
+        include: [path.resolve(buildPath, 'client')],
       },
       watch: {
-        include: [
-          path.resolve(buildPath, 'client')
-        ]
-      }
+        include: [path.resolve(buildPath, 'client')],
+      },
     }),
-    new ESLintPlugin()
+    new ESLintPlugin(),
   ],
   optimization: {
     minimize: true,
@@ -88,7 +80,7 @@ const client = {
 
 const uiTsFiles = {
   context: __dirname,
-  entry: glob.sync("./src/ui/*.ts"),
+  entry: glob.sync('./src/ui/*.ts'),
   module: {
     rules: [
       {
@@ -101,15 +93,11 @@ const uiTsFiles = {
   plugins: [
     new RemovePlugin({
       before: {
-        include: [
-          path.resolve(buildPath, 'ui/js')
-        ]
+        include: [path.resolve(buildPath, 'ui/js')],
       },
       watch: {
-        include: [
-          path.resolve(buildPath, 'ui/js')
-        ]
-      }
+        include: [path.resolve(buildPath, 'ui/js')],
+      },
     }),
   ],
   optimization: {
@@ -124,4 +112,4 @@ const uiTsFiles = {
   },
 };
 
-module.exports = [server, client/*, uiTsFiles*/];
+module.exports = [server, client /*, uiTsFiles*/];

@@ -1,0 +1,27 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "(Armoury) Compile current resource",
+            "type": "shell",
+            "command": "cd ${relativeFileDirname};npm run build",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "(Armoury) Lint current resource",
+            "type": "shell",
+            "command": "cd ${relativeFileDirname};npm run lint",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}

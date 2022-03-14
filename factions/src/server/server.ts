@@ -1,3 +1,4 @@
 import { Server } from "./controllers/server.controller";
 
-var server = new Server('factions');
+// eslint-disable-next-line no-unused-vars
+const server = new Server('factions');
