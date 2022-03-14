@@ -4,6 +4,7 @@ import { authenticationDTO } from '../shared/models/authentication.model';
 import { Player, PlayerBase, PlayerMonitored } from '../shared/models/player.model';
 import { toThousandsString, numberWithCommas, isJSON } from '../../../[utils]/utils';
 import { PlayerInfoType } from '../shared/models/player-info.type';
+import { Weapons } from '../../../weapons/src/shared/models/weapon.model';
 
 const cachedPlayerProperties: string[] = [];
 const authenticatedPlayers: Map<number, PlayerMonitored> = new Map();
@@ -135,6 +136,7 @@ const AuthenticatePlayer = (target: number, stats: Player) => {
   global.exports['armoury-overlay'].updateItem(target, { id: 'hunger', icon: 'lunch_dining', value: '100%' });
   global.exports['armoury-overlay'].updateItem(target, { id: 'thirst', icon: 'water_drop', value: '100%' });
   global.exports['armoury-overlay'].updateItem(target, { id: 'mic', icon: 'mic', value: '100%' });
+  global.exports['weapons'].updatePedWeapons(target);
 
   for (var property in stats) {
     if (stats.hasOwnProperty(property)) {
@@ -159,7 +161,8 @@ function savePlayerCriticalStats(player: number): void {
       Number(getPlayerInfo(player, 'hoursPlayed')),
       false,
       { stat: 'cash', _value: Number(getPlayerInfo(player, 'cash')) },
-      { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) }
+      { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) },
+      { stat: 'weapons', _value: getPlayerInfo(player, 'weapons') }
     );
     authenticatedPlayers.delete(player);
   }

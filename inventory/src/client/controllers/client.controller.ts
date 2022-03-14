@@ -57,7 +57,7 @@ export class Client extends ClientWithUIController {
         vehicles: [],
         weapons: mappedWeapons.map((weapon: { name: string, ammo: number }) => ({
           topLeft: WEAPON_NAMES[weapon.name],
-          bottomRight: `${weapon.ammo % GetWeaponClipSize(weapon.name)}/${weapon.ammo / GetWeaponClipSize(weapon.name)}`,
+          bottomRight: weapon.ammo.toString(),
           outline: '#6e2937',
           image: 'ak-47',
           width: 100,
