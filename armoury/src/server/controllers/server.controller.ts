@@ -100,6 +100,19 @@ export class Server extends ServerController {
             );
             break;
           }
+          case 'drugs': {
+            SetEntityCoords(
+              GetPlayerPed(source),
+              1066.0087890625,
+              -3183.375732421875,
+              -39.1640625 + 2,
+              true,
+              false,
+              false,
+              false
+            );
+            break;
+          }
           default: {
             console.log('no tp with that name');
             break;

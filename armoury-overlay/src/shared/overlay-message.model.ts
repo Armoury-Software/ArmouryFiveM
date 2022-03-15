@@ -1,4 +1,4 @@
 export interface OverlayMessage {
-    id: string;
-    content?: string;
+  id: string;
+  content?: string;
 }

@@ -1,8 +1,16 @@
 import { whirlpool } from 'hash-wasm';
 
 import { authenticationDTO } from '../shared/models/authentication.model';
-import { Player, PlayerBase, PlayerMonitored } from '../shared/models/player.model';
-import { toThousandsString, numberWithCommas, isJSON } from '../../../[utils]/utils';
+import {
+  Player,
+  PlayerBase,
+  PlayerMonitored,
+} from '../shared/models/player.model';
+import {
+  toThousandsString,
+  numberWithCommas,
+  isJSON,
+} from '../../../[utils]/utils';
 import { PlayerInfoType } from '../shared/models/player-info.type';
 
 const cachedPlayerProperties: string[] = [];
@@ -57,10 +65,16 @@ function getHashPasswordWithSalt(password: string, email: string): string {
   return email.slice(0, 3) + password + email.slice(3, 6);
 }
 
-function setPlayerInfo(source: number, stat: string, _value: PlayerInfoType, ignoreSQLCommand: boolean = true, ...additionalValues: { stat: string, _value: PlayerInfoType }[]): void {
+function setPlayerInfo(
+  source: number,
+  stat: string,
+  _value: PlayerInfoType,
+  ignoreSQLCommand: boolean = true,
+  ...additionalValues: { stat: string; _value: PlayerInfoType }[]
+): void {
   let value = _value;
 
-  if (Array.isArray(_value) || typeof(_value) === 'object') {
+  if (Array.isArray(_value) || typeof _value === 'object') {
     value = JSON.stringify(_value);
   }
 
@@ -109,14 +123,22 @@ function setPlayerInfo(source: number, stat: string, _value: PlayerInfoType, ign
       `UPDATE \`players\` SET ${statsString} WHERE id = ?`,
       [
         value,
-        ...additionalValues.map((additionalValue) => (Array.isArray(additionalValue._value) || typeof(additionalValue._value) === 'object') ? JSON.stringify(additionalValue._value) : additionalValue._value),
-        getPlayerInfo(source, 'id')
+        ...additionalValues.map((additionalValue) =>
+          Array.isArray(additionalValue._value) ||
+          typeof additionalValue._value === 'object'
+            ? JSON.stringify(additionalValue._value)
+            : additionalValue._value
+        ),
+        getPlayerInfo(source, 'id'),
       ]
     );
   }
 }
 
-function getPlayerInfo<T extends PlayerInfoType>(source: number, stat: string): T {
+function getPlayerInfo<T extends PlayerInfoType>(
+  source: number,
+  stat: string
+): T {
   let value: PlayerInfoType = GetConvar(`${source}_PI_${stat}`, '-1');
 
   if (isJSON(value.toString())) {
