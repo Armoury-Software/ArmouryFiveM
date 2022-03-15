@@ -1,7 +1,7 @@
 export interface Drugs {
-  [drugType: string]: number
+  [drugType: string]: number;
 }
 
 export interface Seeds {
-  [seedDrugType: string]: number
+  [seedDrugType: string]: number;
 }

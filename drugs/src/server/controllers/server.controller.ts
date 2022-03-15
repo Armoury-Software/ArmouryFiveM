@@ -1,9 +1,7 @@
 import { ServerController } from '../../../../[utils]/server/server.controller';
 
 export class Server extends ServerController {
-    public constructor(){
-        super();
-
-        
-    }
+  public constructor() {
+    super();
+  }
 }
