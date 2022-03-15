@@ -10,6 +10,7 @@ export class Server extends ServerController {
 
     this.registerCommands();
     this.registerFiveMEventListeners();
+    this.registerListeners();
     this.registerExports();
 
     this._players = [];
@@ -108,6 +109,24 @@ export class Server extends ServerController {
       },
       false
     );
+  }
+
+  private registerListeners(): void {
+    onNet(`${GetCurrentResourceName()}:open-general-menu`, () => {
+      global.exports['armoury-overlay'].showContextMenu(source, {
+        title: 'General Menu',
+        id: 'general-menu',
+        items: [
+          {
+            label: 'GPS',
+            active: true,
+          },
+          {
+            label: 'Legitimation',
+          },
+        ],
+      });
+    });
   }
 
   private registerFiveMEventListeners(): void {
