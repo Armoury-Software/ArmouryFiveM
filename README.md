@@ -27,6 +27,7 @@ ensure houses-menu
 ensure businesses
 ensure businesses-menu
 ensure factions
+ensure factions-police
 ensure factions-taxi
 ensure bob74_ipl
 ensure online-interiors
@@ -36,6 +37,13 @@ ensure payday
 ensure skills
 ensure banking
 ensure weapons
+
+## Maps
+ensure vinewoodfloorMain
+ensure vinewoodfloorLSPD
+ensure vinewoodfloorStairs
+ensure vinewoodfloorGarage
+ensure vinewoodfloorUG
 ```
 3. Add the following at the bottom of your server.cfg:
 ```
