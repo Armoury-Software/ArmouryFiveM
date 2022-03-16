@@ -3,9 +3,13 @@ import {
   ADMIN_MENU_MAIN,
   ADMIN_GIVE_WEAPON,
   ADMIN_GIVE_DRUGS,
+  ADMIN_GIVE_MONEY,
+  ADMIN_PLAYER_ADMINISTRATION,
+  ADMIN_TELEPORT,
 } from '../../shared/admin-menu';
 import { ClientController } from '../../../../[utils]/client/client.controller';
 import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
+import { TELEPORT_POINTS } from '../../shared/teleport-locations';
 
 export class Client extends ClientController {
   private deathEventTriggered: boolean = false;
@@ -66,14 +70,42 @@ export class Client extends ClientController {
               );
               break;
             case 'teleports':
+              let teleportPoints = [];
+              for (let teleportPoint in TELEPORT_POINTS) {
+                teleportPoints.push(TELEPORT_POINTS[teleportPoint]);
+              }
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:open-admin-menu`,
+                {
+                  ...ADMIN_TELEPORT,
+                  items: teleportPoints.map((teleport, index) => ({
+                    label: teleport,
+                    active: !index ? true : false,
+                  })),
+                }
+              );
+
               break;
             case 'player administration':
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:open-admin-menu`,
+                {
+                  ...ADMIN_PLAYER_ADMINISTRATION,
+                  items: getPlayers().map((playerId, index) => ({
+                    label: global.exports['authentication'].getPlayerInfo(
+                      playerId,
+                      'name'
+                    ),
+                    active: !index ? true : false,
+                  })),
+                }
+              );
               break;
           }
           break;
         case 'give-self-menu':
           switch (data.buttonSelected.label.toLowerCase()) {
-            case 'give-weapon':
+            case 'give weapon':
               let weaponNames = [];
               for (let weapon in WEAPON_NAMES) {
                 weaponNames.push(WEAPON_NAMES[weapon]);
@@ -91,14 +123,23 @@ export class Client extends ClientController {
               break;
             case 'give drugs':
               TriggerServerEvent(
-                `${GetCurrentResourceName()}:open-admin-menu`, ADMIN_GIVE_DRUGS
-              )
+                `${GetCurrentResourceName()}:open-admin-menu`,
+                ADMIN_GIVE_DRUGS
+              );
               break;
             case 'give money':
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:open-admin-menu`,
+                ADMIN_GIVE_MONEY
+              );
               break;
           }
         case 'give-weapon':
-          if (data.buttonSelected.label.toLowerCase() !== 'give weapon') {
+          if (
+            data.buttonSelected.label.toLowerCase() !== 'give weapon' &&
+            data.buttonSelected.label.toLowerCase() !== 'give drugs' &&
+            data.buttonSelected.label.toLowerCase() !== 'give money'
+          ) {
             ExecuteCommand(
               `giveweapon ${<string>(
                 this.getPlayerInfo('name')
@@ -106,6 +147,28 @@ export class Client extends ClientController {
             );
           }
           break;
+        case 'give-drugs':
+          if (data.buttonSelected.label.toLowerCase() !== 'give drugs') {
+            ExecuteCommand(
+              `agivedrugs ${<string>this.getPlayerInfo('name')} ${
+                data.buttonSelected.label
+              } 10`
+            );
+          }
+          break;
+        case 'give-money':
+          if (data.buttonSelected.label.toLowerCase !== 'give money') {
+            ExecuteCommand(
+              `givecash ${<string>(
+                this.getPlayerInfo('name')
+              )} ${data.buttonSelected.label.replaceAll('$', '')}`
+            );
+          }
+          break;
+        case 'teleportation':
+          if (data.buttonSelected.label.toLowerCase() !== 'teleportation') {
+            ExecuteCommand(`tp ${data.buttonSelected.label.toLowerCase()}`);
+          }
       }
     });
   }

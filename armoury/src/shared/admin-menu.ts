@@ -1,5 +1,6 @@
 import { WEAPON_NAMES } from '../../../weapons/src/shared/weapon';
 import { ContextMenu } from '../../../armoury-overlay/src/shared/context-menu.model';
+import { Context } from 'vm';
 
 export const ADMIN_MENU_MAIN: ContextMenu = {
   items: [
@@ -45,12 +46,41 @@ export const ADMIN_GIVE_DRUGS: ContextMenu = {
   items: [
     {
       label: 'Marijuana',
-      active: true
+      active: true,
     },
     {
-      label: 'Cocaine'
-    }
+      label: 'Cocaine',
+    },
   ],
   title: 'Admin Menu: Give Drugs',
-  id: 'give-drugs'
-}
+  id: 'give-drugs',
+};
+
+export const ADMIN_GIVE_MONEY: ContextMenu = {
+  items: [
+    {
+      label: '10000$',
+      active: true,
+    },
+    {
+      label: '50000$',
+    },
+    {
+      label: '100000$',
+    },
+  ],
+  title: 'Admin Menu: Give Money',
+  id: 'give-money',
+};
+
+export const ADMIN_TELEPORT: ContextMenu = {
+  items: [],
+  title: 'Admin Menu: Teleportation',
+  id: 'teleportation',
+};
+
+export const ADMIN_PLAYER_ADMINISTRATION: ContextMenu = {
+  items: [],
+  title: 'Admin Menu: Player Administration',
+  id: 'player-admin',
+};
