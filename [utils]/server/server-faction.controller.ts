@@ -1,6 +1,8 @@
 import { ServerController } from './server.controller';
 import { FactionVehicle } from './models/faction-vehicle.interface';
 
+import { Faction } from '../../factions/src/shared/models/faction.interface';
+
 export class ServerFactionController extends ServerController {
     private _factionInternalId: string = '';
     protected get factionInternalId() {
@@ -42,6 +44,14 @@ export class ServerFactionController extends ServerController {
     }
 
     private _assignDefaultListeners(): void {
+        onNet(`${GetCurrentResourceName()}:get-faction-information`, () => {
+            const faction: Faction = global.exports['factions'].getFaction(this.factionInternalId);
+
+            if (faction) {
+                TriggerClientEvent(`${GetCurrentResourceName()}:get-faction-information-response`, source, faction);
+            }
+        });
+
         onNet('onResourceStop', (resourceName: string) => {
             if (resourceName === GetCurrentResourceName()) {
                 this.clearVehicleSpawnTimeout();
