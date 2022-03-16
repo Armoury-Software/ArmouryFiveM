@@ -74,3 +74,10 @@ on(`__cfx_nui:context-menu-item-pressed`, (data: any, callback: Function) => {
   emit(`${GetCurrentResourceName()}:context-menu-item-pressed`, data);
   callback('ok');
 });
+
+RegisterNuiCallbackType('hide-context-menu');
+on(`__cfx_nui:hide-context-menu`, (_data: any, callback: Function) => {
+  emit(`${GetCurrentResourceName()}:hide-context-menu`);
+  emit(`${GetCurrentResourceName()}:context-menu-hidden`);
+  callback('ok');
+});
