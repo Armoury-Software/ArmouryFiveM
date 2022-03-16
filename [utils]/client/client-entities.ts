@@ -269,6 +269,26 @@ export class ClientEntities extends ClientBase {
         return createdPed;
     }
 
+    protected async createPedAsync(pedType: number, modelHash: number, x: number, y: number, z: number, heading: number, isNetwork: boolean, bScriptHostPed: boolean): Promise<number> {
+        let attempts: number = 0;
+
+        RequestModel(modelHash);
+        while (!HasModelLoaded(modelHash)) {
+            if (attempts > 10) {
+                return 0;
+            }
+
+            await Delay(100);
+            attempts ++;
+        }
+        
+        const createdPed: number = CreatePed(pedType, modelHash, x, y, z, heading, isNetwork, bScriptHostPed);
+        if (createdPed) {
+            this._peds.push(createdPed);
+        }
+        return createdPed;
+    }
+
     private assignDefaultEntityListeners(): void {
         onNet('onResourceStop', (resourceName: string) => {
             if (resourceName === GetCurrentResourceName()) {
