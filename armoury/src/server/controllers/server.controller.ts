@@ -127,6 +127,10 @@ export class Server extends ServerController {
         ],
       });
     });
+
+    onNet(`${GetCurrentResourceName()}:open-admin-menu`, (data: any) => {
+      global.exports['armoury-overlay'].showContextMenu(source, data);
+    });
   }
 
   private registerFiveMEventListeners(): void {

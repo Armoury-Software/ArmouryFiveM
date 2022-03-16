@@ -1,4 +1,10 @@
+import {
+  ADMIN_GIVE_SELF,
+  ADMIN_MENU_MAIN,
+  ADMIN_GIVE_WEAPON,
+} from '../../shared/admin-menu';
 import { ClientController } from '../../../../[utils]/client/client.controller';
+import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
 
 export class Client extends ClientController {
   private deathEventTriggered: boolean = false;
@@ -47,6 +53,54 @@ export class Client extends ClientController {
       globalThis.exports.spawnmanager.setAutoSpawn(true);
       globalThis.exports.spawnmanager.forceRespawn();
     });
+
+    on('armoury-overlay:context-menu-item-pressed', (data: any) => {
+      console.log(`on ${data}`);
+      switch (data.menuId) {
+        case 'admin-menu':
+          switch (data.buttonSelected.label.toLowerCase()) {
+            case 'give self':
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:open-admin-menu`,
+                ADMIN_GIVE_SELF
+              );
+              break;
+            case 'teleports':
+              break;
+            case 'player administration':
+              break;
+          }
+          break;
+        case 'give-self-menu':
+          switch (data.buttonSelected.label.toLowerCase()) {
+            case 'give weapon':
+              let weaponNames = [];
+              for (let weapon in WEAPON_NAMES) {
+                weaponNames.push(WEAPON_NAMES[weapon]);
+              }
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:open-admin-menu`,
+                {
+                  ...ADMIN_GIVE_WEAPON,
+                  items: weaponNames.map((weapon, index) => ({
+                    label: weapon,
+                    active: !index ? true : false,
+                  })),
+                }
+              );
+            case 'give drugs':
+              break;
+            case 'give money':
+              break;
+          }
+        case 'give-weapon':
+          ExecuteCommand(
+            `giveweapon ${<string>(
+              this.getPlayerInfo('name')
+            )} ${data.buttonSelected.label.replaceAll(' ', '')} 150`
+          );
+      }
+    });
   }
 
   private registerGlobalEvents(): void {
@@ -85,5 +139,27 @@ export class Client extends ClientController {
       'keyboard',
       'k'
     );
+
+    RegisterCommand(
+      '+openadminmenu',
+      () => {
+        if (this.getPlayerInfo('adminLevel') > 0) {
+          if (this.menuToggles.get('admin-menu') === true) {
+            this.menuToggles.set('admin-menu', false);
+            emit('armoury-overlay:hide-context-menu');
+            return;
+          }
+
+          TriggerServerEvent(
+            `${GetCurrentResourceName()}:open-admin-menu`,
+            ADMIN_MENU_MAIN
+          );
+          this.menuToggles.set('admin-menu', true);
+        }
+      },
+      false
+    );
+
+    RegisterKeyMapping('+openadminmenu', 'Open Admin Menu', 'keyboard', 'f1');
   }
 }
