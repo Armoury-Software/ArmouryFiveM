@@ -1,5 +1,3 @@
 import { ServerController } from '../../../../[utils]/server/server.controller';
 
-export class Server extends ServerController {
-
-}
+export class Server extends ServerController {}
