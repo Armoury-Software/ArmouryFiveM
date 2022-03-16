@@ -12,9 +12,7 @@ export class Server extends ServerController {
 
   private findTargetPlayer(name: string): number {
     const players: number[] = global.exports['armoury'].getPlayers();
-    console.log(name);
     let targetPlayer: number;
-    console.log(players);
 
     players.forEach((player: number) => {
       if (
@@ -25,7 +23,6 @@ export class Server extends ServerController {
         targetPlayer = player;
       }
     });
-    console.log('findtarget: ' + targetPlayer);
     return targetPlayer;
   }
 
@@ -338,7 +335,6 @@ export class Server extends ServerController {
           );
           return;
         }
-        console.log(args[0]);
         const targetPlayer: number = this.findTargetPlayer(args[0]);
         console.log('command: ' + targetPlayer);
         if (!this.checkTargetAvailability(targetPlayer)) {
