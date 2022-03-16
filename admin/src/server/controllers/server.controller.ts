@@ -389,21 +389,78 @@ export class Server extends ServerController {
     );
 
     this.RegisterAdminCommand(
+      'agivedrugs',
+      5,
+      (source: number, args: string[]) => {
+        if (args.length < 3) {
+          console.log('Error! Use /agivedrugs <target> <drug-type> <amount>');
+          return;
+        }
+
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
+
+        if (!this.checkTargetAvailability(targetPlayer)) {
+          return;
+        }
+
+        if (!Number(args[2])) {
+          console.log(`${args[2]} is not a valid value.`);
+          return;
+        }
+
+        if (global.exports['drugs'].verifyDrugType(args[1])) {
+          global.exports['drugs'].givePlayerDrugs(
+            targetPlayer,
+            args[1],
+            Number(args[2])
+          );
+        } else {
+          console.log(
+            `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
+          );
+        }
+      },
+      false
+    );
+
+    this.RegisterAdminCommand(
+      'aremovedrugs',
+      5,
+      (source: number, args: string[]) => {
+        if (args.length < 2) {
+          console.log(
+            'Error! Use /aremovedrugs <target> <drug-type> <amount?>'
+          );
+          return;
+        }
+
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
+
+        if (!this.checkTargetAvailability(targetPlayer)) {
+          return;
+        }
+
+        if (global.exports['drugs'].verifyDrugType(args[1])) {
+          global.exports['drugs'].removePlayerDrugs(
+            targetPlayer,
+            args[1],
+            Number(args[2])
+          );
+        } else {
+          console.log(
+            `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
+          );
+        }
+      },
+      false
+    );
+
+    this.RegisterAdminCommand(
       'testc',
       1,
-      (source: number) => {
-        let playerpos = GetEntityCoords(GetPlayerPed(-1), true);
+      (source: number, args: string[]) => {
         console.log(
-          GetClosestObjectOfType(
-            playerpos[0],
-            playerpos[1],
-            playerpos[2],
-            30,
-            716763602,
-            false,
-            false,
-            false
-          )
+          global.exports['authentication'].getPlayerInfo(source, 'drugs')
         );
       },
       false

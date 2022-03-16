@@ -253,7 +253,8 @@ function savePlayerCriticalStats(player: number): void {
       false,
       { stat: 'cash', _value: Number(getPlayerInfo(player, 'cash')) },
       { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) },
-      { stat: 'weapons', _value: getPlayerInfo(player, 'weapons') }
+      { stat: 'weapons', _value: getPlayerInfo(player, 'weapons') },
+      { stat: 'drugs', _value: getPlayerInfo(player, 'drugs') }
     );
     authenticatedPlayers.delete(player);
   }
