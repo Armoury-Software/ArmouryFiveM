@@ -2,6 +2,7 @@ import {
   ADMIN_GIVE_SELF,
   ADMIN_MENU_MAIN,
   ADMIN_GIVE_WEAPON,
+  ADMIN_GIVE_DRUGS,
 } from '../../shared/admin-menu';
 import { ClientController } from '../../../../[utils]/client/client.controller';
 import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
@@ -55,7 +56,6 @@ export class Client extends ClientController {
     });
 
     on('armoury-overlay:context-menu-item-pressed', (data: any) => {
-      console.log(`on ${data}`);
       switch (data.menuId) {
         case 'admin-menu':
           switch (data.buttonSelected.label.toLowerCase()) {
@@ -73,7 +73,7 @@ export class Client extends ClientController {
           break;
         case 'give-self-menu':
           switch (data.buttonSelected.label.toLowerCase()) {
-            case 'give weapon':
+            case 'give-weapon':
               let weaponNames = [];
               for (let weapon in WEAPON_NAMES) {
                 weaponNames.push(WEAPON_NAMES[weapon]);
@@ -88,17 +88,24 @@ export class Client extends ClientController {
                   })),
                 }
               );
+              break;
             case 'give drugs':
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:open-admin-menu`, ADMIN_GIVE_DRUGS
+              )
               break;
             case 'give money':
               break;
           }
         case 'give-weapon':
-          ExecuteCommand(
-            `giveweapon ${<string>(
-              this.getPlayerInfo('name')
-            )} ${data.buttonSelected.label.replaceAll(' ', '')} 150`
-          );
+          if (data.buttonSelected.label.toLowerCase() !== 'give weapon') {
+            ExecuteCommand(
+              `giveweapon ${<string>(
+                this.getPlayerInfo('name')
+              )} ${data.buttonSelected.label.replaceAll(' ', '')} 150`
+            );
+          }
+          break;
       }
     });
   }

@@ -40,3 +40,17 @@ export const ADMIN_GIVE_WEAPON: ContextMenu = {
   title: 'Admin Menu: Give Weapon',
   id: 'give-weapon',
 };
+
+export const ADMIN_GIVE_DRUGS: ContextMenu = {
+  items: [
+    {
+      label: 'Marijuana',
+      active: true
+    },
+    {
+      label: 'Cocaine'
+    }
+  ],
+  title: 'Admin Menu: Give Drugs',
+  id: 'give-drugs'
+}

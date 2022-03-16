@@ -27,7 +27,6 @@ export class Server extends ServerController {
   }
 
   private checkTargetAvailability(targetPlayer: number): boolean {
-    console.log('check: ' + targetPlayer);
     if (!targetPlayer) {
       console.log(`No player found with specified name.`);
       return false;
@@ -336,7 +335,6 @@ export class Server extends ServerController {
           return;
         }
         const targetPlayer: number = this.findTargetPlayer(args[0]);
-        console.log('command: ' + targetPlayer);
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
         }
