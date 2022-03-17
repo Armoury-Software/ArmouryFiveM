@@ -1,5 +1,6 @@
 import { Skill } from '../../../../skills/src/shared/models/skill.model';
-import { Weapon } from '../../../../weapons/src/shared/models/weapon.model'
+import { Weapon } from '../../../../weapons/src/shared/models/weapon.model';
+import { Drugs } from '../../../../drugs/src/shared/models/drugs.model';
 
 export interface PlayerBase {
   hoursPlayed: number;
@@ -19,4 +20,5 @@ export interface Player extends PlayerBase {
   phone: number;
   skills: Skill[];
   weapons: Weapon[];
+  drugs: Drugs;
 }
