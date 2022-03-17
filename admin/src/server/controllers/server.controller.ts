@@ -37,18 +37,19 @@ export class Server extends ServerController {
   }
 
   private registerCommands(): void {
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'veh',
+      3,
       (source: number, args: string[], _raw: boolean) => {
         if (!args[0]) {
           console.log('ERROR! You should use /veh <vehiclename> <color>');
           return;
         }
 
-        let model: string = args[0].toString();
-        let playerPosition: number[] = GetEntityCoords(GetPlayerPed(source));
+        const model: string = args[0].toString();
+        const playerPosition: number[] = GetEntityCoords(GetPlayerPed(source));
 
-        const createdVehicle = CreateVehicle(
+        const createdVehicle: number = CreateVehicle(
           model,
           playerPosition[0],
           playerPosition[1],
@@ -65,8 +66,9 @@ export class Server extends ServerController {
       false
     );
 
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'destroyvehicles',
+      3,
       (_source: number, _args: string[], _raw: boolean) => {
         this.createdVehicles.forEach((createdVehicle: number) => {
           if (DoesEntityExist(createdVehicle)) {
@@ -143,14 +145,13 @@ export class Server extends ServerController {
           return;
         }
 
-        let targetPosition: number[];
         const targetPlayer: number = this.findTargetPlayer(args[0]);
 
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
         }
 
-        targetPosition = GetEntityCoords(GetPlayerPed(targetPlayer), true);
+        const targetPosition: number[] = GetEntityCoords(GetPlayerPed(targetPlayer), true);
         SetEntityCoords(
           GetPlayerPed(source),
           targetPosition[0] + 1,
@@ -161,6 +162,7 @@ export class Server extends ServerController {
           false,
           true
         );
+        SetEntityRoutingBucket(GetPlayerPed(source), GetEntityRoutingBucket(GetPlayerPed(targetPlayer)));
 
         console.log(`Teleported to ${args[0]}.`);
       },
@@ -169,7 +171,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'gethere',
-      1 /* TODO: Change if not right */,
+      2,
       (source: number, args: string[]) => {
         if (!args.length) {
           console.log('ERROR! You should use /gethere <player-name>');
@@ -198,6 +200,8 @@ export class Server extends ServerController {
           true
         );
 
+        SetEntityRoutingBucket(GetPlayerPed(targetPlayer), GetEntityRoutingBucket(GetPlayerPed(source)));
+
         console.log(`Teleported ${args[0]} to you.`);
       },
       false
@@ -218,7 +222,7 @@ export class Server extends ServerController {
           return;
         }
 
-        let targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
 
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
@@ -268,7 +272,7 @@ export class Server extends ServerController {
           return;
         }
 
-        let targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
 
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
@@ -451,17 +455,6 @@ export class Server extends ServerController {
             `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
           );
         }
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'testc',
-      1,
-      (source: number, args: string[]) => {
-        console.log(
-          global.exports['authentication'].getPlayerInfo(source, 'drugs')
-        );
       },
       false
     );
