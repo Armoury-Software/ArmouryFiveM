@@ -61,13 +61,13 @@ export class Client extends ClientWithUIController {
               this.updateUIData([
                 {
                   title: 'OIL',
-                  subtitle: 'Start a quick, random delivery route',
-                  icon: 'science',
+                  subtitle: `A legal delivery. Most drivers use these ones to receive money while being safe. (${TRUCKER_MONEY_GAIN['OIL']})`,
+                  icon: 'euro_symbol',
                 },
                 {
                   title: 'ELECTRICITY',
-                  subtitle: 'Select a legal truck delivery',
-                  icon: 'science',
+                  subtitle: `A legal delivery. Most drivers use these ones to receive money while being safe. (${TRUCKER_MONEY_GAIN['ELECTRICITY']})`,
+                  icon: 'euro_symbol',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 3,
                 },
               ]);
@@ -79,25 +79,25 @@ export class Client extends ClientWithUIController {
                 {
                   title: 'CARGO 1',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 1']})`,
-                  icon: 'euro_symbol',
+                  icon: 'polymer',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 2,
                 },
                 {
                   title: 'CARGO 2',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 2']})`,
-                  icon: 'euro_symbol',
+                  icon: 'polymer',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 3,
                 },
                 {
                   title: 'CARGO 3',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 3']})`,
-                  icon: 'euro_symbol',
+                  icon: 'polymer',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 4,
                 },
                 {
                   title: 'CARGO 4',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 4']})`,
-                  icon: 'euro_symbol',
+                  icon: 'polymer',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 5,
                 },
               ]);
