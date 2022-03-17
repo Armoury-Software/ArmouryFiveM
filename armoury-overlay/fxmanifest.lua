@@ -13,6 +13,6 @@ files {
     'dist/ui/index.html',
     'dist/ui/*.js',
     'dist/ui/*.css',
-    'dist/ui/assets/*.png'
+    'dist/ui/assets/*.png',
     'dist/ui/**/*.otf'
 }

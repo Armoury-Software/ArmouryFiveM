@@ -7,10 +7,7 @@ import {
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { UIButton } from '../../../../[utils]/models/ui-button.model';
 import { waitUntilThenDo } from '../../../../[utils]/utils';
-import {
-  TRUCKER_DELIVERY_TYPE,
-  TRUCKER_PAGES,
-} from '../../shared/models/delivery-point.model';
+import { TRUCKER_PAGES } from '../../shared/models/delivery-point.model';
 
 export class Client extends ClientWithUIController {
   public constructor() {
@@ -44,6 +41,15 @@ export class Client extends ClientWithUIController {
     super.onIncomingUIMessage(eventName, eventData);
 
     if (eventName === 'buttonclick') {
+      const playerSkills: Object = this.getPlayerInfo('skills');
+      let playerSkillLevel: number = 0;
+
+      for (let skill in playerSkills) {
+        if (playerSkills[skill].name === 'trucker') {
+          playerSkillLevel = Math.floor(1 + playerSkills[skill].value);
+        }
+      }
+
       const data: { buttonId: number } = eventData;
       switch (this.currentPage) {
         case TRUCKER_PAGES.MAIN: {
@@ -68,7 +74,7 @@ export class Client extends ClientWithUIController {
                   title: 'ELECTRICITY',
                   subtitle: `A legal delivery. Most drivers use these ones to receive money while being safe. (${TRUCKER_MONEY_GAIN['ELECTRICITY']})`,
                   icon: 'euro_symbol',
-                  disabled: this.getPlayerInfo('skills')['trucker'] < 3,
+                  disabled: playerSkillLevel < 3,
                 },
               ]);
               break;
@@ -80,25 +86,25 @@ export class Client extends ClientWithUIController {
                   title: 'CARGO 1',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 1']})`,
                   icon: 'polymer',
-                  disabled: this.getPlayerInfo('skills')['trucker'] < 2,
+                  disabled: playerSkillLevel < 2,
                 },
                 {
                   title: 'CARGO 2',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 2']})`,
                   icon: 'polymer',
-                  disabled: this.getPlayerInfo('skills')['trucker'] < 3,
+                  disabled: playerSkillLevel < 3,
                 },
                 {
                   title: 'CARGO 3',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 3']})`,
                   icon: 'polymer',
-                  disabled: this.getPlayerInfo('skills')['trucker'] < 4,
+                  disabled: playerSkillLevel < 4,
                 },
                 {
                   title: 'CARGO 4',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 4']})`,
                   icon: 'polymer',
-                  disabled: this.getPlayerInfo('skills')['trucker'] < 5,
+                  disabled: playerSkillLevel < 5,
                 },
               ]);
 
@@ -136,7 +142,7 @@ export class Client extends ClientWithUIController {
           TriggerServerEvent(
             `${GetCurrentResourceName()}:quick-start`,
             `CARGO ${data.buttonId + 1}`
-          )
+          );
           this.hideUI();
           break;
         }
@@ -259,8 +265,18 @@ export class Client extends ClientWithUIController {
 
   private getDefaultUIButtons(): UIButton[] {
     const isATrucker: boolean = this.getPlayerInfo('job') === 'trucker';
-    const skillLevel: number = this.getPlayerInfo('skills')['trucker'];
-    skillLevel ? skillLevel : 0;
+
+    const playerSkills: Object = this.getPlayerInfo('skills');
+    let playerSkillLevel: number = 0;
+
+    for (let skill in playerSkills) {
+      if (playerSkills[skill].name === 'trucker') {
+        playerSkillLevel = Math.floor(1 + playerSkills[skill].value);
+      }
+    }
+
+    console.log(playerSkillLevel);
+
     return [
       {
         title: 'Quick start',
@@ -280,7 +296,7 @@ export class Client extends ClientWithUIController {
         title: 'Illegal delivery',
         subtitle: 'Select an illegal truck delivery',
         icon: 'science',
-        disabled: !isATrucker || skillLevel < 2, // TODO: Also disable if the player doesn't have trucker skill level 5
+        disabled: !isATrucker || playerSkillLevel < 2, // TODO: Also disable if the player doesn't have trucker skill level 5
         tooltip: !isATrucker ? 'You are not a trucker' : '', // TODO: Add possible error for skill level < 5
       },
       {
