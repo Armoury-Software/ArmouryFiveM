@@ -72,7 +72,7 @@ export class Client extends ClientController {
                 {
                   ...ADMIN_GIVE_SELF,
                   items: ADMIN_GIVE_SELF.items.filter((item) => {
-                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
                   })
                 }
               );
@@ -91,7 +91,7 @@ export class Client extends ClientController {
                     active: !index ? true : false,
                     adminLevel: 1
                   })).filter((item) => {
-                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
                   }),
                 }
               );
@@ -106,7 +106,7 @@ export class Client extends ClientController {
                 {
                   ...ADMIN_ENTITIES,
                   items: ADMIN_ENTITIES.items.filter((item) => {
-                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
                   })
                 }
               );
@@ -129,7 +129,7 @@ export class Client extends ClientController {
                     active: !index ? true : false,
                     adminLevel: 4
                   })).filter((item) => {
-                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
                   }),
                 }
               );
@@ -140,7 +140,7 @@ export class Client extends ClientController {
                 {
                   ...ADMIN_GIVE_DRUGS,
                   items: ADMIN_GIVE_DRUGS.items.filter((item) => {
-                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
                   })
                 }
               );
@@ -151,7 +151,7 @@ export class Client extends ClientController {
                 {
                   ...ADMIN_GIVE_MONEY,
                   items: ADMIN_GIVE_MONEY.items.filter((item) => {
-                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
                   })
                 }
               );
@@ -162,7 +162,7 @@ export class Client extends ClientController {
                 {
                   ...ADMIN_VEHICLES,
                   items: ADMIN_VEHICLES.items.filter((item) => {
-                  item.adminLevel <= this.getPlayerInfo('adminLevel');
+                  Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
                 })
               }
               );
