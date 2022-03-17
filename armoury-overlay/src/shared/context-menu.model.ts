@@ -7,4 +7,5 @@ export interface ContextMenu {
 export interface ContextItem {
   label: string;
   active?: boolean;
+  adminLevel?: number;
 }

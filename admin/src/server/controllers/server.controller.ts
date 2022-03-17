@@ -35,8 +35,9 @@ export class Server extends ServerController {
   }
 
   private registerCommands(): void {
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'veh',
+      3,
       (source: number, args: string[], _raw: boolean) => {
         if (!args[0]) {
           console.log('ERROR! You should use /veh <vehiclename> <color>');
@@ -63,8 +64,9 @@ export class Server extends ServerController {
       false
     );
 
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'destroyvehicles',
+      3,
       (_source: number, _args: string[], _raw: boolean) => {
         this.createdVehicles.forEach((createdVehicle: number) => {
           if (DoesEntityExist(createdVehicle)) {
@@ -326,7 +328,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'giveweapon',
-      4 /* TODO: Change if not right */,
+      3 /* TODO: Change if not right */,
       (source: number, args: string[]) => {
         if (args.length < 3) {
           console.log(
@@ -365,7 +367,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'removeweapons',
-      3 /* TODO: Change if not right */,
+      2 /* TODO: Change if not right */,
       (source: number, args: string[]) => {
         if (!args.length) {
           console.log('ERROR! You should use /removeweapons <player-name>');

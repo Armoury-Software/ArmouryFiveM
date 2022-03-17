@@ -6,10 +6,13 @@ import {
   ADMIN_GIVE_MONEY,
   ADMIN_PLAYER_ADMINISTRATION,
   ADMIN_TELEPORT,
+  ADMIN_VEHICLES,
+  ADMIN_ENTITIES,
 } from '../../shared/admin-menu';
 import { ClientController } from '../../../../[utils]/client/client.controller';
 import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
 import { TELEPORT_POINTS } from '../../shared/teleport-locations';
+import { Console } from 'console';
 
 export class Client extends ClientController {
   private deathEventTriggered: boolean = false;
@@ -66,13 +69,18 @@ export class Client extends ClientController {
             case 'give self':
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
-                ADMIN_GIVE_SELF
+                {
+                  ...ADMIN_GIVE_SELF,
+                  items: ADMIN_GIVE_SELF.items.filter((item) => {
+                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                  })
+                }
               );
               break;
             case 'teleports':
-              let teleportPoints = [];
+              let teleportPoints = ['waypoint'];
               for (let teleportPoint in TELEPORT_POINTS) {
-                teleportPoints.push(TELEPORT_POINTS[teleportPoint]);
+                teleportPoints.push(teleportPoint);
               }
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
@@ -81,23 +89,25 @@ export class Client extends ClientController {
                   items: teleportPoints.map((teleport, index) => ({
                     label: teleport,
                     active: !index ? true : false,
-                  })),
+                    adminLevel: 1
+                  })).filter((item) => {
+                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                  }),
                 }
               );
 
               break;
             case 'player administration':
+              // TODO
+              break;
+            case 'remove entities':
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
                 {
-                  ...ADMIN_PLAYER_ADMINISTRATION,
-                  items: getPlayers().map((playerId, index) => ({
-                    label: global.exports['authentication'].getPlayerInfo(
-                      playerId,
-                      'name'
-                    ),
-                    active: !index ? true : false,
-                  })),
+                  ...ADMIN_ENTITIES,
+                  items: ADMIN_ENTITIES.items.filter((item) => {
+                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                  })
                 }
               );
               break;
@@ -117,20 +127,44 @@ export class Client extends ClientController {
                   items: weaponNames.map((weapon, index) => ({
                     label: weapon,
                     active: !index ? true : false,
-                  })),
+                    adminLevel: 4
+                  })).filter((item) => {
+                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                  }),
                 }
               );
               break;
             case 'give drugs':
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
-                ADMIN_GIVE_DRUGS
+                {
+                  ...ADMIN_GIVE_DRUGS,
+                  items: ADMIN_GIVE_DRUGS.items.filter((item) => {
+                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                  })
+                }
               );
               break;
             case 'give money':
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
-                ADMIN_GIVE_MONEY
+                {
+                  ...ADMIN_GIVE_MONEY,
+                  items: ADMIN_GIVE_MONEY.items.filter((item) => {
+                    item.adminLevel <= this.getPlayerInfo('adminLevel');
+                  })
+                }
+              );
+              break;
+            case 'give vehicle':
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:open-admin-menu`,
+                {
+                  ...ADMIN_VEHICLES,
+                  items: ADMIN_VEHICLES.items.filter((item) => {
+                  item.adminLevel <= this.getPlayerInfo('adminLevel');
+                })
+              }
               );
               break;
           }
@@ -167,8 +201,52 @@ export class Client extends ClientController {
           break;
         case 'teleportation':
           if (data.buttonSelected.label.toLowerCase() !== 'teleportation') {
-            ExecuteCommand(`tp ${data.buttonSelected.label.toLowerCase()}`);
+            if (data.buttonSelected.label.toLowerCase() === 'waypoint') {
+              const blip: number = GetFirstBlipInfoId(8);
+
+              if (blip != 0) {
+                const coord = GetBlipCoords(blip);
+                const valueZ = GetGroundZFor_3dCoord_2(
+                  coord[0],
+                  coord[1],
+                  coord[2],
+                  false
+                );
+                if (coord) {
+                  ExecuteCommand(
+                    `tp ${coord[0]} ${coord[1]} ${
+                      valueZ[1] ? valueZ[1] : coord[2]
+                    }`
+                  );
+                } else {
+                  console.log(
+                    'Please put a waypoint before using the command.'
+                  );
+                }
+              }
+            } else {
+              ExecuteCommand(`tp ${data.buttonSelected.label.toLowerCase()}`);
+            }
           }
+          break;
+        case 'veh-spawn':
+          if (data.buttonSelected.label.toLowerCase() !== 'give vehicle') {
+            ExecuteCommand(`veh ${data.buttonSelected.label}`);
+          }
+          break;
+        case 'remove-entities':
+          if (data.buttonSelected.label.toLowerCase() !== 'remove entities') {
+            if (data.buttonSelected.label === 'Vehicles') {
+              ExecuteCommand(
+                `destroy${data.buttonSelected.label.toLowerCase()}`
+              );
+            } else {
+              ExecuteCommand(
+                `remove${data.buttonSelected.label.toLowerCase()}`
+              );
+            }
+          }
+          break;
       }
     });
   }
