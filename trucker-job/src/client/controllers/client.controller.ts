@@ -2,6 +2,7 @@ import {
   TRUCKER_MARKERS,
   TRUCKER_QUICKSTART_POSITIONS,
   TRUCKER_DELIVERY_TRAILERS,
+  TRUCKER_MONEY_GAIN,
 } from '../../shared/positions';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { UIButton } from '../../../../[utils]/models/ui-button.model';
@@ -77,26 +78,26 @@ export class Client extends ClientWithUIController {
               this.updateUIData([
                 {
                   title: 'CARGO 1',
-                  subtitle: 'Start a quick, random delivery route',
-                  icon: 'science',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 1']})`,
+                  icon: 'euro_symbol',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 2,
                 },
                 {
                   title: 'CARGO 2',
-                  subtitle: 'Select a legal truck delivery',
-                  icon: 'science',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 2']})`,
+                  icon: 'euro_symbol',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 3,
                 },
                 {
                   title: 'CARGO 3',
-                  subtitle: 'Select an illegal truck delivery',
-                  icon: 'science',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 3']})`,
+                  icon: 'euro_symbol',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 4,
                 },
                 {
                   title: 'CARGO 4',
-                  subtitle: 'Select an illegal truck delivery',
-                  icon: 'science',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 4']})`,
+                  icon: 'euro_symbol',
                   disabled: this.getPlayerInfo('skills')['trucker'] < 5,
                 },
               ]);
@@ -132,40 +133,12 @@ export class Client extends ClientWithUIController {
           break;
         }
         case TRUCKER_PAGES.ILLEGAL: {
-          switch (data.buttonId) {
-            case 0: {
-              TriggerServerEvent(
-                `${GetCurrentResourceName()}:quick-start`,
-                'CARGO 1'
-              );
-              this.hideUI();
-              break;
-            }
-            case 1: {
-              TriggerServerEvent(
-                `${GetCurrentResourceName()}:quick-start`,
-                'CARGO 2'
-              );
-              this.hideUI();
-              break;
-            }
-            case 2: {
-              TriggerServerEvent(
-                `${GetCurrentResourceName()}:quick-start`,
-                'CARGO 3'
-              );
-              this.hideUI();
-              break;
-            }
-            case 3: {
-              TriggerServerEvent(
-                `${GetCurrentResourceName()}:quick-start`,
-                'CARGO 4'
-              );
-              this.hideUI();
-              break;
-            }
-          }
+          TriggerServerEvent(
+            `${GetCurrentResourceName()}:quick-start`,
+            `CARGO ${data.buttonId + 1}`
+          )
+          this.hideUI();
+          break;
         }
       }
     }
