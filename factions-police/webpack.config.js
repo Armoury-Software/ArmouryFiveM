@@ -71,6 +71,9 @@ const client = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    fallback: {
+      events: require.resolve('events/'),
+    },
   },
   output: {
     filename: '[contenthash].client.js',

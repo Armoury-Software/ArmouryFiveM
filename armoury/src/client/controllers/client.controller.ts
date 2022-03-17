@@ -2,11 +2,13 @@ import { ClientController } from '../../../../[utils]/client/client.controller';
 
 export class Client extends ClientController {
   private deathEventTriggered: boolean = false;
+  private menuToggles: Map<string, boolean> = new Map<string, boolean>();
 
   public constructor() {
     super();
 
     this.assignListeners();
+    this.registerKeyBindings();
     this.registerGlobalEvents();
   }
 
@@ -60,5 +62,28 @@ export class Client extends ClientController {
         }
       }
     });
+  }
+
+  private registerKeyBindings(): void {
+    RegisterCommand(
+      '+opengeneralmenu',
+      () => {
+        if (this.menuToggles.get('general-menu') === true) {
+          this.menuToggles.set('general-menu', false);
+          return;
+        }
+
+        TriggerServerEvent(`${GetCurrentResourceName()}:open-general-menu`);
+        this.menuToggles.set('general-menu', true);
+      },
+      false
+    );
+
+    RegisterKeyMapping(
+      '+opengeneralmenu',
+      'Open General Menu',
+      'keyboard',
+      'k'
+    );
   }
 }

@@ -1,5 +1,6 @@
 import { OverlayMessage } from '../shared/overlay-message.model';
 import { OverlayItem } from '../shared/overlay-item.model';
+import { ContextMenu } from '../shared/context-menu.model';
 
 onNet('armoury-overlay:update-item', (data: OverlayItem) => {
   SendNuiMessage(
@@ -42,4 +43,41 @@ onNet(`${GetCurrentResourceName()}:show-money-overlay`, (gain: number) => {
       gain,
     })
   );
+});
+
+onNet(`${GetCurrentResourceName()}:show-context-menu`, (data: ContextMenu) => {
+  SetNuiFocus(true, false);
+  SetNuiFocusKeepInput(true);
+
+  SendNuiMessage(
+    JSON.stringify({
+      type: 'showcontextmenu',
+      menu: JSON.stringify(data),
+    })
+  );
+});
+
+onNet(`${GetCurrentResourceName()}:hide-context-menu`, () => {
+  SetNuiFocus(false, false);
+  SetNuiFocusKeepInput(false);
+
+  SendNuiMessage(
+    JSON.stringify({
+      type: 'hidecontextmenu',
+    })
+  );
+});
+
+RegisterNuiCallbackType('context-menu-item-pressed');
+on(`__cfx_nui:context-menu-item-pressed`, (data: any, callback: Function) => {
+  console.log(data);
+  emit(`${GetCurrentResourceName()}:context-menu-item-pressed`, data);
+  callback('ok');
+});
+
+RegisterNuiCallbackType('hide-context-menu');
+on(`__cfx_nui:hide-context-menu`, (_data: any, callback: Function) => {
+  emit(`${GetCurrentResourceName()}:hide-context-menu`);
+  emit(`${GetCurrentResourceName()}:context-menu-hidden`);
+  callback('ok');
 });

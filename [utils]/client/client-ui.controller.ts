@@ -82,7 +82,7 @@ export class ClientWithUIController extends ClientController implements IClientW
         RegisterNuiCallbackType('dismiss');
 
         on(`__cfx_nui:dismiss`, (data: any, callback: Function) => {
-            this.hideUI();
+            this.onForceHideUI();
             callback('ok');
         });
 
