@@ -81,8 +81,9 @@ export class Server extends ServerController {
       false
     );
 
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'gotoveh',
+      3,
       (source: number, args: number[]) => {
         if (!args.length) {
           return;
@@ -103,8 +104,9 @@ export class Server extends ServerController {
       false
     );
 
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'getveh',
+      3,
       (source: number, args: number[]) => {
         if (!args.length) {
           return;
@@ -138,7 +140,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'goto',
-      1 /* TODO: Change if not right */,
+      1,
       (source: number, args: string[]) => {
         if (!args.length) {
           console.log('ERROR! You should use /goto <player-name>');
@@ -209,7 +211,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'setstat',
-      5 /* TODO: Change if not right */,
+      5,
       (source: number, args: string[]) => {
         const availableStats: string[] = ['skills'];
 
@@ -265,7 +267,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'setcash',
-      5 /* TODO: Change if not right */,
+      5,
       (source: number, args: string[]) => {
         if (args.length < 2) {
           console.log('ERROR! You should use /setcash <player-name> <value>');
@@ -296,7 +298,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'givecash',
-      5 /* TODO: Change if not right */,
+      5,
       (source: number, args: string[]) => {
         if (args.length < 2) {
           console.log('ERROR! You should use /givecash <player-name> <value>');
@@ -332,7 +334,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'giveweapon',
-      4 /* TODO: Change if not right */,
+      4,
       (source: number, args: string[]) => {
         if (args.length < 3) {
           console.log(
@@ -373,7 +375,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'removeweapons',
-      3 /* TODO: Change if not right */,
+      3,
       (source: number, args: string[]) => {
         if (!args.length) {
           console.log('ERROR! You should use /removeweapons <player-name>');
