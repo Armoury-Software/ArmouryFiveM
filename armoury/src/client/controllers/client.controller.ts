@@ -72,8 +72,11 @@ export class Client extends ClientController {
                 {
                   ...ADMIN_GIVE_SELF,
                   items: ADMIN_GIVE_SELF.items.filter((item) => {
-                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
-                  })
+                    return (
+                      Number(item.adminLevel) <=
+                      this.getPlayerInfo('adminLevel')
+                    );
+                  }),
                 }
               );
               break;
@@ -86,13 +89,18 @@ export class Client extends ClientController {
                 `${GetCurrentResourceName()}:open-admin-menu`,
                 {
                   ...ADMIN_TELEPORT,
-                  items: teleportPoints.map((teleport, index) => ({
-                    label: teleport,
-                    active: !index ? true : false,
-                    adminLevel: 1
-                  })).filter((item) => {
-                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
-                  }),
+                  items: teleportPoints
+                    .map((teleport, index) => ({
+                      label: teleport,
+                      active: !index ? true : false,
+                      adminLevel: 1,
+                    }))
+                    .filter((item) => {
+                      return (
+                        Number(item.adminLevel) <=
+                        this.getPlayerInfo('adminLevel')
+                      );
+                    }),
                 }
               );
 
@@ -105,9 +113,15 @@ export class Client extends ClientController {
                 `${GetCurrentResourceName()}:open-admin-menu`,
                 {
                   ...ADMIN_ENTITIES,
-                  items: ADMIN_ENTITIES.items.filter((item) => {
-                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
-                  })
+                  items: ADMIN_ENTITIES.items
+                    .filter(
+                      (item) =>
+                        Number(item.adminLevel) <=
+                        Number(this.getPlayerInfo('adminLevel'))
+                    )
+                    .map((item, _index, thisArray) =>
+                      thisArray.length === 1 ? { ...item, active: true } : item
+                    ),
                 }
               );
               break;
@@ -127,44 +141,26 @@ export class Client extends ClientController {
                   items: weaponNames.map((weapon, index) => ({
                     label: weapon,
                     active: !index ? true : false,
-                    adminLevel: 4
-                  })).filter((item) => {
-                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
-                  }),
+                  })),
                 }
               );
               break;
             case 'give drugs':
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
-                {
-                  ...ADMIN_GIVE_DRUGS,
-                  items: ADMIN_GIVE_DRUGS.items.filter((item) => {
-                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
-                  })
-                }
+                ADMIN_GIVE_DRUGS
               );
               break;
             case 'give money':
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
-                {
-                  ...ADMIN_GIVE_MONEY,
-                  items: ADMIN_GIVE_MONEY.items.filter((item) => {
-                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
-                  })
-                }
+                ADMIN_GIVE_MONEY
               );
               break;
             case 'give vehicle':
               TriggerServerEvent(
                 `${GetCurrentResourceName()}:open-admin-menu`,
-                {
-                  ...ADMIN_VEHICLES,
-                  items: ADMIN_VEHICLES.items.filter((item) => {
-                  Number(item.adminLevel) <= this.getPlayerInfo('adminLevel');
-                })
-              }
+                ADMIN_VEHICLES
               );
               break;
           }
@@ -206,18 +202,8 @@ export class Client extends ClientController {
 
               if (blip != 0) {
                 const coord = GetBlipCoords(blip);
-                const valueZ = GetGroundZFor_3dCoord_2(
-                  coord[0],
-                  coord[1],
-                  coord[2],
-                  false
-                );
                 if (coord) {
-                  ExecuteCommand(
-                    `tp ${coord[0]} ${coord[1]} ${
-                      valueZ[1] ? valueZ[1] : coord[2]
-                    }`
-                  );
+                  ExecuteCommand(`tp ${coord[0]} ${coord[1]} ${coord[2]}`);
                 } else {
                   console.log(
                     'Please put a waypoint before using the command.'
@@ -249,6 +235,31 @@ export class Client extends ClientController {
           break;
       }
     });
+
+    onNet(
+      `${GetCurrentResourceName()}:send-updated-position`,
+      (args: string[]) => {
+        let zCoord: [boolean, number, number[]] =
+          GetGroundZAndNormalFor_3dCoord(
+            Number(args[0]),
+            Number(args[1]),
+            Number(args[2])
+          );
+        console.log(zCoord + ' ' + source + ' ' + args.join(', '));
+        if (GetEntityCoords(GetPlayerPed(source))[2] < zCoord[1]) {
+          SetEntityCoords(
+            GetPlayerPed(source),
+            Number(args[0]),
+            Number(args[1]),
+            Number(zCoord),
+            true,
+            false,
+            false,
+            false
+          );
+        }
+      }
+    );
   }
 
   private registerGlobalEvents(): void {

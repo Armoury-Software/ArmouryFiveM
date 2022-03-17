@@ -90,6 +90,12 @@ export class Server extends ServerController {
             false,
             false
           );
+          setTimeout(() => {}, 800);
+          TriggerClientEvent(
+            `${GetCurrentResourceName()}:send-updated-position`,
+            source,
+            args
+          );
         } else {
           console.log(`No teleport with name ${args[0]}`);
         }

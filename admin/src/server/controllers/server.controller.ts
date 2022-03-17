@@ -327,6 +327,29 @@ export class Server extends ServerController {
     );
 
     this.RegisterAdminCommand(
+      'setadmin',
+      6,
+      (args: string[]) => {
+        if (!args[0]) {
+          console.log('Error! Use /setadmin <player-name> <admin-level>');
+          return;
+        }
+
+        let targetPlayer: number = this.findTargetPlayer(args[0]);
+
+        if (this.checkTargetAvailability(targetPlayer)) {
+          return;
+        }
+        global.exports['authentication'].setPlayerInfo(
+          source,
+          'adminLevel',
+          args[0]
+        );
+      },
+      false
+    );
+
+    this.RegisterAdminCommand(
       'giveweapon',
       3 /* TODO: Change if not right */,
       (source: number, args: string[]) => {

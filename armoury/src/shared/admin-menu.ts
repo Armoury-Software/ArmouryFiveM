@@ -25,19 +25,19 @@ export const ADMIN_GIVE_SELF: ContextMenu = {
     {
       label: 'Give Weapon',
       active: true,
-      adminLevel: 3
+      adminLevel: 3,
     },
     {
       label: 'Give Drugs',
-      adminLevel: 5
+      adminLevel: 5,
     },
     {
       label: 'Give Money',
-      adminLevel: 5
+      adminLevel: 5,
     },
     {
       label: 'Give Vehicle',
-      adminLevel: 3
+      adminLevel: 3,
     },
   ],
   title: 'Admin Menu: Give Self',
@@ -131,21 +131,25 @@ export const ADMIN_PLAYER_ADMINISTRATION: ContextMenu = {
 export const ADMIN_ENTITIES: ContextMenu = {
   items: [
     {
-      label: 'House',
+      label: 'Vehicles',
+      adminLevel: 3,
       active: true,
-      adminLevel: 6
+    },
+    {
+      label: 'House',
+      adminLevel: 6,
     },
     {
       label: 'Business',
-      adminLevel: 6
+      adminLevel: 6,
     },
     {
       label: 'Faction',
-      adminLevel: 6
+      adminLevel: 6,
     },
     {
-      label: 'Vehicles',
-      adminLevel: 3
+      label: 'Test',
+      adminLevel: 3,
     },
   ],
   title: 'Admin Menu: Remove Entities',
