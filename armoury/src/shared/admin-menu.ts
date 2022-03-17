@@ -1,6 +1,4 @@
-import { WEAPON_NAMES } from '../../../weapons/src/shared/weapon';
 import { ContextMenu } from '../../../armoury-overlay/src/shared/context-menu.model';
-import { Context } from 'vm';
 
 export const ADMIN_MENU_MAIN: ContextMenu = {
   items: [
@@ -31,7 +29,7 @@ export const ADMIN_GIVE_SELF: ContextMenu = {
     },
     {
       label: 'Give Drugs',
-      adminLevel:
+      adminLevel: 5
     },
     {
       label: 'Give Money',
@@ -57,11 +55,9 @@ export const ADMIN_GIVE_DRUGS: ContextMenu = {
     {
       label: 'Marijuana',
       active: true,
-      adminLevel:
     },
     {
       label: 'Cocaine',
-      adminLevel:
     },
   ],
   title: 'Admin Menu: Give Drugs',
@@ -73,15 +69,12 @@ export const ADMIN_GIVE_MONEY: ContextMenu = {
     {
       label: '10000$',
       active: true,
-      adminLevel:
     },
     {
       label: '50000$',
-      adminLevel:
     },
     {
       label: '100000$',
-      adminLevel:
     },
   ],
   title: 'Admin Menu: Give Money',
@@ -93,39 +86,30 @@ export const ADMIN_VEHICLES: ContextMenu = {
     {
       label: 'Akuma',
       active: true,
-      adminLevel:
     },
     {
       label: 'Hakuchou',
-      adminLevel:
     },
     {
       label: 'Sadler',
-      adminLevel:
     },
     {
       label: 'Rumpo',
-      adminLevel:
     },
     {
       label: 'Sandking',
-      adminLevel:
     },
     {
       label: 'Zentorno',
-      adminLevel:
     },
     {
       label: 'Akula',
-      adminLevel:
     },
     {
       label: 'Lazer',
-      adminLevel:
     },
     {
       label: 'Longfin',
-      adminLevel:
     },
   ],
   title: 'Admin Menu: Spawn Vehicle',
@@ -149,15 +133,15 @@ export const ADMIN_ENTITIES: ContextMenu = {
     {
       label: 'House',
       active: true,
-      adminLevel:
+      adminLevel: 6
     },
     {
       label: 'Business',
-      adminLevel:
+      adminLevel: 6
     },
     {
       label: 'Faction',
-      adminLevel:
+      adminLevel: 6
     },
     {
       label: 'Vehicles',
