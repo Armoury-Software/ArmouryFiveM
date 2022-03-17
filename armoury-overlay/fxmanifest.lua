@@ -14,4 +14,5 @@ files {
     'dist/ui/*.js',
     'dist/ui/*.css',
     'dist/ui/assets/*.png'
+    'dist/ui/**/*.otf'
 }
