@@ -286,8 +286,8 @@ export class Client extends ClientWithUIController {
         title: 'Illegal delivery',
         subtitle: 'Select an illegal truck delivery',
         icon: 'science',
-        disabled: !isATrucker || playerSkillLevel < 2, // TODO: Also disable if the player doesn't have trucker skill level 5
-        tooltip: !isATrucker ? 'You are not a trucker' : (playerSkillLevel < 2 ? 'Higher skill level required' : '') // TODO: Add possible error for skill level < 5
+        disabled: !isATrucker || playerSkillLevel < 2,
+        tooltip: !isATrucker ? 'You are not a trucker' : (playerSkillLevel < 2 ? 'Higher skill level required' : '')
       },
       {
         title: !isATrucker ? 'Get employed' : 'Already a trucker',
