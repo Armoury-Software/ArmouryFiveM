@@ -1,3 +1,4 @@
+import { TELEPORT_POSITIONS } from '../../shared/tp-positions';
 import { ServerController } from '../../../../[utils]/server/server.controller';
 
 const fs = require('fs');
@@ -61,64 +62,79 @@ export class Server extends ServerController {
     RegisterCommand(
       'tp',
       (source: number, args: string[]) => {
-        switch (args[0]) {
-          case 'trucker': {
-            SetEntityCoords(
-              GetPlayerPed(source),
-              124.60220336914062,
-              -2682.474609375,
-              10.229248046875,
-              true,
-              false,
-              false,
-              false
-            );
-            break;
-          }
-          case 'garbageman': {
-            SetEntityCoords(
-              GetPlayerPed(source),
-              -267.5868225097656,
-              197.41978454589844,
-              85.22119140625 + 4,
-              true,
-              false,
-              false,
-              false
-            );
-            break;
-          }
-          case 'carrier': {
-            SetEntityCoords(
-              GetPlayerPed(source),
-              -439.8214,
-              -2786.469,
-              6.000384 + 2,
-              true,
-              false,
-              false,
-              false
-            );
-            break;
-          }
-          case 'drugs': {
-            SetEntityCoords(
-              GetPlayerPed(source),
-              1066.0087890625,
-              -3183.375732421875,
-              -39.1640625 + 2,
-              true,
-              false,
-              false,
-              false
-            );
-            break;
-          }
-          default: {
-            console.log('no tp with that name');
-            break;
-          }
+        if (TELEPORT_POSITIONS[args[0]]) {
+          SetEntityCoords(
+            GetPlayerPed(source),
+            TELEPORT_POSITIONS[args[0]][0],
+            TELEPORT_POSITIONS[args[0]][1],
+            TELEPORT_POSITIONS[args[0]][2],
+            true,
+            false,
+            false,
+            false
+          )
+        } else {
+          console.log('No tp with that name');
         }
+        
+        // switch (args[0]) {
+        //   case 'trucker': {
+        //     SetEntityCoords(
+        //       GetPlayerPed(source),
+        //       124.60220336914062,
+        //       -2682.474609375,
+        //       10.229248046875,
+        //       true,
+        //       false,
+        //       false,
+        //       false
+        //     );
+        //     break;
+        //   }
+        //   case 'garbageman': {
+        //     SetEntityCoords(
+        //       GetPlayerPed(source),
+        //       -267.5868225097656,
+        //       197.41978454589844,
+        //       85.22119140625 + 4,
+        //       true,
+        //       false,
+        //       false,
+        //       false
+        //     );
+        //     break;
+        //   }
+        //   case 'carrier': {
+        //     SetEntityCoords(
+        //       GetPlayerPed(source),
+        //       -439.8214,
+        //       -2786.469,
+        //       6.000384 + 2,
+        //       true,
+        //       false,
+        //       false,
+        //       false
+        //     );
+        //     break;
+        //   }
+        //   case 'drugs': {
+        //     SetEntityCoords(
+        //       GetPlayerPed(source),
+        //       1066.0087890625,
+        //       -3183.375732421875,
+        //       -39.1640625 + 2,
+        //       true,
+        //       false,
+        //       false,
+        //       false
+        //     );
+        //     break;
+        //   }
+        //   default: {
+        //     console.log('no tp with that name');
+        //     break;
+        //   }
+        // }
       },
       false
     );
