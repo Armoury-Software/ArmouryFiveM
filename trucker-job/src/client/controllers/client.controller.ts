@@ -80,28 +80,28 @@ export class Client extends ClientWithUIController {
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 1']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 2,
-                  tooltip: playerSkillLevel < 2 ? 'Higher skill level reqiured.' : ''
+                  tooltip: playerSkillLevel < 2 ? 'Higher skill level required.' : ''
                 },
                 {
                   title: 'CARGO 2',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 2']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 3,
-                  tooltip: playerSkillLevel < 3 ? 'Higher skill level reqiured.' : ''
+                  tooltip: playerSkillLevel < 3 ? 'Higher skill level required.' : ''
                 },
                 {
                   title: 'CARGO 3',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 3']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 4,
-                  tooltip: playerSkillLevel < 4 ? 'Higher skill level reqiured.' : ''
+                  tooltip: playerSkillLevel < 4 ? 'Higher skill level required.' : ''
                 },
                 {
                   title: 'CARGO 4',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 4']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 5,
-                  tooltip: playerSkillLevel < 5 ? 'Higher skill level reqiured.' : ''
+                  tooltip: playerSkillLevel < 5 ? 'Higher skill level required.' : ''
                 },
               ]);
 
