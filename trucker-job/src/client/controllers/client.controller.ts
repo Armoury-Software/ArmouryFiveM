@@ -41,7 +41,10 @@ export class Client extends ClientWithUIController {
     super.onIncomingUIMessage(eventName, eventData);
 
     if (eventName === 'buttonclick') {
-      const playerSkillLevel: number = (<any[]>this.getPlayerInfo('skills'))?.find((skill) => skill.name === 'trucker')?.value || 0;
+      const playerSkillLevel: number =
+        (<any[]>this.getPlayerInfo('skills'))?.find(
+          (skill) => skill.name === 'trucker'
+        )?.value + 1 || 0;
 
       const data: { buttonId: number } = eventData;
       switch (this.currentPage) {
@@ -68,7 +71,8 @@ export class Client extends ClientWithUIController {
                   subtitle: `A legal delivery. Most drivers use these ones to receive money while being safe. (${TRUCKER_MONEY_GAIN['ELECTRICITY']})`,
                   icon: 'euro_symbol',
                   disabled: playerSkillLevel < 3,
-                  tooltip: playerSkillLevel < 3 ? 'Higher skill level required' : ''
+                  tooltip:
+                    playerSkillLevel < 3 ? 'Higher skill level required' : '',
                 },
               ]);
               break;
@@ -81,28 +85,32 @@ export class Client extends ClientWithUIController {
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 1']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 2,
-                  tooltip: playerSkillLevel < 2 ? 'Higher skill level required.' : ''
+                  tooltip:
+                    playerSkillLevel < 2 ? 'Higher skill level required.' : '',
                 },
                 {
                   title: 'CARGO 2',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 2']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 3,
-                  tooltip: playerSkillLevel < 3 ? 'Higher skill level required.' : ''
+                  tooltip:
+                    playerSkillLevel < 3 ? 'Higher skill level required.' : '',
                 },
                 {
                   title: 'CARGO 3',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 3']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 4,
-                  tooltip: playerSkillLevel < 4 ? 'Higher skill level required.' : ''
+                  tooltip:
+                    playerSkillLevel < 4 ? 'Higher skill level required.' : '',
                 },
                 {
                   title: 'CARGO 4',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 4']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 5,
-                  tooltip: playerSkillLevel < 5 ? 'Higher skill level required.' : ''
+                  tooltip:
+                    playerSkillLevel < 5 ? 'Higher skill level required.' : '',
                 },
               ]);
 
@@ -264,9 +272,10 @@ export class Client extends ClientWithUIController {
   private getDefaultUIButtons(): UIButton[] {
     const isATrucker: boolean = this.getPlayerInfo('job') === 'trucker';
 
-    const playerSkillLevel: number = (<any[]>this.getPlayerInfo('skills'))?.find((skill) => skill.name === 'trucker')?.value || 0;
-
-    console.log(playerSkillLevel);
+    const playerSkillLevel: number =
+      (<any[]>this.getPlayerInfo('skills'))?.find(
+        (skill) => skill.name === 'trucker'
+      )?.value + 1 || 0;
 
     return [
       {
@@ -288,7 +297,11 @@ export class Client extends ClientWithUIController {
         subtitle: 'Select an illegal truck delivery',
         icon: 'science',
         disabled: !isATrucker || playerSkillLevel < 2,
-        tooltip: !isATrucker ? 'You are not a trucker' : (playerSkillLevel < 2 ? 'Higher skill level required' : '')
+        tooltip: !isATrucker
+          ? 'You are not a trucker'
+          : playerSkillLevel < 2
+          ? 'Higher skill level required'
+          : '',
       },
       {
         title: !isATrucker ? 'Get employed' : 'Already a trucker',

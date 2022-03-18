@@ -1,4 +1,7 @@
-import { TruckerDeliveryPoint, TRUCKER_DELIVERY_TYPE } from '../../shared/models/delivery-point.model';
+import {
+  TruckerDeliveryPoint,
+  TRUCKER_DELIVERY_TYPE,
+} from '../../shared/models/delivery-point.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
 import { isPlayerInRangeOfPoint } from '../../../../[utils]/utils';
 import {
@@ -14,7 +17,10 @@ export class Server extends ServerController {
   }
 
   private truckers: { [player: number]: string } = {};
-  private savedPositions: Map<number[], TruckerDeliveryPoint>;
+  private savedPositions: Map<number[], TruckerDeliveryPoint> = new Map<
+    number[],
+    TruckerDeliveryPoint
+  >();
 
   private assignEvents(): void {
     onNet(`${GetCurrentResourceName()}:quick-start`, (type: string) => {
@@ -26,34 +32,45 @@ export class Server extends ServerController {
 
       let randomDeliveryPoint: number[];
       Array.from(this.savedPositions.keys()).forEach((position) => {
-        if (TRUCKER_DELIVERY_TYPE[type] === this.savedPositions.get(position).type && isPlayerInRangeOfPoint(playerPosition[0], playerPosition[1], playerPosition[2], this.savedPositions.get(position).pos[0], this.savedPositions.get(position).pos[1], this.savedPositions.get(position).pos[2], 15)) {
-          randomDeliveryPoint = this.savedPositions.get(playerPosition).pos;
-        } 
-      })
-        
+        if (
+          TRUCKER_DELIVERY_TYPE[type] ===
+            this.savedPositions.get(position).type &&
+          isPlayerInRangeOfPoint(
+            playerPosition[0],
+            playerPosition[1],
+            playerPosition[2],
+            position[0],
+            position[1],
+            position[2],
+            15
+          )
+        ) {
+          randomDeliveryPoint = this.savedPositions.get(position).pos;
+        }
+      });
+
       if (!randomDeliveryPoint) {
         const filteredDeliveryPoints: TruckerDeliveryPoint[] =
-        TRUCKER_DELIVERY_POINTS.filter(
-          (truckerDeliveryPoint: TruckerDeliveryPoint) =>
-            !isPlayerInRangeOfPoint(
-              playerPosition[0],
-              playerPosition[1],
-              playerPosition[2],
-              truckerDeliveryPoint.pos[0],
-              truckerDeliveryPoint.pos[1],
-              truckerDeliveryPoint.pos[2],
-              30.0
-            ) && truckerDeliveryPoint.type === this.decideDeliveryType(type)
-        );
+          TRUCKER_DELIVERY_POINTS.filter(
+            (truckerDeliveryPoint: TruckerDeliveryPoint) =>
+              !isPlayerInRangeOfPoint(
+                playerPosition[0],
+                playerPosition[1],
+                playerPosition[2],
+                truckerDeliveryPoint.pos[0],
+                truckerDeliveryPoint.pos[1],
+                truckerDeliveryPoint.pos[2],
+                30.0
+              ) && truckerDeliveryPoint.type === this.decideDeliveryType(type)
+          );
         randomDeliveryPoint =
           filteredDeliveryPoints[
             Math.floor(Math.random() * filteredDeliveryPoints.length)
           ].pos;
-        this.savedPositions.set(playerPosition, {pos: randomDeliveryPoint, type: TRUCKER_DELIVERY_TYPE[type]});
-        
-        setTimeout(() => {
-          this.savedPositions.delete(playerPosition);
-        }, 10000);
+        this.savedPositions.set(playerPosition, {
+          pos: randomDeliveryPoint,
+          type: TRUCKER_DELIVERY_TYPE[type],
+        });
       }
 
       TriggerClientEvent(
@@ -66,6 +83,10 @@ export class Server extends ServerController {
         },
         type
       );
+
+      setTimeout(() => {
+        this.savedPositions.delete(playerPosition);
+      }, 10000);
     });
 
     onNet(`${GetCurrentResourceName()}:get-job`, () => {
