@@ -68,6 +68,7 @@ export class Client extends ClientWithUIController {
                   subtitle: `A legal delivery. Most drivers use these ones to receive money while being safe. (${TRUCKER_MONEY_GAIN['ELECTRICITY']})`,
                   icon: 'euro_symbol',
                   disabled: playerSkillLevel < 3,
+                  tooltip: playerSkillLevel < 3 ? 'Higher skill level required.' : ''
                 },
               ]);
               break;
