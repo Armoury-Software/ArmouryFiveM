@@ -41,14 +41,7 @@ export class Client extends ClientWithUIController {
     super.onIncomingUIMessage(eventName, eventData);
 
     if (eventName === 'buttonclick') {
-      const playerSkills: Object = this.getPlayerInfo('skills');
-      let playerSkillLevel: number = 0;
-
-      for (let skill in playerSkills) {
-        if (playerSkills[skill].name === 'trucker') {
-          playerSkillLevel = Math.floor(1 + playerSkills[skill].value);
-        }
-      }
+      const playerSkillLevel: number = (<any[]>this.getPlayerInfo('skills'))?.find((skill) => skill.name === 'trucker')?.value || 0;
 
       const data: { buttonId: number } = eventData;
       switch (this.currentPage) {
@@ -87,24 +80,28 @@ export class Client extends ClientWithUIController {
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 1']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 2,
+                  tooltip: playerSkillLevel < 2 ? 'Higher skill level reqiured.' : ''
                 },
                 {
                   title: 'CARGO 2',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 2']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 3,
+                  tooltip: playerSkillLevel < 3 ? 'Higher skill level reqiured.' : ''
                 },
                 {
                   title: 'CARGO 3',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 3']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 4,
+                  tooltip: playerSkillLevel < 4 ? 'Higher skill level reqiured.' : ''
                 },
                 {
                   title: 'CARGO 4',
                   subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 4']})`,
                   icon: 'polymer',
                   disabled: playerSkillLevel < 5,
+                  tooltip: playerSkillLevel < 5 ? 'Higher skill level reqiured.' : ''
                 },
               ]);
 
@@ -266,14 +263,7 @@ export class Client extends ClientWithUIController {
   private getDefaultUIButtons(): UIButton[] {
     const isATrucker: boolean = this.getPlayerInfo('job') === 'trucker';
 
-    const playerSkills: Object = this.getPlayerInfo('skills');
-    let playerSkillLevel: number = 0;
-
-    for (let skill in playerSkills) {
-      if (playerSkills[skill].name === 'trucker') {
-        playerSkillLevel = Math.floor(1 + playerSkills[skill].value);
-      }
-    }
+    const playerSkillLevel: number = (<any[]>this.getPlayerInfo('skills'))?.find((skill) => skill.name === 'trucker')?.value || 0;
 
     console.log(playerSkillLevel);
 
@@ -297,7 +287,7 @@ export class Client extends ClientWithUIController {
         subtitle: 'Select an illegal truck delivery',
         icon: 'science',
         disabled: !isATrucker || playerSkillLevel < 2, // TODO: Also disable if the player doesn't have trucker skill level 5
-        tooltip: !isATrucker ? 'You are not a trucker' : '', // TODO: Add possible error for skill level < 5
+        tooltip: !isATrucker ? 'You are not a trucker' : (playerSkillLevel < 2 ? 'Higher skill level required' : '') // TODO: Add possible error for skill level < 5
       },
       {
         title: !isATrucker ? 'Get employed' : 'Already a trucker',
