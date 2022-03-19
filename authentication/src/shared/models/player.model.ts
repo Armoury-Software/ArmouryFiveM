@@ -21,4 +21,6 @@ export interface Player extends PlayerBase {
   skills: Skill[];
   weapons: Weapon[];
   drugs: Drugs;
+  wantedLevel: number;
+  jailTime: number;
 }

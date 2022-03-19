@@ -254,7 +254,9 @@ function savePlayerCriticalStats(player: number): void {
       { stat: 'cash', _value: Number(getPlayerInfo(player, 'cash')) },
       { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) },
       { stat: 'weapons', _value: getPlayerInfo(player, 'weapons') },
-      { stat: 'drugs', _value: getPlayerInfo(player, 'drugs') }
+      { stat: 'drugs', _value: getPlayerInfo(player, 'drugs') },
+      { stat: 'wantedLevel', _value: getPlayerInfo(player, 'wantedLevel') },
+      { stat: 'jailTime', _value: getPlayerInfo(player, 'jailTime') }
     );
     authenticatedPlayers.delete(player);
   }
