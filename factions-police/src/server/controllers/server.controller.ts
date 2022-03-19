@@ -1,4 +1,5 @@
 import { ServerFactionController } from '../../../../[utils]/server/server-faction.controller';
+import { isPlayerInRangeOfPoint } from '../../../../[utils]/utils';
 
 export class Server extends ServerFactionController {
   public constructor() {
@@ -52,14 +53,37 @@ export class Server extends ServerFactionController {
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
         }
-
-        if (global.exports['authentication'].getPlayerInfo(targetPlayer, 'jailTime')) {
+        
+        if (
+          global.exports['authentication'].getPlayerInfo(
+            targetPlayer,
+            'jailTime'
+          )
+        ) {
           console.log('Player already in jail.');
           return;
         }
 
-        global.exports['jail'].jailPlayer(targetPlayer);
+        if (
+          global.exports['authentication'].getPlayerInfo(
+            targetPlayer,
+            'wantedLevel'
+          ) === 0
+        ) {
+          console.log(`Player doesn't have a wanted level.`);
+          return;
+        }
+
+        const targetPlayerPos: number[] = GetEntityCoords(GetPlayerPed(targetPlayer));
+        const sourcePos: number[] = GetEntityCoords(GetPlayerPed(source));
+
+        if (isPlayerInRangeOfPoint(sourcePos[0], sourcePos[1], sourcePos[2], targetPlayerPos[0], targetPlayerPos[1], targetPlayerPos[2], 10.0)) {
+          global.exports['jail'].jailPlayer(targetPlayer);
+        } else {
+          console.log('You need to be near the player you want to put in jail.')
+        }
       },
-      false)
+      false
+    );
   }
 }

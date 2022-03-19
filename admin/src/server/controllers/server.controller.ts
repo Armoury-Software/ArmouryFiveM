@@ -469,5 +469,33 @@ export class Server extends ServerController {
       },
       false
     );
+
+    this.RegisterAdminCommand(
+      'agivewanted',
+      4,
+      (source: number, args: string[]) => {
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        console.log(args);
+        global.exports['authentication'].setPlayerInfo(
+          targetPlayer,
+          'wantedLevel',
+          Number(args[1])
+        );
+      },
+      false
+    );
+
+    RegisterCommand(
+      'testc',
+      (source: number) => {
+        console.log(
+          global.exports['authentication'].getPlayerInfo(source, 'wantedLevel')
+        );
+        console.log(
+          global.exports['authentication'].getPlayerInfo(source, 'jailTime')
+        );
+      },
+      false
+    );
   }
 }
