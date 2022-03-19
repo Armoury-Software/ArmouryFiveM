@@ -23,6 +23,7 @@ export class Server extends ServerController {
         SetEntityCoords(GetPlayerPed(target), jailPosition[0], jailPosition[1], jailPosition[2], true, false, false, false);
         global.exports['authentication'].setPlayerInfo(target, 'wantedLevel', 0);
     }
+    
     private unJailPlayer(target: number): void {
         this.jailedPlayers.delete(target);
         global.exports['autentication'].setPlayerInfo(target, 'jailTime', 0);
