@@ -179,16 +179,10 @@ export class Client extends ClientController {
           }
           break;
         case 'give-drugs':
-          console.log('before if');
-          console.log('before execute');
           ExecuteCommand(
             `agivedrugs ${<string>this.getPlayerInfo('name')} ${
               data.buttonSelected.label
             } 10`
-          );
-          console.log('after if');
-          console.log(
-            this.getPlayerInfo('name') + ' ' + data.buttonSelected.label
           );
           break;
         case 'give-money':
