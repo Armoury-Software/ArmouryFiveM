@@ -1,7 +1,10 @@
 import { TruckerDeliveryPoint } from '../../shared/models/delivery-point.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
 import { isPlayerInRangeOfPoint } from '../../../../[utils]/utils';
-import { TRUCKER_DELIVERY_POINTS } from '../../shared/positions';
+import {
+  TRUCKER_DELIVERY_POINTS,
+  TRUCKER_MONEY_GAIN,
+} from '../../shared/positions';
 
 export class Server extends ServerController {
   public constructor() {
@@ -10,8 +13,11 @@ export class Server extends ServerController {
     this.assignEvents();
   }
 
+  private truckers: { [player: number]: string } = {};
+
   private assignEvents(): void {
-    onNet(`${GetCurrentResourceName()}:quick-start`, () => {
+    onNet(`${GetCurrentResourceName()}:quick-start`, (type: string) => {
+      this.truckers[source] = type;
       const playerPosition: number[] = GetEntityCoords(
         GetPlayerPed(source),
         true
@@ -27,18 +33,23 @@ export class Server extends ServerController {
               truckerDeliveryPoint.pos[1],
               truckerDeliveryPoint.pos[2],
               30.0
-            )
+            ) && truckerDeliveryPoint.type === this.decideDeliveryType(type)
         );
       const randomDeliveryPoint: number[] =
         filteredDeliveryPoints[
           Math.floor(Math.random() * filteredDeliveryPoints.length)
         ].pos;
 
-      TriggerClientEvent('trucker-job:begin-job', source, {
-        X: randomDeliveryPoint[0],
-        Y: randomDeliveryPoint[1],
-        Z: randomDeliveryPoint[2],
-      });
+      TriggerClientEvent(
+        'trucker-job:begin-job',
+        source,
+        {
+          X: randomDeliveryPoint[0],
+          Y: randomDeliveryPoint[1],
+          Z: randomDeliveryPoint[2],
+        },
+        type
+      );
     });
 
     onNet(`${GetCurrentResourceName()}:get-job`, () => {
@@ -52,9 +63,7 @@ export class Server extends ServerController {
     });
 
     onNet(`${GetCurrentResourceName()}:job-finished`, () => {
-      const target: number = source;
-      const position: number[] = GetEntityCoords(GetPlayerPed(target), true);
-
+      const position: number[] = GetEntityCoords(GetPlayerPed(source), true);
       TRUCKER_DELIVERY_POINTS.forEach((deliveryPoint: TruckerDeliveryPoint) => {
         if (
           isPlayerInRangeOfPoint(
@@ -68,24 +77,39 @@ export class Server extends ServerController {
           )
         ) {
           exports['authentication'].setPlayerInfo(
-            target,
+            source,
             'cash',
-            Number(exports['authentication'].getPlayerInfo(target, 'cash')) +
-              (1000 + Math.floor(Math.random() * 1000)),
+            Number(exports['authentication'].getPlayerInfo(source, 'cash')) +
+              (TRUCKER_MONEY_GAIN[this.truckers[source]] +
+                Math.floor(
+                  Math.random() * TRUCKER_MONEY_GAIN[this.truckers[source]]
+                )),
             false
           );
           TriggerClientEvent(
             `${GetCurrentResourceName()}:force-showui`,
-            target
+            source
           );
           global.exports['skills'].incrementPlayerSkill(
             source,
             'trucker',
             0.05
           );
+          delete this.truckers[source];
           return;
         }
       });
     });
+  }
+
+  private decideDeliveryType(type: string): number {
+    switch (type) {
+      case 'OIL':
+        return 0;
+      case 'ELECTRICITY':
+        return 1;
+      default:
+        return 2;
+    }
   }
 }

@@ -153,7 +153,10 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPosition: number[] = GetEntityCoords(GetPlayerPed(targetPlayer), true);
+        const targetPosition: number[] = GetEntityCoords(
+          GetPlayerPed(targetPlayer),
+          true
+        );
         SetEntityCoords(
           GetPlayerPed(source),
           targetPosition[0] + 1,
@@ -164,7 +167,10 @@ export class Server extends ServerController {
           false,
           true
         );
-        SetEntityRoutingBucket(GetPlayerPed(source), GetEntityRoutingBucket(GetPlayerPed(targetPlayer)));
+        SetEntityRoutingBucket(
+          GetPlayerPed(source),
+          GetEntityRoutingBucket(GetPlayerPed(targetPlayer))
+        );
 
         console.log(`Teleported to ${args[0]}.`);
       },
@@ -202,7 +208,10 @@ export class Server extends ServerController {
           true
         );
 
-        SetEntityRoutingBucket(GetPlayerPed(targetPlayer), GetEntityRoutingBucket(GetPlayerPed(source)));
+        SetEntityRoutingBucket(
+          GetPlayerPed(targetPlayer),
+          GetEntityRoutingBucket(GetPlayerPed(source))
+        );
 
         console.log(`Teleported ${args[0]} to you.`);
       },

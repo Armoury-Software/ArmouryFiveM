@@ -1,10 +1,13 @@
 import {
   TRUCKER_MARKERS,
   TRUCKER_QUICKSTART_POSITIONS,
+  TRUCKER_DELIVERY_TRAILERS,
+  TRUCKER_MONEY_GAIN,
 } from '../../shared/positions';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { UIButton } from '../../../../[utils]/models/ui-button.model';
 import { waitUntilThenDo } from '../../../../[utils]/utils';
+import { TRUCKER_PAGES } from '../../shared/models/delivery-point.model';
 
 export class Client extends ClientWithUIController {
   public constructor() {
@@ -32,23 +35,113 @@ export class Client extends ClientWithUIController {
     this.addUIListener('buttonclick');
   }
 
+  private currentPage: TRUCKER_PAGES = TRUCKER_PAGES.MAIN;
+
   protected onIncomingUIMessage(eventName: string, eventData: any): void {
     super.onIncomingUIMessage(eventName, eventData);
 
     if (eventName === 'buttonclick') {
-      const data: { buttonId: number } = eventData;
+      const playerSkillLevel: number = (<any[]>this.getPlayerInfo('skills'))?.find((skill) => skill.name === 'trucker')?.value || 0;
 
-      switch (data.buttonId) {
-        case 0: {
-          TriggerServerEvent(
-            `${GetCurrentResourceName()}:quick-start`,
-            IsPedInAnyVehicle(GetPlayerPed(-1), false)
-          );
-          this.hideUI();
+      const data: { buttonId: number } = eventData;
+      switch (this.currentPage) {
+        case TRUCKER_PAGES.MAIN: {
+          switch (data.buttonId) {
+            case 0: {
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:quick-start`,
+                'OIL'
+              );
+              this.hideUI();
+              break;
+            }
+            case 1: {
+              this.currentPage = TRUCKER_PAGES.LEGAL;
+              this.updateUIData([
+                {
+                  title: 'OIL',
+                  subtitle: `A legal delivery. Most drivers use these ones to receive money while being safe. (${TRUCKER_MONEY_GAIN['OIL']})`,
+                  icon: 'euro_symbol',
+                },
+                {
+                  title: 'ELECTRICITY',
+                  subtitle: `A legal delivery. Most drivers use these ones to receive money while being safe. (${TRUCKER_MONEY_GAIN['ELECTRICITY']})`,
+                  icon: 'euro_symbol',
+                  disabled: playerSkillLevel < 3,
+                  tooltip: playerSkillLevel < 3 ? 'Higher skill level required.' : ''
+                },
+              ]);
+              break;
+            }
+            case 2: {
+              this.currentPage = TRUCKER_PAGES.ILLEGAL;
+              this.updateUIData([
+                {
+                  title: 'CARGO 1',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 1']})`,
+                  icon: 'polymer',
+                  disabled: playerSkillLevel < 2,
+                  tooltip: playerSkillLevel < 2 ? 'Higher skill level required.' : ''
+                },
+                {
+                  title: 'CARGO 2',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 2']})`,
+                  icon: 'polymer',
+                  disabled: playerSkillLevel < 3,
+                  tooltip: playerSkillLevel < 3 ? 'Higher skill level required.' : ''
+                },
+                {
+                  title: 'CARGO 3',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 3']})`,
+                  icon: 'polymer',
+                  disabled: playerSkillLevel < 4,
+                  tooltip: playerSkillLevel < 4 ? 'Higher skill level required.' : ''
+                },
+                {
+                  title: 'CARGO 4',
+                  subtitle: `An illegal delivery. Offers more money than legal ones, but requires you to be more skillful. (${TRUCKER_MONEY_GAIN['CARGO 4']})`,
+                  icon: 'polymer',
+                  disabled: playerSkillLevel < 5,
+                  tooltip: playerSkillLevel < 5 ? 'Higher skill level required.' : ''
+                },
+              ]);
+
+              break;
+            }
+            case 3: {
+              TriggerServerEvent(`${GetCurrentResourceName()}:get-job`);
+              break;
+            }
+          }
           break;
         }
-        case 3: {
-          TriggerServerEvent(`${GetCurrentResourceName()}:get-job`);
+        case TRUCKER_PAGES.LEGAL: {
+          switch (data.buttonId) {
+            case 0: {
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:quick-start`,
+                'OIL'
+              );
+              this.hideUI();
+              break;
+            }
+            case 1: {
+              TriggerServerEvent(
+                `${GetCurrentResourceName()}:quick-start`,
+                'ELECTRICITY'
+              );
+              this.hideUI();
+              break;
+            }
+          }
+          break;
+        }
+        case TRUCKER_PAGES.ILLEGAL: {
+          TriggerServerEvent(
+            `${GetCurrentResourceName()}:quick-start`,
+            `CARGO ${data.buttonId + 1}`
+          );
+          this.hideUI();
           break;
         }
       }
@@ -56,14 +149,18 @@ export class Client extends ClientWithUIController {
   }
 
   private showTruckerMenu(): void {
-    this.updateUIData();
+    this.currentPage = TRUCKER_PAGES.MAIN;
+    this.updateUIData(this.getDefaultUIButtons());
     this.showUI();
   }
 
   private addControllerListeners(): void {
     onNet(
       `${GetCurrentResourceName()}:begin-job`,
-      async (deliveryPosition: { X: number; Y: number; Z: number }) => {
+      async (
+        deliveryPosition: { X: number; Y: number; Z: number },
+        type: string
+      ) => {
         const deliveryPoint: number = this.createWaypoint(
           [deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z],
           'Job - Trucker - Delivery Point',
@@ -95,7 +192,13 @@ export class Client extends ClientWithUIController {
         } else {
           _spawnedTruck = GetVehiclePedIsIn(GetPlayerPed(-1), false);
         }
-
+        const trailerToSpawnArray = TRUCKER_DELIVERY_TRAILERS.get(
+          this.decideTrailerType(type)
+        );
+        const trailerToSpawn: number =
+          trailerToSpawnArray[
+            Math.floor(Math.random() * trailerToSpawnArray.length)
+          ];
         const trailerOffsets: number[] = GetOffsetFromEntityInWorldCoords(
           _spawnedTruck,
           0.0,
@@ -103,7 +206,7 @@ export class Client extends ClientWithUIController {
           0.0
         );
         const spawnedTrailer: number = await this.createVehicleAsync(
-          -730904777,
+          trailerToSpawn,
           trailerOffsets[0],
           trailerOffsets[1],
           trailerOffsets[2],
@@ -119,7 +222,8 @@ export class Client extends ClientWithUIController {
       waitUntilThenDo(
         () => this.getPlayerInfo('job') === 'trucker',
         () => {
-          this.updateUIData();
+          this.currentPage = TRUCKER_PAGES.MAIN;
+          this.updateUIData(this.getDefaultUIButtons());
         }
       );
     });
@@ -133,8 +237,7 @@ export class Client extends ClientWithUIController {
     super.onForceHideUI();
   }
 
-  private updateUIData(): void {
-    const isATrucker: boolean = this.getPlayerInfo('job') === 'trucker';
+  private updateUIData(buttons: UIButton[]): void {
     SendNuiMessage(
       JSON.stringify({
         type: 'update',
@@ -142,39 +245,60 @@ export class Client extends ClientWithUIController {
         description:
           'Truckers deliver international cargo for usage in stores and other local businesses. They also help decentralize traffic outside the main area of influence.',
         resource: 'trucker-job',
-        buttons: [
-          {
-            title: 'Quick start',
-            subtitle: 'Start a quick, random delivery route',
-            icon: 'play_arrow',
-            disabled: !isATrucker,
-            tooltip: !isATrucker ? 'You are not a trucker' : '',
-          },
-          {
-            title: 'Legal delivery',
-            subtitle: 'Select a legal truck delivery',
-            icon: 'local_shipping',
-            disabled: !isATrucker,
-            tooltip: !isATrucker ? 'You are not a trucker' : '',
-          },
-          {
-            title: 'Illegal delivery (unavailable)',
-            subtitle: 'Select an illegal truck delivery',
-            icon: 'science',
-            disabled: !isATrucker, // TODO: Also disable if the player doesn't have trucker skill level 5
-            tooltip: !isATrucker ? 'You are not a trucker' : '', // TODO: Add possible error for skill level < 5
-          },
-          {
-            title: !isATrucker ? 'Get employed' : 'Already a trucker',
-            subtitle: !isATrucker
-              ? 'Become a trucker'
-              : 'You are already a trucker',
-            icon: 'badge',
-            unlocked: isATrucker,
-          },
-        ] as UIButton[],
+        buttons,
       })
     );
+  }
+
+  private decideTrailerType(type: string): number {
+    switch (type) {
+      case 'OIL':
+        return 0;
+      case 'ELECTRICITY':
+        return 1;
+      default:
+        return 2;
+    }
+  }
+
+  private getDefaultUIButtons(): UIButton[] {
+    const isATrucker: boolean = this.getPlayerInfo('job') === 'trucker';
+
+    const playerSkillLevel: number = (<any[]>this.getPlayerInfo('skills'))?.find((skill) => skill.name === 'trucker')?.value || 0;
+
+    console.log(playerSkillLevel);
+
+    return [
+      {
+        title: 'Quick start',
+        subtitle: 'Start a quick, random delivery route',
+        icon: 'play_arrow',
+        disabled: !isATrucker,
+        tooltip: !isATrucker ? 'You are not a trucker' : '',
+      },
+      {
+        title: 'Legal delivery',
+        subtitle: 'Select a legal truck delivery',
+        icon: 'local_shipping',
+        disabled: !isATrucker,
+        tooltip: !isATrucker ? 'You are not a trucker' : '',
+      },
+      {
+        title: 'Illegal delivery',
+        subtitle: 'Select an illegal truck delivery',
+        icon: 'science',
+        disabled: !isATrucker || playerSkillLevel < 2,
+        tooltip: !isATrucker ? 'You are not a trucker' : (playerSkillLevel < 2 ? 'Higher skill level required' : '')
+      },
+      {
+        title: !isATrucker ? 'Get employed' : 'Already a trucker',
+        subtitle: !isATrucker
+          ? 'Become a trucker'
+          : 'You are already a trucker',
+        icon: 'badge',
+        unlocked: isATrucker,
+      },
+    ] as UIButton[];
   }
 
   private finishDelivery(): void {
