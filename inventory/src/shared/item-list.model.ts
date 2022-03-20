@@ -14,4 +14,11 @@ export interface Item {
   width: number;
   type: string;
   description: string;
+  _piKey?: string;
+  value?: number;
+}
+
+export interface AdditionalInventory {
+  title: string;
+  items: Item[];
 }

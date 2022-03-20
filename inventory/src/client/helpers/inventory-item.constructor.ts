@@ -1,6 +1,7 @@
 import { ITEM_MAPPINGS } from '../../shared/item-mappings';
 import { CATEGORY_MAPPINGS } from '../../shared/category-mappings';
-import { Item } from '../../shared/item-list.model';
+import { AdditionalInventory, Item } from '../../shared/item-list.model';
+import { PlayerInfoType } from '../../../../authentication/src/shared/models/player-info.type';
 
 export class ItemConstructor {
   public constructor(
@@ -10,9 +11,7 @@ export class ItemConstructor {
   ) {}
 
   public get(): Item | Item[] {
-    const value: number | string | number[] | string[] | object = this.func(
-      this.playerInfoKey
-    );
+    const value: PlayerInfoType = this.func(this.playerInfoKey);
 
     if (
       value === -1 ||
@@ -63,11 +62,11 @@ export class ItemConstructor {
           description: ITEM_MAPPINGS[this.playerInfoKey].description
             ? ITEM_MAPPINGS[this.playerInfoKey].description(_value)
             : 'Just an inventory item.',
-          // TODO: Find a case where topLeft is different than 1?
           topLeft:
             CATEGORY_MAPPINGS[this.category].topLeft ||
             (ITEM_MAPPINGS[this.playerInfoKey].topLeft ? ITEM_MAPPINGS[this.playerInfoKey].topLeft(_value) : undefined) ||
             '1',
+          _piKey: this.playerInfoKey
         })));
   }
 
@@ -84,5 +83,97 @@ export class ItemConstructor {
       });
 
     return itemsToReturn;
+  }
+
+  public static infinite<T extends number>(): T {
+    return <T>999;
+  }
+
+  public static withCustomizations(
+    externalInventoryMapping: AdditionalInventory,
+    customizations: object
+  ): AdditionalInventory {
+    const _externalInventoryMapping: AdditionalInventory = JSON.parse(
+      JSON.stringify(externalInventoryMapping)
+    );
+
+    Object.keys(customizations).forEach((property) => {
+      _externalInventoryMapping.items.forEach((item: Item) => {
+        item[property] = customizations[property](item);
+      });
+    });
+
+    return _externalInventoryMapping;
+  }
+
+  public incrementFromSource(
+    sourceValue?: PlayerInfoType,
+    amount?: any,
+    key?: number | string
+  ): PlayerInfoType {
+    let _newPastValue: PlayerInfoType = JSON.parse(
+      JSON.stringify(this.func(this.playerInfoKey))
+    );
+
+    if (CATEGORY_MAPPINGS[this.category]?.incrementor) {
+      return CATEGORY_MAPPINGS[this.category]?.incrementor(
+        _newPastValue,
+        key,
+        amount
+      );
+    }
+
+    if (ITEM_MAPPINGS[this.playerInfoKey].incrementor) {
+      return ITEM_MAPPINGS[this.playerInfoKey].incrementor(
+        _newPastValue,
+        key,
+        amount
+      );
+    }
+
+    let _newSourceValue: PlayerInfoType = JSON.parse(
+      JSON.stringify(sourceValue)
+    );
+
+    switch (typeof sourceValue) {
+      case 'number': {
+        _newPastValue = (Number(_newPastValue) || 0) + Number(amount);
+
+        if (sourceValue) {
+          _newSourceValue = Number(_newSourceValue) - Number(amount);
+        }
+
+        break;
+      }
+      case 'object': {
+        if (Array.isArray(_newSourceValue) && Array.isArray(_newPastValue)) {
+          if (typeof key === 'number') {
+            (<number[]>_newPastValue).push(
+              (<number[]>_newSourceValue).splice(
+                (<number[]>_newSourceValue).indexOf(key),
+                1
+              )[0]
+            );
+          } else if (typeof key === 'string') {
+            (<string[]>_newPastValue).push(
+              (<string[]>_newSourceValue).splice(
+                (<string[]>_newSourceValue).indexOf(key),
+                1
+              )[0]
+            );
+          }
+        } else {
+          if (typeof amount === 'number') {
+            _newPastValue[key] = _newPastValue[key] + Number(amount);
+          } else {
+            _newPastValue[key] = _newSourceValue[key];
+            delete _newSourceValue[key];
+          }
+        }
+        break;
+      }
+    }
+
+    return _newPastValue;
   }
 }

@@ -22,7 +22,7 @@ export const WEAPON_NAMES = {
 2210333304: 'Carbine Rifle',
 2937143193: 'Advanced Rifle',
 1649403952: 'Compact Rifle',
-2634544996: 'Machine Gun',
+2634544996: 'MG',
 2144741730: 'Combat MG',
 487013001: 'Pump Shotgun',
 2017895192: 'Sawn Off Shotgun',
@@ -82,6 +82,7 @@ export const WEAPON_NAMES = {
 177293209: 'Heavy Sniper Mk2',
 2024373456: 'SMG Mk2'
 }
+
 
 export const WEAPON_NAMES_FOR_TESTS = {
 2578778090: 'Knife',

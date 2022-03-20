@@ -1,15 +1,15 @@
-import { ItemList } from '../../shared/item-list.model';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { Delay } from '../../../../[utils]/utils';
-import { ItemConstructor } from '../helpers/inventory-item.constructor';
 
 export class Client extends ClientWithUIController {
   public constructor() {
     super();
 
     this.registerKeyBindings();
+    this.assignListeners();
 
     this.addUIListener('inventory-item-dropped');
+    this.addUIListener('transfer-confirm');
 
     this.addDebugPeds();
   }
@@ -22,32 +22,20 @@ export class Client extends ClientWithUIController {
 
   public onForceShowUI(data: any): void {
     super.onForceShowUI(data);
+    this.showInventoryUI(data);
   }
 
-  private showInventoryUI(): void {
-    // prettier-ignore
-    const items: ItemList = {
-      house_keys: ItemConstructor.bundle(
-        new ItemConstructor(this.getPlayerInfo.bind(this), 'housekeys', 'house').get()
-      ),
-      business_keys: ItemConstructor.bundle(
-        new ItemConstructor(this.getPlayerInfo.bind(this), 'businesskeys', 'business').get()
-      ),
-      vehicles: [],
-      weapons: ItemConstructor.bundle(
-        new ItemConstructor(this.getPlayerInfo.bind(this), 'weapons', 'weapon').get()
-      ),
-      misc: ItemConstructor.bundle(
-        new ItemConstructor(this.getPlayerInfo.bind(this), 'cash').get(),
-        new ItemConstructor(this.getPlayerInfo.bind(this), 'phone').get()
-      ),
-    };
-
+  private showInventoryUI(data: any): void {
     SendNuiMessage(
       JSON.stringify({
         type: 'update',
         resource: GetCurrentResourceName(),
-        items: JSON.stringify(items),
+        items: JSON.stringify(data.items),
+        ...(data.additionalPanel
+          ? {
+              additionalPanel: JSON.stringify(data.additionalPanel),
+            }
+          : {}),
       })
     );
 
@@ -62,7 +50,19 @@ export class Client extends ClientWithUIController {
   protected onIncomingUIMessage(eventName: string, eventData: any): void {
     switch (eventName) {
       case 'inventory-item-dropped': {
-        console.log(eventData);
+        if (eventData.wasDraggedFromAdditionalInventoryIntoMine) {
+          TriggerServerEvent(
+            `${GetCurrentResourceName()}:client-receive-item`,
+            eventData.item
+          );
+        }
+        break;
+      }
+      case 'transfer-confirm': {
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:client-confirm-purchase`,
+          eventData
+        );
         break;
       }
     }
@@ -72,8 +72,11 @@ export class Client extends ClientWithUIController {
     RegisterCommand(
       '+inventory',
       () => {
-        this.showUI();
-        this.showInventoryUI();
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:client-inventory-request`,
+          undefined,
+          ''
+        );
       },
       false
     );
@@ -190,5 +193,17 @@ export class Client extends ClientWithUIController {
   ): [number, number] {
     const screenResolution: [number, number] = GetActiveScreenResolution();
     return [screenResolution[0] * X, screenResolution[1] * Y];
+  }
+
+  private assignListeners(): void {
+    onNet(`${GetCurrentResourceName()}:cshow-purchase-dialog`, (data) => {
+      SendNuiMessage(
+        JSON.stringify({
+          type: 'show-purchase-dialog',
+          myMoney: data.myMoney,
+          item: data.item,
+        })
+      );
+    });
   }
 }
