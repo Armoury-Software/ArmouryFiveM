@@ -25,6 +25,7 @@ ensure carrier-job
 ensure houses
 ensure houses-menu
 ensure businesses
+ensure businesses-247
 ensure businesses-menu
 ensure factions
 ensure factions-police
