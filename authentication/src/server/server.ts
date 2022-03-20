@@ -254,7 +254,15 @@ function savePlayerCriticalStats(player: number): void {
       { stat: 'cash', _value: Number(getPlayerInfo(player, 'cash')) },
       { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) },
       { stat: 'weapons', _value: getPlayerInfo(player, 'weapons') },
-      { stat: 'drugs', _value: getPlayerInfo(player, 'drugs') }
+      { stat: 'drugs', _value: getPlayerInfo(player, 'drugs') },
+      {
+        stat: 'hunger',
+        _value: global.exports['human-needs'].getPlayerHungerLevel(player),
+      },
+      {
+        stat: 'thirst',
+        _value: global.exports['human-needs'].getPlayerThirstLevel(player),
+      }
     );
     authenticatedPlayers.delete(player);
   }

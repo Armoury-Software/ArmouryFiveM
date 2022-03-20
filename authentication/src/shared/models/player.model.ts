@@ -22,6 +22,8 @@ export interface Player extends PlayerBase {
   skills: Skill[];
   weapons: Weapons;
   drugs: Drugs;
+  hunger: number;
+  thirst: number;
 }
 
 export interface Items {

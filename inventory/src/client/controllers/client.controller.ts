@@ -9,6 +9,7 @@ export class Client extends ClientWithUIController {
     this.assignListeners();
 
     this.addUIListener('inventory-item-dropped');
+    this.addUIListener('inventory-item-clicked');
     this.addUIListener('transfer-confirm');
 
     this.addDebugPeds();
@@ -61,6 +62,13 @@ export class Client extends ClientWithUIController {
       case 'transfer-confirm': {
         TriggerServerEvent(
           `${GetCurrentResourceName()}:client-confirm-purchase`,
+          eventData
+        );
+        break;
+      }
+      case 'inventory-item-clicked': {
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:inventory-item-clicked`,
           eventData
         );
         break;

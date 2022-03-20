@@ -67,7 +67,6 @@ export class Server extends ServerController {
       (data: { item: Item; amount: number }) => {
         const business =
           global.exports['businesses'].getClosestBusiness(source);
-        const target = source;
 
         if (business && business.name === '24/7') {
           const playerMoney: number = Number(
@@ -80,18 +79,10 @@ export class Server extends ServerController {
             return;
           }
 
-          global.exports['authentication'].setPlayerInfo(
+          global.exports['inventory'].givePlayerItem(
             source,
-            data.item._piKey,
-            new ItemConstructor(
-              (playerInfoKey: string) =>
-                global.exports['authentication'].getPlayerInfo(
-                  source,
-                  playerInfoKey
-                ),
-              data.item._piKey
-            ).incrementFromSource(undefined, data.amount, data.item.image),
-            false
+            data.item,
+            data.amount
           );
 
           global.exports['authentication'].setPlayerInfo(
@@ -99,8 +90,6 @@ export class Server extends ServerController {
             'cash',
             playerMoney - itemTotalPrice
           );
-
-          emit(`inventory:client-inventory-request`, target);
         }
       }
     );

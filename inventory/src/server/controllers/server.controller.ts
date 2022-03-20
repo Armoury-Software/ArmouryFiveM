@@ -12,6 +12,43 @@ export class Server extends ServerController {
     super();
 
     this.assignListeners();
+    this.assignExports();
+  }
+
+  public givePlayerItem(playerId: number, item: Item, amount: any): void {
+    global.exports['authentication'].setPlayerInfo(
+      playerId,
+      item._piKey,
+      new ItemConstructor(
+        (playerInfoKey: string) =>
+          global.exports['authentication'].getPlayerInfo(
+            playerId,
+            playerInfoKey
+          ),
+        item._piKey
+      ).incrementFromSource(undefined, amount, item.image),
+      false
+    );
+
+    emit(`inventory:client-inventory-request`, playerId);
+  }
+
+  public consumePlayerItem(playerId: number, item: Item, amount: any): void {
+    global.exports['authentication'].setPlayerInfo(
+      playerId,
+      item._piKey,
+      new ItemConstructor(
+        (playerInfoKey: string) =>
+          global.exports['authentication'].getPlayerInfo(
+            playerId,
+            playerInfoKey
+          ),
+        item._piKey
+      ).incrementFromSource(undefined, -amount, item.image),
+      false
+    );
+
+    emit(`inventory:client-inventory-request`, playerId);
   }
 
   private assignListeners(): void {
@@ -76,6 +113,11 @@ export class Server extends ServerController {
         );
       }
     );
+  }
+
+  private assignExports(): void {
+    exports('consumePlayerItem', this.consumePlayerItem.bind(this));
+    exports('givePlayerItem', this.givePlayerItem.bind(this));
   }
 
   private inventoryPIFunction(target: number): Function {

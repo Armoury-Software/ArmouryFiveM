@@ -3,4 +3,5 @@ export interface OverlayItem {
   icon: string;
   value: string;
   isNumber?: boolean;
+  redIgnored?: boolean;
 }
