@@ -19,11 +19,16 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         return this._entities;
     }
 
-    protected createEntity(entity: T): Promise<T> {
+    protected createEntity(entity: T, forceId?: number): Promise<T> {
         return (async () => {
             try {
-                const entityProperties: string[] = this.getEntityProperties(entity);
-                const entityValues: string[] = this.getEntityPropertiesValues(entity, entityProperties);
+                let entityProperties: string[] = this.getEntityProperties(entity);
+                let entityValues: string[] = this.getEntityPropertiesValues(entity, entityProperties);
+
+                if (forceId) {
+                    entityProperties = ['id', ...entityProperties];
+                    entityValues = [forceId.toString(), ...entityValues]
+                }
 
                 const id: any =
                     await global.exports['oxmysql'].insert_async(
@@ -31,10 +36,10 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
                         entityValues
                     );
 
-                this._entities.push({ ...entity, id });
+                this._entities.push({ ...entity, id: forceId || id });
                 this.syncWithClients();
 
-                return id;
+                return forceId || id;
             }
             catch (error: any) {
                 console.log(error);

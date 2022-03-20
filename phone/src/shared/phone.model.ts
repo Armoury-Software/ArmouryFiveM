@@ -1,7 +1,7 @@
 export interface Phone {
   id: number;
   contacts: PhoneContact[];
-  serviceAgents: ServiceContact[];
+  serviceAgents?: ServiceContact[];
   myNumber?: number;
 }
 

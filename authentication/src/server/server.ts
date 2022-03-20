@@ -17,7 +17,13 @@ const cachedPlayerProperties: string[] = [];
 const authenticatedPlayers: Map<number, PlayerMonitored> = new Map();
 
 onNet('authentication:authenticate', (data: authenticationDTO) => {
-  const target: number = source;
+  authenticateOrRegister(source, data);
+});
+
+function authenticateOrRegister(
+  playerId: number,
+  data: authenticationDTO
+): void {
   setImmediate(async () => {
     const hashedPassword: string = await whirlpool(
       getHashPasswordWithSalt(data.password, data.email)
@@ -27,18 +33,22 @@ onNet('authentication:authenticate', (data: authenticationDTO) => {
       try {
         const result: Player = await global.exports['oxmysql'].insert_async(
           'INSERT INTO `players`(`name`, `password`, `email`) VALUES (?, ?, ?)',
-          [GetPlayerName(target), hashedPassword, data.email]
+          [GetPlayerName(playerId), hashedPassword, data.email]
         );
 
         if (result) {
-          AuthenticatePlayer(target, result);
+          authenticateOrRegister(playerId, {
+            email: data.email,
+            password: data.password,
+            isAuthenticating: true,
+          });
         } else {
           throw new Error();
         }
       } catch (error) {
         TriggerClientEvent(
           'authentication:register-error',
-          target,
+          playerId,
           'Registration failed - that email already exists.'
         );
       }
@@ -49,17 +59,17 @@ onNet('authentication:authenticate', (data: authenticationDTO) => {
       );
 
       if (result) {
-        AuthenticatePlayer(target, result);
+        AuthenticatePlayer(playerId, result);
       } else {
         TriggerClientEvent(
           'authentication:login-error',
-          target,
+          playerId,
           'Authentication failed - incorrect email and password combination.'
         );
       }
     }
   });
-});
+}
 
 function getHashPasswordWithSalt(password: string, email: string): string {
   return email.slice(0, 3) + password + email.slice(3, 6);

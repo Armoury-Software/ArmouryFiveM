@@ -103,6 +103,10 @@ export class Server extends ServerController {
   ): CarrierDeliveryPoint[] {
     const deliveryPoints: CarrierDeliveryPoint[] = global.exports['businesses']
       .getEntities()
+      .filter(
+        (business: Business) =>
+          business.depositX !== 0.0 && business.depositY !== 0.0
+      )
       .map((business: Business) => ({
         pos: [business.depositX, business.depositY, business.depositZ],
       }));
