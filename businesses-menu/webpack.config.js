@@ -21,17 +21,13 @@ const client = {
   plugins: [
     new RemovePlugin({
       before: {
-        include: [
-          path.resolve(buildPath, 'client')
-        ]
+        include: [path.resolve(buildPath, 'client')],
       },
       watch: {
-        include: [
-          path.resolve(buildPath, 'client')
-        ]
-      }
+        include: [path.resolve(buildPath, 'client')],
+      },
     }),
-    new ESLintPlugin()
+    new ESLintPlugin(),
   ],
   optimization: {
     minimize: true,
@@ -39,8 +35,8 @@ const client = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
     fallback: {
-      'events': require.resolve('events/')
-    }
+      events: require.resolve('events/'),
+    },
   },
   output: {
     filename: '[contenthash].client.js',

@@ -1,3 +1,3 @@
 export interface CarrierDeliveryPoint {
-    pos: number[];
-};
+  pos: number[];
+}

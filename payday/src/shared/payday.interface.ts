@@ -1,10 +1,10 @@
 export interface Payday {
-    gainings: Tax[];
-    taxes: Tax[];
-    finalStats: Tax[];
+  gainings: Tax[];
+  taxes: Tax[];
+  finalStats: Tax[];
 }
 
 export interface Tax {
-    name: string;
-    value: string;
+  name: string;
+  value: string;
 }

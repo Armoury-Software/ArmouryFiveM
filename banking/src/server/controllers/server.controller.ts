@@ -7,21 +7,31 @@ export class Server extends ServerController {
     this.assignExports();
   }
 
-  private addBankMoney(playerId: number, amount: number, sender?: string, description?: string, skipDBSave: boolean = false): void {
-    const currentBankAmount: number = Number(global.exports['authentication'].getPlayerInfo(playerId, 'bank'));
-    global.exports['authentication'].setPlayerInfo(playerId, 'bank', currentBankAmount + amount, skipDBSave);
+  private addBankMoney(
+    playerId: number,
+    amount: number,
+    sender?: string,
+    description?: string,
+    skipDBSave: boolean = false
+  ): void {
+    const currentBankAmount: number = Number(
+      global.exports['authentication'].getPlayerInfo(playerId, 'bank')
+    );
+    global.exports['authentication'].setPlayerInfo(
+      playerId,
+      'bank',
+      currentBankAmount + amount,
+      skipDBSave
+    );
 
     if (sender) {
-      TriggerClientEvent(
-        'phone:banking-transaction-add',
-        playerId,
-        {
-          amount,
-          sender,
-          description: description || (amount < 0 ? 'Outgoing payment' : 'Earnings'),
-          date: Date.now()
-        }
-      );
+      TriggerClientEvent('phone:banking-transaction-add', playerId, {
+        amount,
+        sender,
+        description:
+          description || (amount < 0 ? 'Outgoing payment' : 'Earnings'),
+        date: Date.now(),
+      });
     }
   }
 

@@ -12,7 +12,6 @@ export class Server extends ServerController {
 
   private findTargetPlayer(name: string): number {
     const players: number[] = global.exports['armoury'].getPlayers();
-
     let targetPlayer: number;
 
     players.forEach((player: number) => {
@@ -24,7 +23,6 @@ export class Server extends ServerController {
         targetPlayer = player;
       }
     });
-
     return targetPlayer;
   }
 
@@ -429,6 +427,7 @@ export class Server extends ServerController {
             args[1],
             Number(args[2])
           );
+          console.log(`Succesfully gave ${args[0]} ${args[2]}g of ${args[1]}.`);
         } else {
           console.log(
             `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
