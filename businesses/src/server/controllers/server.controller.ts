@@ -155,8 +155,11 @@ export class Server extends ServerEntityWithEntranceController<Business> {
         }
 
         if (!this.isEnterable(business)) {
-          // 24/7
-          // TODO: Show 24/7 menu here
+          emit(
+            `${GetCurrentResourceName()}:business-interact-request`,
+            source,
+            business
+          );
           return;
         }
 
@@ -311,13 +314,11 @@ export class Server extends ServerEntityWithEntranceController<Business> {
           ? business.firstPurchasePrice
           : business.sellingPrice;
 
-        TriggerClientEvent(`${GetCurrentResourceName()}:show-dialog`, source, <
-          UIDialog
-        >{
+        // prettier-ignore
+        TriggerClientEvent(`${GetCurrentResourceName()}:show-dialog`, source, <UIDialog>
+        {
           title: 'Purchase this business?',
-          content: `Are you sure you want to purchase this business for $${numberWithCommas(
-            businessPrice
-          )}?`,
+          content: `Are you sure you want to purchase this business for $${numberWithCommas(businessPrice)}?`,
           buttons: [{ title: 'Confirm' }],
           dialogId: 'purchase_unowned_business',
         });
@@ -410,9 +411,7 @@ export class Server extends ServerEntityWithEntranceController<Business> {
 
   protected isEnterable(business: Business): boolean {
     return (
-      business.entranceX !== 0.0 &&
-      business.entranceY !== 0.0 &&
-      business.entranceZ !== 0.0
+      business.exitX !== 0.0 && business.exitY !== 0.0 && business.exitZ !== 0.0
     );
   }
 
@@ -431,10 +430,13 @@ export class Server extends ServerEntityWithEntranceController<Business> {
   }
 
   private registerExports(): void {
-    exports('getClosestBusiness', this.getClosestEntityOfSameTypeToPlayer);
+    exports(
+      'getClosestBusiness',
+      this.getClosestEntityOfSameTypeToPlayer.bind(this)
+    );
     exports(
       'getClosestBusinessExit',
-      this.getClosestEntityOfSameTypeExitToPlayer
+      this.getClosestEntityOfSameTypeExitToPlayer.bind(this)
     );
   }
 }

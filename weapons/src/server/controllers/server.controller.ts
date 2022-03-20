@@ -35,7 +35,7 @@ export class Server extends ServerController {
     public loadPlayerWeapons(playerId: number): void {
         const playerWeapons: Weapons = this.getPlayerWeapons(playerId);
         for (let weapon in playerWeapons) {
-            this.givePlayerWeapon(playerId, weapon, playerWeapons[weapon].ammo);
+            GiveWeaponToPed(GetPlayerPed(playerId), Number(weapon), playerWeapons[weapon].ammo, false, false);
         }
     }
 

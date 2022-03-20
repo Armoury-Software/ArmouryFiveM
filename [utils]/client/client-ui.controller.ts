@@ -23,9 +23,11 @@ export class ClientWithUIController extends ClientController implements IClientW
     }
 
     protected showUI(): void {
-        EnterCursorMode();
-        SetNuiFocus(true, true);
-        SetNuiFocusKeepInput(false);
+        if (!this.isUIShowing()) {
+            EnterCursorMode();
+            SetNuiFocus(true, true);
+            SetNuiFocusKeepInput(false);
+        }
         this.uiDisplay = true;
     
         this.addToTickUnique({

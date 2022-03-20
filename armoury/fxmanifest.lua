@@ -9,3 +9,6 @@ resource_type 'gametype' { name = 'Armoury Light Roleplay' }
 
 client_script 'dist/client/*.client.js'
 server_script 'dist/server/*.server.js'
+
+loadscreen 'dist/ui/loading.html'
+file 'dist/ui/loading.html'

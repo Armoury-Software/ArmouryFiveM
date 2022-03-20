@@ -44,10 +44,10 @@ export class Server extends ServerController {
           return;
         }
 
-        let model: string = args[0].toString();
-        let playerPosition: number[] = GetEntityCoords(GetPlayerPed(source));
+        const model: string = args[0].toString();
+        const playerPosition: number[] = GetEntityCoords(GetPlayerPed(source));
 
-        const createdVehicle = CreateVehicle(
+        const createdVehicle: number = CreateVehicle(
           model,
           playerPosition[0],
           playerPosition[1],
@@ -79,8 +79,9 @@ export class Server extends ServerController {
       false
     );
 
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'gotoveh',
+      3,
       (source: number, args: number[]) => {
         if (!args.length) {
           return;
@@ -101,8 +102,9 @@ export class Server extends ServerController {
       false
     );
 
-    RegisterCommand(
+    this.RegisterAdminCommand(
       'getveh',
+      3,
       (source: number, args: number[]) => {
         if (!args.length) {
           return;
@@ -136,21 +138,23 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'goto',
-      1 /* TODO: Change if not right */,
+      1,
       (source: number, args: string[]) => {
         if (!args.length) {
           console.log('ERROR! You should use /goto <player-name>');
           return;
         }
 
-        let targetPosition: number[];
         const targetPlayer: number = this.findTargetPlayer(args[0]);
 
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
         }
 
-        targetPosition = GetEntityCoords(GetPlayerPed(targetPlayer), true);
+        const targetPosition: number[] = GetEntityCoords(
+          GetPlayerPed(targetPlayer),
+          true
+        );
         SetEntityCoords(
           GetPlayerPed(source),
           targetPosition[0] + 1,
@@ -161,6 +165,10 @@ export class Server extends ServerController {
           false,
           true
         );
+        SetEntityRoutingBucket(
+          GetPlayerPed(source),
+          GetEntityRoutingBucket(GetPlayerPed(targetPlayer))
+        );
 
         console.log(`Teleported to ${args[0]}.`);
       },
@@ -169,7 +177,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'gethere',
-      1 /* TODO: Change if not right */,
+      2,
       (source: number, args: string[]) => {
         if (!args.length) {
           console.log('ERROR! You should use /gethere <player-name>');
@@ -198,6 +206,11 @@ export class Server extends ServerController {
           true
         );
 
+        SetEntityRoutingBucket(
+          GetPlayerPed(targetPlayer),
+          GetEntityRoutingBucket(GetPlayerPed(source))
+        );
+
         console.log(`Teleported ${args[0]} to you.`);
       },
       false
@@ -205,7 +218,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'setstat',
-      5 /* TODO: Change if not right */,
+      5,
       (source: number, args: string[]) => {
         const availableStats: string[] = ['skills'];
 
@@ -218,7 +231,7 @@ export class Server extends ServerController {
           return;
         }
 
-        let targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
 
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
@@ -261,14 +274,14 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'setcash',
-      5 /* TODO: Change if not right */,
+      5,
       (source: number, args: string[]) => {
         if (args.length < 2) {
           console.log('ERROR! You should use /setcash <player-name> <value>');
           return;
         }
 
-        let targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
 
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
@@ -292,7 +305,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'givecash',
-      5 /* TODO: Change if not right */,
+      5,
       (source: number, args: string[]) => {
         if (args.length < 2) {
           console.log('ERROR! You should use /givecash <player-name> <value>');
@@ -327,39 +340,18 @@ export class Server extends ServerController {
     );
 
     this.RegisterAdminCommand(
-      'setadmin',
-      6,
-      (args: string[]) => {
-        if (!args[0]) {
-          console.log('Error! Use /setadmin <player-name> <admin-level>');
-          return;
-        }
-
-        let targetPlayer: number = this.findTargetPlayer(args[0]);
-
-        if (this.checkTargetAvailability(targetPlayer)) {
-          return;
-        }
-        global.exports['authentication'].setPlayerInfo(
-          source,
-          'adminLevel',
-          args[0]
-        );
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
       'giveweapon',
-      3 /* TODO: Change if not right */,
+      4,
       (source: number, args: string[]) => {
         if (args.length < 3) {
           console.log(
-            'ERROR! You should use /giveweapon <player-name> <weapon-name> <no-of-bullets>'
+            'ERROR! You should use /giveweapons <player-name> <weapon-name> <no-of-bullets>'
           );
           return;
         }
+
         const targetPlayer: number = this.findTargetPlayer(args[0]);
+
         if (!this.checkTargetAvailability(targetPlayer)) {
           return;
         }
@@ -390,7 +382,7 @@ export class Server extends ServerController {
 
     this.RegisterAdminCommand(
       'removeweapons',
-      2 /* TODO: Change if not right */,
+      3,
       (source: number, args: string[]) => {
         if (!args.length) {
           console.log('ERROR! You should use /removeweapons <player-name>');
@@ -410,11 +402,68 @@ export class Server extends ServerController {
     );
 
     this.RegisterAdminCommand(
-      'testc',
-      1,
+      'agivedrugs',
+      5,
       (source: number, args: string[]) => {
-        console.log(GetWeaponClipSize('MG'));
-        console.log(GetWeaponClipSize(WeaponHash.MG));
+        if (args.length < 3) {
+          console.log('Error! Use /agivedrugs <target> <drug-type> <amount>');
+          return;
+        }
+
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
+
+        if (!this.checkTargetAvailability(targetPlayer)) {
+          return;
+        }
+
+        if (!Number(args[2])) {
+          console.log(`${args[2]} is not a valid value.`);
+          return;
+        }
+
+        if (global.exports['drugs'].verifyDrugType(args[1])) {
+          global.exports['drugs'].givePlayerDrugs(
+            targetPlayer,
+            args[1],
+            Number(args[2])
+          );
+        } else {
+          console.log(
+            `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
+          );
+        }
+      },
+      false
+    );
+
+    this.RegisterAdminCommand(
+      'aremovedrugs',
+      5,
+      (source: number, args: string[]) => {
+        if (args.length < 2) {
+          console.log(
+            'Error! Use /aremovedrugs <target> <drug-type> <amount?>'
+          );
+          return;
+        }
+
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
+
+        if (!this.checkTargetAvailability(targetPlayer)) {
+          return;
+        }
+
+        if (global.exports['drugs'].verifyDrugType(args[1])) {
+          global.exports['drugs'].removePlayerDrugs(
+            targetPlayer,
+            args[1],
+            Number(args[2])
+          );
+        } else {
+          console.log(
+            `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
+          );
+        }
       },
       false
     );

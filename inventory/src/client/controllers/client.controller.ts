@@ -1,16 +1,15 @@
-import { ItemList } from '../../shared/item-list.model';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
-import { Delay, phoneFormatted } from '../../../../[utils]/utils';
-import { Weapons } from '../../../../weapons/src/shared/models/weapon.model';
-import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
+import { Delay } from '../../../../[utils]/utils';
 
 export class Client extends ClientWithUIController {
   public constructor() {
     super();
 
     this.registerKeyBindings();
+    this.assignListeners();
 
     this.addUIListener('inventory-item-dropped');
+    this.addUIListener('transfer-confirm');
 
     this.addDebugPeds();
   }
@@ -23,89 +22,20 @@ export class Client extends ClientWithUIController {
 
   public onForceShowUI(data: any): void {
     super.onForceShowUI(data);
+    this.showInventoryUI(data);
   }
 
-  private showInventoryUI(): void {
-    let houseKeys: number | number[] = <number[]>(
-      this.getPlayerInfo('housekeys')
-    );
-    let businessKeys: number | number[] = <number[]>(
-      this.getPlayerInfo('businesskeys')
-    );
-    const weapons: Weapons =
-      typeof this.getPlayerInfo('weapons') === 'object'
-        ? <Weapons>this.getPlayerInfo('weapons')
-        : {};
-    const phone: number = Number(this.getPlayerInfo('phone'));
-
-    let mappedWeapons: { name: string; ammo: number }[] = [];
-    for (let weapon in weapons) {
-      mappedWeapons.push({
-        name: weapon.toString(),
-        ammo: weapons[weapon].ammo,
-      });
-    }
-
-    const items: ItemList = {
-      house_keys: (!Array.isArray(houseKeys) ? [houseKeys] : houseKeys)
-        .filter((key: number) => key !== -1)
-        .map((key: number) => ({
-          topLeft: '1',
-          bottomRight: '#' + key,
-          outline: '#293577',
-          image: 'key',
-          width: 65,
-          type: 'house',
-          description: `A clean key made of brass. Unlocks the door to House #${key}.`,
-        })),
-      business_keys: (!Array.isArray(businessKeys)
-        ? [businessKeys]
-        : businessKeys
-      )
-        .filter((key: number) => key !== -1)
-        .map((key: number) => ({
-          topLeft: '1',
-          bottomRight: '#' + key,
-          outline: '#31644f',
-          image: 'key',
-          width: 65,
-          type: 'business',
-          description: `A clean key made of brass. Unlocks the door to Business #${key}.`,
-        })),
-      vehicles: [],
-      weapons: mappedWeapons.map((weapon: { name: string; ammo: number }) => ({
-        topLeft: WEAPON_NAMES[weapon.name],
-        bottomRight: weapon.ammo.toString(),
-        outline: '#6e2937',
-        image: 'ak-47',
-        width: 100,
-        type: 'Rifle',
-        description: `A weapon.`,
-      })),
-      misc: [
-        ...(phone > 0
-          ? [
-              {
-                topLeft: '1',
-                bottomRight: phoneFormatted(phone),
-                outline: '#878b9f',
-                image: 'phone',
-                width: 65,
-                type: 'general',
-                description: `A slick phone with numerous functionalities. SIM number: ${phoneFormatted(
-                  phone
-                )}.`,
-              },
-            ]
-          : []),
-      ],
-    };
-
+  private showInventoryUI(data: any): void {
     SendNuiMessage(
       JSON.stringify({
         type: 'update',
         resource: GetCurrentResourceName(),
-        items: JSON.stringify(items),
+        items: JSON.stringify(data.items),
+        ...(data.additionalPanel
+          ? {
+              additionalPanel: JSON.stringify(data.additionalPanel),
+            }
+          : {}),
       })
     );
 
@@ -120,7 +50,19 @@ export class Client extends ClientWithUIController {
   protected onIncomingUIMessage(eventName: string, eventData: any): void {
     switch (eventName) {
       case 'inventory-item-dropped': {
-        console.log(eventData);
+        if (eventData.wasDraggedFromAdditionalInventoryIntoMine) {
+          TriggerServerEvent(
+            `${GetCurrentResourceName()}:client-receive-item`,
+            eventData.item
+          );
+        }
+        break;
+      }
+      case 'transfer-confirm': {
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:client-confirm-purchase`,
+          eventData
+        );
         break;
       }
     }
@@ -130,8 +72,11 @@ export class Client extends ClientWithUIController {
     RegisterCommand(
       '+inventory',
       () => {
-        this.showUI();
-        this.showInventoryUI();
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:client-inventory-request`,
+          undefined,
+          ''
+        );
       },
       false
     );
@@ -248,5 +193,17 @@ export class Client extends ClientWithUIController {
   ): [number, number] {
     const screenResolution: [number, number] = GetActiveScreenResolution();
     return [screenResolution[0] * X, screenResolution[1] * Y];
+  }
+
+  private assignListeners(): void {
+    onNet(`${GetCurrentResourceName()}:cshow-purchase-dialog`, (data) => {
+      SendNuiMessage(
+        JSON.stringify({
+          type: 'show-purchase-dialog',
+          myMoney: data.myMoney,
+          item: data.item,
+        })
+      );
+    });
   }
 }
