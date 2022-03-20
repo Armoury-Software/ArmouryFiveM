@@ -210,7 +210,7 @@ export class Server extends ServerController {
                 Number(
                   exports['authentication'].getPlayerInfo(source, 'cash')
                 ) +
-                  (this.carriers.get(source).distance * 22 +
+                  (Math.floor(this.carriers.get(source).distance * 0.2) +
                     Math.floor(Math.random() * 100)),
                 false
               );
