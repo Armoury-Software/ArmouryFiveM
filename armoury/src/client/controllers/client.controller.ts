@@ -168,7 +168,8 @@ export class Client extends ClientController {
           if (
             data.buttonSelected.label.toLowerCase() !== 'give weapon' &&
             data.buttonSelected.label.toLowerCase() !== 'give drugs' &&
-            data.buttonSelected.label.toLowerCase() !== 'give money'
+            data.buttonSelected.label.toLowerCase() !== 'give money' &&
+            data.buttonSelected.label.toLowerCase() !== 'give vehicle'
           ) {
             ExecuteCommand(
               `giveweapon ${<string>(
@@ -178,13 +179,17 @@ export class Client extends ClientController {
           }
           break;
         case 'give-drugs':
-          if (data.buttonSelected.label.toLowerCase() !== 'give drugs') {
-            ExecuteCommand(
-              `agivedrugs ${<string>this.getPlayerInfo('name')} ${
-                data.buttonSelected.label
-              } 10`
-            );
-          }
+          console.log('before if');
+          console.log('before execute');
+          ExecuteCommand(
+            `agivedrugs ${<string>this.getPlayerInfo('name')} ${
+              data.buttonSelected.label
+            } 10`
+          );
+          console.log('after if');
+          console.log(
+            this.getPlayerInfo('name') + ' ' + data.buttonSelected.label
+          );
           break;
         case 'give-money':
           if (data.buttonSelected.label.toLowerCase !== 'give money') {

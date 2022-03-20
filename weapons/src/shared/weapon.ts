@@ -83,7 +83,7 @@ export const WEAPON_NAMES = {
 2024373456: 'SMG Mk2'
 }
 
-/*
+
 export const WEAPON_NAMES_FOR_TESTS = {
 2578778090: 'Knife',
 1737195953: 'Nightstick',
@@ -167,4 +167,4 @@ export const WEAPON_NAMES_FOR_TESTS = {
 3686625920: 'CombatMGMk2',
 177293209: 'HeavySniperMk2',
 2024373456: 'SMGMk2'
-}*/
+}

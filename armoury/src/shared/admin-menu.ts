@@ -147,10 +147,6 @@ export const ADMIN_ENTITIES: ContextMenu = {
       label: 'Faction',
       adminLevel: 6,
     },
-    {
-      label: 'Test',
-      adminLevel: 3,
-    },
   ],
   title: 'Admin Menu: Remove Entities',
   id: 'remove-entities',
