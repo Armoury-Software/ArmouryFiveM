@@ -131,8 +131,10 @@ export class Server extends ServerController {
             source,
             'cash',
             Number(exports['authentication'].getPlayerInfo(source, 'cash')) +
-              (this.truckers.get(source).distance *
-                TRUCKER_MONEY_GAIN[this.truckers.get(source).type] +
+              (Math.floor(
+                this.truckers.get(source).distance *
+                  TRUCKER_MONEY_GAIN[this.truckers.get(source).type]
+              ) +
                 Math.floor(
                   Math.random() *
                     TRUCKER_MONEY_GAIN[this.truckers.get(source).type] *
