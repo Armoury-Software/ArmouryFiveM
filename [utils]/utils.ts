@@ -24,7 +24,7 @@ const waitUntilThenDo = async (condition: Function, func: Function) => {
     func();
 };
 
-const calculateDistance = (pos: number[]) => {
+export const calculateDistance = (pos: number[]) => {
     var a = pos[3] - pos[0];
     var b = pos[4] - pos[1];
     var c = pos[5] - pos[2];

@@ -1,9 +1,13 @@
 import {
+  Trucker,
   TruckerDeliveryPoint,
   TRUCKER_DELIVERY_TYPE,
 } from '../../shared/models/delivery-point.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
-import { isPlayerInRangeOfPoint } from '../../../../[utils]/utils';
+import {
+  calculateDistance,
+  isPlayerInRangeOfPoint,
+} from '../../../../[utils]/utils';
 import {
   TRUCKER_DELIVERY_POINTS,
   TRUCKER_MONEY_GAIN,
@@ -16,7 +20,7 @@ export class Server extends ServerController {
     this.assignEvents();
   }
 
-  private truckers: { [player: number]: string } = {};
+  private truckers: Map<number, Trucker> = new Map<number, Trucker>();
   private savedPositions: Map<number[], TruckerDeliveryPoint> = new Map<
     number[],
     TruckerDeliveryPoint
@@ -24,7 +28,6 @@ export class Server extends ServerController {
 
   private assignEvents(): void {
     onNet(`${GetCurrentResourceName()}:quick-start`, (type: string) => {
-      this.truckers[source] = type;
       const playerPosition: number[] = GetEntityCoords(
         GetPlayerPed(source),
         true
@@ -72,7 +75,18 @@ export class Server extends ServerController {
           type: TRUCKER_DELIVERY_TYPE[type],
         });
       }
-
+      this.truckers.set(source, {
+        distance: calculateDistance([
+          playerPosition[0],
+          playerPosition[1],
+          playerPosition[2],
+          randomDeliveryPoint[0],
+          randomDeliveryPoint[1],
+          randomDeliveryPoint[2],
+        ]),
+        type: type,
+      });
+      console.log(this.truckers.get(source));
       TriggerClientEvent(
         'trucker-job:begin-job',
         source,
@@ -117,9 +131,12 @@ export class Server extends ServerController {
             source,
             'cash',
             Number(exports['authentication'].getPlayerInfo(source, 'cash')) +
-              (TRUCKER_MONEY_GAIN[this.truckers[source]] +
+              (this.truckers.get(source).distance *
+                TRUCKER_MONEY_GAIN[this.truckers.get(source).type] +
                 Math.floor(
-                  Math.random() * TRUCKER_MONEY_GAIN[this.truckers[source]]
+                  Math.random() *
+                    TRUCKER_MONEY_GAIN[this.truckers.get(source).type] *
+                    20
                 )),
             false
           );
@@ -132,7 +149,9 @@ export class Server extends ServerController {
             'trucker',
             0.05
           );
-          delete this.truckers[source];
+          if (this.truckers.has(source)) {
+            this.truckers.delete(source);
+          }
           return;
         }
       });

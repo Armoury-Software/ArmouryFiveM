@@ -14,3 +14,8 @@ export enum TRUCKER_PAGES {
   LEGAL = 1,
   ILLEGAL = 2,
 }
+
+export interface Trucker {
+  distance: number;
+  type: string;
+}
