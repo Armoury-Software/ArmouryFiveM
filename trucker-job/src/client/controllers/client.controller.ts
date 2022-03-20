@@ -44,7 +44,7 @@ export class Client extends ClientWithUIController {
       const playerSkillLevel: number =
         (<any[]>this.getPlayerInfo('skills'))?.find(
           (skill) => skill.name === 'trucker'
-        )?.value || 0;
+        )?.value + 1 || 0;
 
       const data: { buttonId: number } = eventData;
       switch (this.currentPage) {
@@ -72,7 +72,7 @@ export class Client extends ClientWithUIController {
                   icon: 'euro_symbol',
                   disabled: playerSkillLevel < 3,
                   tooltip:
-                    playerSkillLevel < 3 ? 'Higher skill level required.' : '',
+                    playerSkillLevel < 3 ? 'Higher skill level required' : '',
                 },
               ]);
               break;
@@ -275,9 +275,7 @@ export class Client extends ClientWithUIController {
     const playerSkillLevel: number =
       (<any[]>this.getPlayerInfo('skills'))?.find(
         (skill) => skill.name === 'trucker'
-      )?.value || 0;
-
-    console.log(playerSkillLevel);
+      )?.value + 1 || 0;
 
     return [
       {

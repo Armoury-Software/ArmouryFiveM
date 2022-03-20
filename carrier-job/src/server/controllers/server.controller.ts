@@ -15,6 +15,10 @@ export class Server extends ServerController {
   }
 
   private readonly carriers: Map<number, number> = new Map<number, number>();
+  private savedPositions: Map<number[], CarrierDeliveryPoint> = new Map<
+    number[],
+    CarrierDeliveryPoint
+  >();
 
   private beginRouteForPlayer(
     playerId: number,
@@ -24,12 +28,34 @@ export class Server extends ServerController {
       GetPlayerPed(playerId),
       true
     );
-    const carrierDeliveryPoints: CarrierDeliveryPoint[] =
-      this.getPossibleDeliveryPoints(playerPosition, 15.0);
-    const randomDeliveryPoint: number[] =
-      carrierDeliveryPoints[
-        Math.floor(Math.random() * carrierDeliveryPoints.length)
-      ].pos;
+    let randomDeliveryPoint: number[];
+
+    Array.from(this.savedPositions.keys()).forEach((position) => {
+      if (
+        isPlayerInRangeOfPoint(
+          playerPosition[0],
+          playerPosition[1],
+          playerPosition[2],
+          position[0],
+          position[1],
+          position[2],
+          15
+        )
+      ) {
+        randomDeliveryPoint = this.savedPositions.get(position).pos;
+      }
+    });
+
+    if (!randomDeliveryPoint) {
+      const carrierDeliveryPoints: CarrierDeliveryPoint[] =
+        this.getPossibleDeliveryPoints(playerPosition, 15.0);
+      randomDeliveryPoint =
+        carrierDeliveryPoints[
+          Math.floor(Math.random() * carrierDeliveryPoints.length)
+        ].pos;
+
+      this.savedPositions.set(playerPosition, { pos: randomDeliveryPoint });
+    }
 
     this.updatePackageUI();
 
@@ -43,6 +69,10 @@ export class Server extends ServerController {
       },
       shouldSpawnVehicle
     );
+
+    setTimeout(() => {
+      this.savedPositions.delete(playerPosition);
+    }, 10000);
   }
 
   private updatePackageUI(inVehicle: boolean = true): void {
