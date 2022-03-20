@@ -1,4 +1,7 @@
-import { Weapon } from '../../../weapons/src/shared/models/weapon.model';
+import {
+  Weapon,
+  Weapons,
+} from '../../../weapons/src/shared/models/weapon.model';
 import {
   WEAPON_NAMES,
   WEAPON_NAMES_FOR_TESTS,
@@ -8,6 +11,7 @@ import {
   phoneFormatted,
   toThousandsString,
 } from '../../../[utils]/utils';
+import { Items } from '../../../authentication/src/shared/models/player.model';
 
 // Each key in this object is the exact match of one of the keys in the player interface in authentication resource
 export const ITEM_MAPPINGS = {
@@ -31,6 +35,23 @@ export const ITEM_MAPPINGS = {
     value: (value: [number, Weapon]) => value[1].ammo.toString(),
     topLeft: (value: [number, Weapon]) => WEAPON_NAMES[value[0]],
     image: (value: [number, Weapon]) => WEAPON_NAMES_FOR_TESTS[value[0]],
+    incrementor: (
+      currentValue: Weapons,
+      incrementWhich: number,
+      incrementBy: Weapon
+    ) => {
+      if (currentValue[incrementWhich]) {
+        currentValue[incrementWhich].ammo += incrementBy.ammo;
+
+        if (currentValue[incrementWhich].ammo <= 0) {
+          delete currentValue[incrementWhich];
+        }
+      } else {
+        currentValue[incrementWhich] = incrementBy;
+      }
+
+      return currentValue;
+    },
   },
   phone: {
     type: 'Electronics',
@@ -49,6 +70,94 @@ export const ITEM_MAPPINGS = {
       )} in your pockets.`,
     value: (value: number) => toThousandsString(value),
     insertionCondition: (value: number) => Number(value) > 0,
+  },
+  items: {
+    type: 'Miscellaneous',
+    description: (value: [string, number]) =>
+      MISC_ITEM_MAPPINGS[value[0]].description || 'Description to be added',
+    value: (value: [string, number]) => value[1].toString(),
+    image: (value: [string, number]) => value[0],
+    incrementor: (
+      currentValue: Items,
+      incrementWhich: string,
+      incrementBy: number
+    ) => {
+      if (currentValue[incrementWhich]) {
+        currentValue[incrementWhich] += incrementBy;
+
+        if (currentValue[incrementWhich] <= 0) {
+          delete currentValue[incrementWhich];
+        }
+      } else {
+        currentValue[incrementWhich] = incrementBy;
+      }
+
+      return currentValue;
+    },
+  },
+};
+
+export const MISC_ITEM_MAPPINGS = {
+  apple: {
+    description:
+      'A fresh, delicious apple. An apple a day keeps the doctor away. (+10% hunger)',
+  },
+  chocolate: {
+    description:
+      'An ordinary chocolate milk tablet. Dairy product. (+15% hunger)',
+  },
+  donut: {
+    description: 'A fluffy donut glazed with vanilla cream. (+20% hunger)',
+  },
+  sandwich: {
+    description:
+      'A nicely-packed, delicious sandwich. Contains basic ingredients. (+30% hunger)',
+  },
+  water: {
+    description:
+      'An ordinary 500ml bottle of water. Hydrate yourself! (+50% thirst)',
+  },
+  coke: {
+    description: 'An ordinary 330ml can of coke. (+30% thirst)',
+  },
+  red_bull: {
+    description:
+      'A 330ml can of energy drink. Red Bull gives you wings! (+30% thirst)',
+  },
+  cold_coffee: {
+    description: 'A 330ml can of cold coffee. (+30% thirst, +5% hunger)',
+  },
+  beer_can: {
+    description:
+      'A 330ml can of good old Corona. Contains 4.5% alcohol. (+20% thirst, +25% drunkness)',
+  },
+  rum: {
+    description:
+      'A 700ml bottle of rum. Contains 42% alcohol. (+5% thirst, +50% drunkness per serving)',
+  },
+  whiskey: {
+    description:
+      'A 700ml bottle of Whisky. Contains 40% alcohol. (+5% thirst, +50% drunkness per serving)',
+  },
+  champagne: {
+    description:
+      'A 700ml bottle of cheap champagne. Contains 12% alcohol. (+10% thirst, +20% drunkness per sip)',
+  },
+  bandages: {
+    description:
+      'A few strips of fabric used to bind up wounds. Use carefully on a wounded person!',
+  },
+  medkit: {
+    description:
+      'A kit containing medical utilities to bring a wounded person back on their feet.',
+  },
+  fuel_cannister: {
+    description:
+      'A plastic cannister usually used to carry large amounts of fuel for a vehicle.',
+  },
+  toolbox: {
+    description:
+      'A toolbox containing several tools you can use to repair a damaged vehicle.',
   },
 };
 
