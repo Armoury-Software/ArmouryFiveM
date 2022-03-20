@@ -1,5 +1,6 @@
 import { Blip } from '../../../[utils]/models/blip.model';
 import { Marker, MarkerCircle } from '../../../[utils]/models/marker.model';
+import { UIButton } from '../../../[utils]/models/ui-button.model';
 
 import {
   TruckerDeliveryPoint,
@@ -95,3 +96,12 @@ export const TRUCKER_DELIVERY_POINTS: TruckerDeliveryPoint[] = [
     type: TRUCKER_DELIVERY_TYPE.CARGO,
   },
 ];
+
+export const TRUCKER_MONEY_GAIN: { [type: string]: number } = {
+  OIL: 1000,
+  ELECTRICITY: 1500,
+  'CARGO 1': 1200,
+  'CARGO 2': 1500,
+  'CARGO 3': 2400,
+  'CARGO 4': 3200,
+};
