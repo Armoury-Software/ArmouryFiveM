@@ -24,6 +24,7 @@ ensure trucker-job
 ensure carrier-job
 ensure houses
 ensure houses-menu
+ensure human-needs
 ensure businesses
 ensure businesses-247
 ensure businesses-menu
