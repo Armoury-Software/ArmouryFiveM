@@ -187,12 +187,19 @@ export class Client extends ClientWithUIController {
 
         let _spawnedTruck: number;
         if (!IsPedInAnyVehicle(GetPlayerPed(-1), false)) {
+          const quickStartPositionAndHeading: {
+            pos: number[];
+            heading: number;
+          } =
+            TRUCKER_QUICKSTART_POSITIONS[
+              Math.floor(Math.random() * TRUCKER_QUICKSTART_POSITIONS.length)
+            ];
           _spawnedTruck = await this.createVehicleAsync(
             1518533038,
-            TRUCKER_QUICKSTART_POSITIONS[0].pos[0],
-            TRUCKER_QUICKSTART_POSITIONS[0].pos[1],
-            TRUCKER_QUICKSTART_POSITIONS[0].pos[2],
-            0.0,
+            quickStartPositionAndHeading.pos[0],
+            quickStartPositionAndHeading.pos[1],
+            quickStartPositionAndHeading.pos[2],
+            quickStartPositionAndHeading.heading,
             true,
             true
           );
