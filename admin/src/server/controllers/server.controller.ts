@@ -468,5 +468,24 @@ export class Server extends ServerController {
       },
       false
     );
+
+    this.RegisterAdminCommand(
+      'setht',
+      5,
+      (source: number, args: string) => {
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        global.exports['human-needs'].setPlayerHungerLevel(
+          targetPlayer,
+          args[1]
+        );
+        global.exports['human-needs'].setPlayerThirstLevel(
+          targetPlayer,
+          args[2]
+        );
+        global.exports['human-needs'].getPlayerHungerLevel(targetPlayer);
+        global.exports['human-needs'].getPlayerThirstLevel(targetPlayer);
+      },
+      false
+    );
   }
 }

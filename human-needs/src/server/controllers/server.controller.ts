@@ -99,6 +99,11 @@ export class Server extends ServerController {
                   ITEM_GAININGS_MAPPINGS[itemClickEvent.item.image].thirstGain
                 )
             );
+            TriggerClientEvent(
+              `${GetCurrentResourceName()}:shouldSprint`,
+              source,
+              true
+            );
           }
 
           global.exports['inventory'].consumePlayerItem(
@@ -194,7 +199,12 @@ export class Server extends ServerController {
     this.thirstMap.set(playerId, Math.max(playerThirstLevel - 1, 0));
 
     if (playerThirstLevel === 0) {
-      // TODO: Do something
+      console.log('done');
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:shouldSprint`,
+        playerId,
+        false
+      );
     }
 
     global.exports['armoury-overlay'].updateItem(playerId, {
