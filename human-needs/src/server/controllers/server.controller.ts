@@ -177,9 +177,13 @@ export class Server extends ServerController {
   private decrementHungerForPlayer(playerId: number): void {
     const playerHungerLevel: number = this.hungerMap.get(playerId);
     this.hungerMap.set(playerId, Math.max(playerHungerLevel - 1, 0));
-
+    console.log(playerId);
     if (playerHungerLevel === 0) {
-      // TODO: Do something
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:apply-player-damage`,
+        playerId,
+        5
+      );
     }
 
     global.exports['armoury-overlay'].updateItem(playerId, {
@@ -194,7 +198,11 @@ export class Server extends ServerController {
     this.thirstMap.set(playerId, Math.max(playerThirstLevel - 1, 0));
 
     if (playerThirstLevel === 0) {
-      // TODO: Do something
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:apply-player-damage`,
+        playerId,
+        2.5
+      );
     }
 
     global.exports['armoury-overlay'].updateItem(playerId, {

@@ -289,6 +289,23 @@ export class ClientEntities extends ClientBase {
         return createdPed;
     }
 
+    protected async setPedModelAsync(ped: number, modelHash: number): Promise<boolean> {
+        let attempts: number = 0;
+
+        RequestModel(modelHash);
+        while (!HasModelLoaded(modelHash)) {
+            if (attempts > 10) {
+                return false;
+            }
+
+            await Delay(100);
+            attempts ++;
+        }
+        
+        SetPlayerModel(ped, modelHash);
+        SetModelAsNoLongerNeeded(modelHash);
+    }
+
     private assignDefaultEntityListeners(): void {
         onNet('onResourceStop', (resourceName: string) => {
             if (resourceName === GetCurrentResourceName()) {
