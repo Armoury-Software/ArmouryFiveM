@@ -86,6 +86,7 @@ export class Server extends ServerController {
                 )
             );
             this.updateHungerThirstMessage(source);
+            this.triggerPedAnimation(source, 'eat');
           }
 
           if (ITEM_GAININGS_MAPPINGS[itemClickEvent.item.image].healthGain) {
@@ -101,6 +102,7 @@ export class Server extends ServerController {
                 )
             );
             this.updateHungerThirstMessage(source);
+            this.triggerPedAnimation(source, 'drink');
           }
 
           global.exports['inventory'].consumePlayerItem(
@@ -270,6 +272,14 @@ export class Server extends ServerController {
         id: 'needs-message',
       });
     }
+  }
+
+  private triggerPedAnimation(target: number, action: string): void {
+    TriggerClientEvent(
+      `${GetCurrentResourceName()}:play-animation`,
+      target,
+      action
+    );
   }
 
   private assignExports(): void {
