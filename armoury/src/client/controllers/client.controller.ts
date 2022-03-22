@@ -12,7 +12,6 @@ import {
 import { ClientController } from '../../../../[utils]/client/client.controller';
 import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
 import { TELEPORT_POINTS } from '../../shared/teleport-locations';
-import { Console } from 'console';
 
 export class Client extends ClientController {
   private deathEventTriggered: boolean = false;
