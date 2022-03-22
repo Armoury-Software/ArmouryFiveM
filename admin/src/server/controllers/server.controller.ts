@@ -436,7 +436,7 @@ export class Server extends ServerController {
       },
       false
     );
-
+    
     this.RegisterAdminCommand(
       'aremovedrugs',
       5,
