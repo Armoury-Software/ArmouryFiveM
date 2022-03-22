@@ -267,6 +267,7 @@ export class Client extends ClientController {
         if (!this.deathEventTriggered && !GetEntityHealth(GetPlayerPed(-1))) {
           this.deathEventTriggered = true;
           TriggerServerEvent(`${GetCurrentResourceName()}:onPlayerDeath`);
+          emit(`${GetCurrentResourceName()}:onPlayerDeath`);
 
           setTimeout(() => {
             this.deathEventTriggered = false;

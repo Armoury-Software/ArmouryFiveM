@@ -182,7 +182,11 @@ export class Server extends ServerController {
     this.updateHungerThirstMessage(playerId);
 
     if (playerHungerLevel === 0) {
-      // TODO: Do something
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:apply-player-damage`,
+        playerId,
+        5
+      );
     }
 
     global.exports['armoury-overlay'].updateItem(playerId, {
@@ -198,7 +202,11 @@ export class Server extends ServerController {
     this.updateHungerThirstMessage(playerId);
 
     if (playerThirstLevel === 0) {
-      // TODO: Do something
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:apply-player-damage`,
+        playerId,
+        2.5
+      );
     }
 
     global.exports['armoury-overlay'].updateItem(playerId, {
