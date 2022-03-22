@@ -134,10 +134,10 @@ export const TRUCKER_DELIVERY_POINTS: TruckerDeliveryPoint[] = [
 ];
 
 export const TRUCKER_MONEY_GAIN: { [type: string]: number } = {
-  OIL: 1000,
-  ELECTRICITY: 1500,
-  'CARGO 1': 1200,
-  'CARGO 2': 1500,
-  'CARGO 3': 2400,
-  'CARGO 4': 3200,
+  OIL: 0.1,
+  ELECTRICITY: 0.15,
+  'CARGO 1': 0.12,
+  'CARGO 2': 0.15,
+  'CARGO 3': 0.24,
+  'CARGO 4': 0.28,
 };
