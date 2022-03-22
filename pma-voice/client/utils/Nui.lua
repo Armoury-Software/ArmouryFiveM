@@ -1,4 +1,4 @@
-local uiReady = promise.new()
+--[[local uiReady = promise.new()
 function sendUIMessage(message)
 	Citizen.Await(uiReady)
 	SendNUIMessage(message)
@@ -8,4 +8,7 @@ RegisterNUICallback("uiReady", function(data, cb)
 	uiReady:resolve(true)
 
 	cb('ok')
-end)
+end)]]--
+
+function sendUIMessage(message)
+end

@@ -2,13 +2,16 @@ import { OverlayMessage } from '../shared/overlay-message.model';
 import { OverlayItem } from '../shared/overlay-item.model';
 import { ContextMenu } from '../shared/context-menu.model';
 
+let messageRemovalTimer: NodeJS.Timer | null;
+
 onNet('armoury-overlay:update-item', (data: OverlayItem) => {
   SendNuiMessage(
     JSON.stringify({
       type: 'update',
       stat: data.id,
       icon: data.icon,
-      value: data.value.toString(),
+      value: data.value?.toString(),
+      redIgnored: data.redIgnored || false,
     })
   );
 });
@@ -23,6 +26,20 @@ onNet('armoury-overlay:set-message', (data: OverlayMessage) => {
       }),
     })
   );
+
+  if (data.removeAfter) {
+    if (messageRemovalTimer != null) {
+      clearTimeout(messageRemovalTimer);
+    }
+
+    messageRemovalTimer = setTimeout(() => {
+      emit('armoury-overlay:delete-message', { id: data.id });
+
+      if (messageRemovalTimer) {
+        messageRemovalTimer = null;
+      }
+    }, data.removeAfter);
+  }
 });
 
 onNet('armoury-overlay:delete-message', (data: OverlayMessage) => {

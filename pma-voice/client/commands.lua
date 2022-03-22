@@ -31,10 +31,47 @@ function setProximityState(proximityRange, isCustom)
 		distance = proximityRange,
 		mode = isCustom and "Custom" or voiceModeData[2],
 	}, true)
-	sendUIMessage({
+	--[[sendUIMessage({
 		-- JS expects this value to be - 1, "custom" voice is on the last index
 		voiceMode = isCustom and #Cfg.voiceModes or mode - 1
-	})
+	})]]--
+
+	local voiceMode = isCustom and #Cfg.voiceModes or mode - 1
+
+	if voiceModeData[2] == 'Shouting' then
+		TriggerEvent('armoury-overlay:update-item', {
+			id = 'mic',
+			icon = 'volume_up'
+		})
+
+		TriggerEvent('armoury-overlay:set-message', {
+			id = 'voice_proximity',
+			content = 'You are now shouting when talking.',
+			removeAfter = 3500
+		})
+	elseif voiceModeData[2] == 'Normal' then
+		TriggerEvent('armoury-overlay:update-item', {
+			id = 'mic',
+			icon = 'volume_down'
+		})
+
+		TriggerEvent('armoury-overlay:set-message', {
+			id = 'voice_proximity',
+			content = 'You are now talking normally.',
+			removeAfter = 3500
+		})
+	else
+		TriggerEvent('armoury-overlay:update-item', {
+			id = 'mic',
+			icon = 'volume_mute'
+		})
+
+		TriggerEvent('armoury-overlay:set-message', {
+			id = 'voice_proximity',
+			content = 'You are now whispering when talking.',
+			removeAfter = 3500
+		})
+	end
 end
 
 exports("overrideProximityRange", function(range, disableCycle)

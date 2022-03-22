@@ -105,6 +105,20 @@ Citizen.CreateThread(function()
 					usingRadio = lastRadioStatus,
 					talking = lastTalkingStatus
 				})
+
+				if curTalkingStatus then
+					TriggerEvent('armoury-overlay:update-item', {
+						id = 'mic',
+						redIgnored = true,
+						value = '100%'
+					})
+				else
+					TriggerEvent('armoury-overlay:update-item', {
+						id = 'mic',
+						redIgnored = true,
+						value = '0%'
+					})
+				end
 			end
 		end
 

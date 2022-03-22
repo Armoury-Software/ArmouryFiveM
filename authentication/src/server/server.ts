@@ -232,8 +232,9 @@ const AuthenticatePlayer = (target: number, stats: Player) => {
   });
   global.exports['armoury-overlay'].updateItem(target, {
     id: 'mic',
-    icon: 'mic',
-    value: '100%',
+    icon: 'volume_down',
+    value: '0%',
+    redIgnored: true,
   });
 
   for (var property in stats) {
