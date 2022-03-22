@@ -239,23 +239,6 @@ export class Server extends ServerController {
     ) {
       global.exports['armoury-overlay'].setMessage(playerId, {
         id: 'needs-message',
-        // content: `You are ${
-        //   this.getPlayerHungerLevel(playerId) < 20 ? 'hungry' : ''
-        // } ${
-        //   this.getPlayerHungerLevel(playerId) < 20 &&
-        //   this.getPlayerThirstLevel(playerId) < 20
-        //     ? 'and'
-        //     : ''
-        // } ${this.getPlayerThirstLevel(playerId) < 20 ? 'thirsty' : ''}. Buy ${
-        //   this.getPlayerThirstLevel(playerId) < 20 ? 'drinks' : ''
-        // }${
-        //   this.getPlayerHungerLevel(playerId) < 20 &&
-        //   this.getPlayerThirstLevel(playerId) < 20
-        //     ? '/'
-        //     : ''
-        // }${
-        //   this.getPlayerHungerLevel(playerId) < 20 ? 'food' : ''
-        // } at any 24/7 shop.`,
         content: `You are ${
           this.getPlayerHungerLevel(playerId) < 20
             ? this.getPlayerThirstLevel(playerId) < 20
