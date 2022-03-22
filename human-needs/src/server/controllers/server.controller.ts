@@ -177,7 +177,6 @@ export class Server extends ServerController {
   private decrementHungerForPlayer(playerId: number): void {
     const playerHungerLevel: number = this.hungerMap.get(playerId);
     this.hungerMap.set(playerId, Math.max(playerHungerLevel - 1, 0));
-    console.log(playerId);
     if (playerHungerLevel === 0) {
       TriggerClientEvent(
         `${GetCurrentResourceName()}:apply-player-damage`,
