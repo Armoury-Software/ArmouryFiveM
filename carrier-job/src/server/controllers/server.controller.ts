@@ -1,6 +1,12 @@
-import { CarrierDeliveryPoint } from '../../shared/models/delivery-point.model';
+import {
+  Carrier,
+  CarrierDeliveryPoint,
+} from '../../shared/models/delivery-point.model';
 import { ServerController } from '../../../../[utils]/server/server.controller';
-import { isPlayerInRangeOfPoint } from '../../../../[utils]/utils';
+import {
+  calculateDistance,
+  isPlayerInRangeOfPoint,
+} from '../../../../[utils]/utils';
 import { Business } from '../../../../businesses/src/shared/models/business.interface';
 import {
   CARRIER_PICKUP_POINTS,
@@ -14,7 +20,7 @@ export class Server extends ServerController {
     this.assignEvents();
   }
 
-  private readonly carriers: Map<number, number> = new Map<number, number>();
+  private readonly carriers: Map<number, Carrier> = new Map<number, Carrier>();
   private savedPositions: Map<number[], CarrierDeliveryPoint> = new Map<
     number[],
     CarrierDeliveryPoint
@@ -56,7 +62,17 @@ export class Server extends ServerController {
 
       this.savedPositions.set(playerPosition, { pos: randomDeliveryPoint });
     }
-
+    this.carriers.set(source, {
+      distance: calculateDistance([
+        playerPosition[0],
+        playerPosition[1],
+        playerPosition[2],
+        randomDeliveryPoint[0],
+        randomDeliveryPoint[1],
+        randomDeliveryPoint[2],
+      ]),
+      packages: this.carriers.get(source).packages,
+    });
     this.updatePackageUI();
 
     TriggerClientEvent(
@@ -84,11 +100,11 @@ export class Server extends ServerController {
       global.exports['armoury-overlay'].setMessage(source, {
         id: 'carrier-packages',
         content:
-          this.carriers.get(source) === 0
+          this.carriers.get(source).packages === 0
             ? `You have no packages left. Pick some up from the docks.`
-            : `You have ${this.carriers.get(
-                source
-              )}/${MAX_PLAYER_PACKAGES} packages left.`,
+            : `You have ${
+                this.carriers.get(source).packages
+              }/${MAX_PLAYER_PACKAGES} packages left.`,
       });
     } else {
       global.exports['armoury-overlay'].deleteMessage(source, {
@@ -152,7 +168,10 @@ export class Server extends ServerController {
     onNet(
       `${GetCurrentResourceName()}:quick-start`,
       (refill: boolean = false) => {
-        this.carriers.set(source, MAX_PLAYER_PACKAGES);
+        this.carriers.set(source, {
+          distance: 0,
+          packages: MAX_PLAYER_PACKAGES,
+        });
         this.beginRouteForPlayer(source, !refill);
       }
     );
@@ -195,7 +214,8 @@ export class Server extends ServerController {
                 Number(
                   exports['authentication'].getPlayerInfo(source, 'cash')
                 ) +
-                  (1000 + Math.floor(Math.random() * 1000)),
+                  (Math.floor(this.carriers.get(source).distance * 0.14) +
+                    Math.floor(Math.random() * 100)),
                 false
               );
               global.exports['skills'].incrementPlayerSkill(
@@ -203,9 +223,13 @@ export class Server extends ServerController {
                 'carrier',
                 0.01
               );
-              this.carriers.set(source, this.carriers.get(source) - 1);
+              console.log(this.carriers.get(source));
+              this.carriers.set(source, {
+                distance: 0,
+                packages: this.carriers.get(source).packages - 1,
+              });
 
-              if (this.carriers.get(source) === 0) {
+              if (this.carriers.get(source).packages === 0) {
                 this.triggerPickup(source);
               } else {
                 this.beginRouteForPlayer(source, false);

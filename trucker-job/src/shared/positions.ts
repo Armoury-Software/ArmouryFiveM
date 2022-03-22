@@ -27,9 +27,45 @@ export const TRUCKER_MARKERS = {
   } as Marker,
 };
 
-export const TRUCKER_QUICKSTART_POSITIONS = [
+export const TRUCKER_QUICKSTART_POSITIONS: {
+  pos: number[];
+  heading: number;
+}[] = [
   {
     pos: [124.60220336914062, -2682.474609375, 6.229248046875],
+    heading: 0.0,
+  },
+  {
+    pos: [86.005, -2710.042, 6.234547],
+    heading: 179.1072845459,
+  },
+  {
+    pos: [82.2951, -2710.52, 6.233371],
+    heading: 179.5913848877,
+  },
+  {
+    pos: [55.83841, -2756.145, 6.233832],
+    heading: 269.41738891602,
+  },
+  {
+    pos: [56.78776, -2749.975, 6.234283],
+    heading: 271.53430175781,
+  },
+  {
+    pos: [66.38823, -2742.604, 6.233929],
+    heading: 272.06002807617,
+  },
+  {
+    pos: [64.73344, -2719.796, 6.234601],
+    heading: 271.02471923828,
+  },
+  {
+    pos: [66.13918, -2712.086, 6.233268],
+    heading: 269.90515136719,
+  },
+  {
+    pos: [68.56916, -2679.761, 6.233853],
+    heading: 0.41856390237808,
   },
 ];
 
@@ -98,10 +134,10 @@ export const TRUCKER_DELIVERY_POINTS: TruckerDeliveryPoint[] = [
 ];
 
 export const TRUCKER_MONEY_GAIN: { [type: string]: number } = {
-  OIL: 1000,
-  ELECTRICITY: 1500,
-  'CARGO 1': 1200,
-  'CARGO 2': 1500,
-  'CARGO 3': 2400,
-  'CARGO 4': 3200,
+  OIL: 0.1,
+  ELECTRICITY: 0.15,
+  'CARGO 1': 0.12,
+  'CARGO 2': 0.15,
+  'CARGO 3': 0.24,
+  'CARGO 4': 0.28,
 };

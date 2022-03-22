@@ -1,10 +1,8 @@
-import {
-  CARRIER_MARKERS,
-  CARRIER_QUICKSTART_POSITIONS,
-} from '../../shared/positions';
+import { CARRIER_MARKERS, QUICK_START_POSITIONS } from '../../shared/positions';
 import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
 import { waitUntilThenDo } from '../../../../[utils]/utils';
 import { UIButton } from '../../../../[utils]/models/ui-button.model';
+import { CarrierDeliveryPoint } from '../../shared/models/delivery-point.model';
 
 export class Client extends ClientWithUIController {
   public constructor() {
@@ -65,12 +63,16 @@ export class Client extends ClientWithUIController {
         shouldSpawnVehicle?: boolean
       ) => {
         if (shouldSpawnVehicle) {
+          const spawnPositionAndHeading: CarrierDeliveryPoint =
+            QUICK_START_POSITIONS[
+              Math.floor(Math.random() * QUICK_START_POSITIONS.length)
+            ];
           await this.createVehicleAsync(
             GetHashKey('Mule'),
-            CARRIER_QUICKSTART_POSITIONS[0].pos[0],
-            CARRIER_QUICKSTART_POSITIONS[0].pos[1],
-            CARRIER_QUICKSTART_POSITIONS[0].pos[2],
-            45.061977386475,
+            spawnPositionAndHeading.pos[0],
+            spawnPositionAndHeading.pos[1],
+            spawnPositionAndHeading.pos[2],
+            spawnPositionAndHeading.heading,
             true,
             true,
             true

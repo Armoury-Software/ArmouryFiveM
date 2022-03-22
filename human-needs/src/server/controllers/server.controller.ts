@@ -85,6 +85,7 @@ export class Server extends ServerController {
                   ITEM_GAININGS_MAPPINGS[itemClickEvent.item.image].hungerGain
                 )
             );
+            this.updateHungerThirstMessage(source);
           }
 
           if (ITEM_GAININGS_MAPPINGS[itemClickEvent.item.image].healthGain) {
@@ -99,6 +100,7 @@ export class Server extends ServerController {
                   ITEM_GAININGS_MAPPINGS[itemClickEvent.item.image].thirstGain
                 )
             );
+            this.updateHungerThirstMessage(source);
           }
 
           global.exports['inventory'].consumePlayerItem(
@@ -177,9 +179,14 @@ export class Server extends ServerController {
   private decrementHungerForPlayer(playerId: number): void {
     const playerHungerLevel: number = this.hungerMap.get(playerId);
     this.hungerMap.set(playerId, Math.max(playerHungerLevel - 1, 0));
+    this.updateHungerThirstMessage(playerId);
 
     if (playerHungerLevel === 0) {
-      // TODO: Do something
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:apply-player-damage`,
+        playerId,
+        5
+      );
     }
 
     global.exports['armoury-overlay'].updateItem(playerId, {
@@ -192,9 +199,14 @@ export class Server extends ServerController {
   private decrementThirstForPlayer(playerId: number): void {
     const playerThirstLevel: number = this.thirstMap.get(playerId);
     this.thirstMap.set(playerId, Math.max(playerThirstLevel - 1, 0));
+    this.updateHungerThirstMessage(playerId);
 
     if (playerThirstLevel === 0) {
-      // TODO: Do something
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:apply-player-damage`,
+        playerId,
+        2.5
+      );
     }
 
     global.exports['armoury-overlay'].updateItem(playerId, {
@@ -226,6 +238,38 @@ export class Server extends ServerController {
 
     this.decrementThirstForPlayer(playerId);
     this.decrementHungerForPlayer(playerId);
+  }
+
+  private updateHungerThirstMessage(playerId: number): void {
+    if (
+      this.getPlayerHungerLevel(playerId) < 20 ||
+      this.getPlayerThirstLevel(playerId) < 20
+    ) {
+      global.exports['armoury-overlay'].setMessage(playerId, {
+        id: 'needs-message',
+        content: `You are ${
+          this.getPlayerHungerLevel(playerId) < 20
+            ? this.getPlayerThirstLevel(playerId) < 20
+              ? 'hungry and thirsty'
+              : 'hungry'
+            : this.getPlayerThirstLevel(playerId) < 20
+            ? 'thirsty'
+            : ''
+        }. Buy ${
+          this.getPlayerHungerLevel(playerId) < 20
+            ? this.getPlayerThirstLevel(playerId) < 20
+              ? 'drinks/food'
+              : ' food'
+            : this.getPlayerThirstLevel(playerId) < 20
+            ? 'drinks'
+            : ''
+        } at any 24/7 shop.`,
+      });
+    } else {
+      global.exports['armoury-overlay'].deleteMessage(playerId, {
+        id: 'needs-message',
+      });
+    }
   }
 
   private assignExports(): void {
