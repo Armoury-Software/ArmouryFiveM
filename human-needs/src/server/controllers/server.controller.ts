@@ -275,7 +275,7 @@ export class Server extends ServerController {
         } at any 24/7 shop.`,
       });
     } else {
-      global.exports['armoury-overlay'].deleteMessage(source, {
+      global.exports['armoury-overlay'].deleteMessage(playerId, {
         id: 'needs-message',
       });
     }
