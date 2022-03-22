@@ -436,23 +436,7 @@ export class Server extends ServerController {
       },
       false
     );
-
-    this.RegisterAdminCommand(
-      'setht',
-      6,
-      (source: number, args: string[]) => {
-        global.exports['human-needs'].setPlayerHungerLevel(
-          this.findTargetPlayer(args[0]),
-          args[1]
-        );
-        global.exports['human-needs'].setPlayerThirstLevel(
-          this.findTargetPlayer(args[0]),
-          args[2]
-        );
-      },
-      false
-    );
-
+    
     this.RegisterAdminCommand(
       'aremovedrugs',
       5,
