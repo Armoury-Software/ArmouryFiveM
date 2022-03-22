@@ -1,4 +1,4 @@
-import { ContextMenu } from '../../../armoury-overlay/src/shared/context-menu.model';
+import { ContextMenu } from '../../../../armoury-overlay/src/shared/context-menu.model';
 
 export const ADMIN_MENU_MAIN: ContextMenu = {
   items: [

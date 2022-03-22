@@ -35,6 +35,10 @@ const server = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      '@core': path.resolve(__dirname, './../[utils]'),
+      '@shared': path.resolve(__dirname, './src/shared'),
+    },
   },
   output: {
     filename: '[contenthash].server.js',
@@ -71,6 +75,10 @@ const client = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      '@core': path.resolve(__dirname, './../[utils]'),
+      '@shared': path.resolve(__dirname, './src/shared'),
+    },
   },
   output: {
     filename: '[contenthash].client.js',

@@ -2,7 +2,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "*": ["types/*"]
+      "*": ["types/*"],
+      "@core/*": ["../[utils]/*"],
+      "@shared/*": ["src/shared/*"]
     },
     "outDir": "./dist/",
     "noImplicitAny": false,
@@ -10,8 +12,14 @@
     "target": "es6",
     "allowJs": true,
     "lib": ["es2017"],
-    "types": ["@citizenfx/client", "@citizenfx/server", "fivem-js", "@types/node"],
-    "moduleResolution": "node"
+    "types": [
+      "@citizenfx/client",
+      "@citizenfx/server",
+      "fivem-js",
+      "@types/node"
+    ],
+    "moduleResolution": "node",
+    "experimentalDecorators": true
   },
   "include": ["./src/**/*"],
   "exclude": []

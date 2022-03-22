@@ -2,7 +2,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "*": ["types/*"]
+      "*": ["types/*"],
+      "@core/*": ["../[utils]/*"],
+      "@shared/*": ["src/shared/*"]
     },
     "outDir": "./dist/",
     "noImplicitAny": false,

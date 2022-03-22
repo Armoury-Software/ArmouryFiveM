@@ -1,5 +1,7 @@
 import { ServerController } from '../../../../[utils]/server/server.controller';
 import { WeaponHash } from 'fivem-js';
+import { EventListener } from '@core/decorators/armoury.decorators';
+import { TELEPORT_POINTS } from '../../shared/teleport-locations';
 
 export class Server extends ServerController {
   private createdVehicles: number[] = [];
@@ -35,6 +37,50 @@ export class Server extends ServerController {
   }
 
   private registerCommands(): void {
+    this.RegisterAdminCommand(
+      'tp',
+      1,
+      (source: number, args: string[]) => {
+        if (!args.length) {
+          console.log('Error! Use /tp <location>.');
+          return;
+        }
+
+        if (TELEPORT_POINTS[args[0]]) {
+          SetEntityCoords(
+            GetPlayerPed(source),
+            TELEPORT_POINTS[args[0]].pos[0],
+            TELEPORT_POINTS[args[0]].pos[1],
+            TELEPORT_POINTS[args[0]].pos[2],
+            true,
+            false,
+            false,
+            false
+          );
+        } else if (Number(args[0]) && Number(args[1]) && Number(args[2])) {
+          SetEntityCoords(
+            GetPlayerPed(source),
+            Number(args[0]),
+            Number(args[1]),
+            Number(args[2]),
+            true,
+            false,
+            false,
+            false
+          );
+          setTimeout(() => {}, 800);
+          TriggerClientEvent(
+            `${GetCurrentResourceName()}:send-updated-position`,
+            source,
+            args
+          );
+        } else {
+          console.log(`No teleport with name ${args[0]}`);
+        }
+      },
+      false
+    );
+
     this.RegisterAdminCommand(
       'veh',
       3,
@@ -436,7 +482,7 @@ export class Server extends ServerController {
       },
       false
     );
-    
+
     this.RegisterAdminCommand(
       'aremovedrugs',
       5,
@@ -468,5 +514,10 @@ export class Server extends ServerController {
       },
       false
     );
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:open-admin-menu` })
+  public onAdminMenuOpen(data: any) {
+    global.exports['armoury-overlay'].showContextMenu(source, data);
   }
 }
