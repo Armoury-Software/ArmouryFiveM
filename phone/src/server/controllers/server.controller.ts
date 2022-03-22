@@ -5,6 +5,7 @@ import {
   PhoneExtended,
   ServiceContact,
 } from '../../shared/phone.model';
+import { Player } from '../../../../authentication/src/shared/models/player.model';
 
 export class Server extends ServerDBDependentController<Phone> {
   private phones: Map<number, number> = new Map<number, number>();
@@ -119,8 +120,33 @@ export class Server extends ServerDBDependentController<Phone> {
 
     onNet(
       'authentication:player-authenticated',
-      (playerAuthenticated: number, player: any) => {
-        this.phones.set(player.phone, playerAuthenticated);
+      (playerAuthenticated: number, player: Player) => {
+        let phone: number =
+          !isNaN(player.phone) && player.phone > 0 ? player.phone : 0;
+
+        if (!phone) {
+          phone = 1000000 + player.id;
+
+          console.log('generated phone was', phone);
+          console.log('player:', player);
+
+          global.exports['authentication'].setPlayerInfo(
+            playerAuthenticated,
+            'phone',
+            phone,
+            false
+          );
+
+          this.createEntity(
+            {
+              id: phone,
+              contacts: [],
+            },
+            phone
+          );
+        }
+
+        this.phones.set(phone, playerAuthenticated);
       }
     );
 
