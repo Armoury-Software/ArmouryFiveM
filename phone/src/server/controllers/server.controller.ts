@@ -1,18 +1,22 @@
-import { ServerDBDependentController } from '../../../../[utils]/server/server-db-dependent.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerDBDependentController } from '@core/server/server-db-dependent.controller';
+
 import {
   Phone,
   PhoneContact,
   PhoneExtended,
   ServiceContact,
-} from '../../shared/phone.model';
+} from '@shared/phone.model';
+
 import { Player } from '../../../../authentication/src/shared/models/player.model';
 
+@FiveMController()
 export class Server extends ServerDBDependentController<Phone> {
   private phones: Map<number, number> = new Map<number, number>();
   private activeConversations: Map<number, number> = new Map<number, number>();
 
   public constructor(dbTableName: string) {
-    super(dbTableName);
+    super(dbTableName, false);
 
     this.registerListeners();
     this.fetchOnlinePlayersPhones();
@@ -127,9 +131,6 @@ export class Server extends ServerDBDependentController<Phone> {
         if (!phone) {
           phone = 1000000 + player.id;
 
-          console.log('generated phone was', phone);
-          console.log('player:', player);
-
           global.exports['authentication'].setPlayerInfo(
             playerAuthenticated,
             'phone',
@@ -144,6 +145,8 @@ export class Server extends ServerDBDependentController<Phone> {
             },
             phone
           );
+        } else {
+          this.loadDBEntityFor(phone, 'id', playerAuthenticated);
         }
 
         this.phones.set(phone, playerAuthenticated);

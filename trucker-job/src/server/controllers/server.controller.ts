@@ -1,18 +1,11 @@
-import {
-  Trucker,
-  TruckerDeliveryPoint,
-  TRUCKER_DELIVERY_TYPE,
-} from '../../shared/models/delivery-point.model';
-import { ServerController } from '../../../../[utils]/server/server.controller';
-import {
-  calculateDistance,
-  isPlayerInRangeOfPoint,
-} from '../../../../[utils]/utils';
-import {
-  TRUCKER_DELIVERY_POINTS,
-  TRUCKER_MONEY_GAIN,
-} from '../../shared/positions';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerController } from '@core/server/server.controller';
+import { calculateDistance, isPlayerInRangeOfPoint } from '@core/utils';
 
+import { Trucker, TruckerDeliveryPoint, TRUCKER_DELIVERY_TYPE } from '@shared/models/delivery-point.model';
+import { TRUCKER_DELIVERY_POINTS, TRUCKER_MONEY_GAIN } from '@shared/positions';
+
+@FiveMController()
 export class Server extends ServerController {
   public constructor() {
     super();

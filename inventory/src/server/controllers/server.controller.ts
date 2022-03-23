@@ -1,12 +1,11 @@
-import {
-  Item,
-  AdditionalInventory,
-  ItemList,
-} from '../../shared/item-list.model';
-import { ServerController } from '../../../../[utils]/server/server.controller';
-import { EXTERNAL_INVENTORY_MAPPINGS } from '../../shared/external-inventory.mappings';
-import { ItemConstructor } from '../../client/helpers/inventory-item.constructor';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerController } from '@core/server/server.controller';
 
+import { EXTERNAL_INVENTORY_MAPPINGS } from '@shared/external-inventory.mappings';
+import { ItemConstructor } from '@shared/helpers/inventory-item.constructor';
+import { Item, AdditionalInventory, ItemList } from '@shared/item-list.model';
+
+@FiveMController()
 export class Server extends ServerController {
   public constructor() {
     super();

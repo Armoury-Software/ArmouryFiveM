@@ -1,11 +1,11 @@
-import { ServerController } from '../../../../[utils]/server/server.controller';
+import { ServerController } from '@core/server/server.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { DECREMENTS_PER_MINUTE, ITEM_GAININGS_MAPPINGS} from '@shared/constants';
+
 import { Player } from '../../../../authentication/src/shared/models/player.model';
-import {
-  DECREMENTS_PER_MINUTE,
-  ITEM_GAININGS_MAPPINGS,
-} from '../../shared/constants';
 import { Item } from '../../../../inventory/src/shared/item-list.model';
 
+@FiveMController()
 export class Server extends ServerController {
   private hungerMap: Map<number, number> = new Map<number, number>();
   private thirstMap: Map<number, number> = new Map<number, number>();

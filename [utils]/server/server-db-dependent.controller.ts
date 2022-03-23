@@ -1,20 +1,27 @@
 import { isJSON } from "../utils";
+import { EventListener, Export } from '../decorators/armoury.decorators';
 import { ServerController } from "./server.controller";
 
 export class ServerDBDependentController<T extends { id: number }> extends ServerController {
-    private _entities: T[] = [];
+    public _entities: T[] = [];
     protected get entities(): T[] {
         return this._entities;
     }
 
-    public constructor(protected dbTableName: string) {
-        super();
-
-        this.loadDBEntities();
-        this._assignExports();
-        this.assignDBEntityCommunicationListeners();
+    private _playerToEntityBindings: Map<number, number | string> = new Map<number, number | string>();
+    protected get playerToEntityBindings(): Map<number, number | string> {
+        return this._playerToEntityBindings;
     }
 
+    public constructor(protected dbTableName: string, loadAllAtStart: boolean = true) {
+        super();
+
+        if (loadAllAtStart) {
+            this.loadDBEntities();
+        }
+    }
+
+    @Export()
     protected getEntities(): T[] {
         return this._entities;
     }
@@ -100,6 +107,34 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         return this._entities.find((_entity: T) => _entity.id === id);
     }
 
+    protected async loadDBEntityFor(value: number | string, key: string = 'id', bindTo?: number): Promise<T> {
+        const result: T[] = (await global.exports['oxmysql'].query_async(`SELECT * FROM \`${this.dbTableName}\` WHERE ${key} = ?`, [value])).map(
+            (resultItem: any) => {
+                Object.keys(resultItem).forEach((property: string) => {
+                    resultItem[property] = JSON.parse(isJSON(resultItem[property].toString()) ? resultItem[property] : `"${resultItem[property]}"`, function(_k, v) { 
+                        return (typeof v === "object" || isNaN(v)) ? v : Number(v); 
+                    });
+                });
+
+                return resultItem;
+            }
+        );
+
+        if (result?.length) {
+            this._entities.push(result[0]);
+
+            if (bindTo) {
+                this.bindEntityToPlayerByEntityId(result[0].id, bindTo);
+            }
+            
+            setTimeout(() => { this.syncWithClients(); }, 2000);
+
+            return <T>result[0];
+        }
+
+        return null;
+    }
+
     private loadDBEntities(): void {
         setImmediate(async () => {
             const result: T[] = (await global.exports['oxmysql'].query_async(`SELECT * FROM \`${this.dbTableName}\``, [])).map(
@@ -133,14 +168,6 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         return keys;
     }
 
-    private assignDBEntityCommunicationListeners(): void {
-        onNet('authentication:player-authenticated', (playerAuthenticated: number) => {
-            if (this._entities.length) {
-                this.syncWithClients(playerAuthenticated);
-            }
-        });
-    }
-
     private getEntityPropertiesValues(entity: T, properties: string[]): string[] {
         return properties.map((key: string) => {
             if (Array.isArray(entity[key])) {
@@ -156,7 +183,37 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         TriggerClientEvent(`${GetCurrentResourceName()}:db-send-entities`, client || -1, this.entities);
     }
 
-    private _assignExports(): void {
-        exports('getEntities', this.getEntities.bind(this));
+    protected bindEntityToPlayer(entity: T, playerId: number): void {
+        if (this.entities.includes(entity)) {
+            this.bindEntityToPlayerByEntityId(entity.id, playerId);
+        }
+    }
+
+    protected bindEntityToPlayerByEntityId(id: number | string, playerId: number): void {
+        const entityExists: boolean = this._entities.some((entity: T) => entity.id === id);
+
+        if (entityExists) {
+            this._playerToEntityBindings.set(playerId, id);
+        }
+    }
+
+    @EventListener()
+    public onPlayerAuthenticate(playerId: number): void {
+        if (this._entities.length) {
+            this.syncWithClients(playerId);
+        }
+    }
+
+    @EventListener()
+    public onPlayerDisconnect(): void {
+        if (this._playerToEntityBindings.has(source)) {
+            const entityBoundToPlayer: T = this._entities.find((entity: T) => entity.id === this._playerToEntityBindings.get(source));
+
+            if (entityBoundToPlayer) {
+                this._entities.splice(this._entities.indexOf(entityBoundToPlayer), 1);
+            }
+
+            this._playerToEntityBindings.delete(source);
+        }
     }
 }

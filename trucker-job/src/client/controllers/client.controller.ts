@@ -1,14 +1,17 @@
+import { ClientWithUIController } from '@core/client/client-ui.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { UIButton } from '@core/models/ui-button.model';
+import { waitUntilThenDo } from '@core/utils';
+
 import {
   TRUCKER_MARKERS,
   TRUCKER_QUICKSTART_POSITIONS,
   TRUCKER_DELIVERY_TRAILERS,
   TRUCKER_MONEY_GAIN,
-} from '../../shared/positions';
-import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
-import { UIButton } from '../../../../[utils]/models/ui-button.model';
-import { waitUntilThenDo } from '../../../../[utils]/utils';
-import { TRUCKER_PAGES } from '../../shared/models/delivery-point.model';
+} from '@shared/positions';
+import { TRUCKER_PAGES } from '@shared/models/delivery-point.model';
 
+@FiveMController()
 export class Client extends ClientWithUIController {
   public constructor() {
     super();

@@ -1,5 +1,6 @@
-import { ClientController } from '@core/client';
-import { EventListener, EVENT_DIRECTIONS } from '@core/decorators';
+import { ClientController } from '@core/client/client.controller';
+import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import { EVENT_DIRECTIONS } from '@core/decorators/event.directions';
 import { Delay } from '@core/utils';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
@@ -16,6 +17,7 @@ import {
 
 import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
 
+@FiveMController()
 export class Client extends ClientController {
   private menuToggles: Map<string, boolean> = new Map<string, boolean>();
 

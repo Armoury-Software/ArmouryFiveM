@@ -1,6 +1,6 @@
-import { ITEM_MAPPINGS } from '../../shared/item-mappings';
-import { CATEGORY_MAPPINGS } from '../../shared/category-mappings';
-import { AdditionalInventory, Item } from '../../shared/item-list.model';
+import { ITEM_MAPPINGS } from '../item-mappings';
+import { CATEGORY_MAPPINGS } from '../category-mappings';
+import { AdditionalInventory, Item } from '../item-list.model';
 import { PlayerInfoType } from '../../../../authentication/src/shared/models/player-info.type';
 
 export class ItemConstructor {

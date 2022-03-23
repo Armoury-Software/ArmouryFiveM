@@ -1,5 +1,5 @@
-import { ClientController } from '../../../../[utils]/client/client.controller';
+import { ClientController } from '@core/client/client.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
 
-export class Client extends ClientController {
-
-}
+@FiveMController()
+export class Client extends ClientController { }

@@ -1,4 +1,4 @@
-import { ItemConstructor } from '../client/helpers/inventory-item.constructor';
+import { ItemConstructor } from './helpers/inventory-item.constructor';
 
 // prettier-ignore
 export const EXTERNAL_INVENTORY_MAPPINGS = {

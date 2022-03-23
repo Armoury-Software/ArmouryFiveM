@@ -1,18 +1,13 @@
-import {
-  Carrier,
-  CarrierDeliveryPoint,
-} from '../../shared/models/delivery-point.model';
-import { ServerController } from '../../../../[utils]/server/server.controller';
-import {
-  calculateDistance,
-  isPlayerInRangeOfPoint,
-} from '../../../../[utils]/utils';
-import { Business } from '../../../../businesses/src/shared/models/business.interface';
-import {
-  CARRIER_PICKUP_POINTS,
-  MAX_PLAYER_PACKAGES,
-} from '../../shared/positions';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerController } from '@core/server/server.controller';
+import { calculateDistance, isPlayerInRangeOfPoint } from '@core/utils';
 
+import { Carrier, CarrierDeliveryPoint } from '@shared/models/delivery-point.model';
+import { CARRIER_PICKUP_POINTS, MAX_PLAYER_PACKAGES } from '@shared/positions';
+
+import { Business } from '../../../../businesses/src/shared/models/business.interface';
+
+@FiveMController()
 export class Server extends ServerController {
   public constructor() {
     super();

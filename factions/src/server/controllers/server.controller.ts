@@ -1,7 +1,10 @@
-import { ServerEntityWithEntranceController } from '../../../../[utils]/server/entity-controllers/server-entity-entrance.controller';
-import { Faction, FactionMember } from '../../shared/models/faction.interface';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerEntityWithEntranceController } from '@core/server/entity-controllers/server-entity-entrance.controller';
+import { Faction, FactionMember } from '@shared/models/faction.interface';
+
 import { Player } from '../../../../authentication/src/shared/models/player.model';
 
+@FiveMController()
 export class Server extends ServerEntityWithEntranceController<Faction> {
   public constructor(dbTableName: string) {
     super(dbTableName);

@@ -1,6 +1,8 @@
-import { ClientController } from '../../../../[utils]/client/client.controller';
-import { isPlayerInRangeOfPoint } from '../../../../[utils]/utils';
+import { ClientController } from '@core/client/client.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { isPlayerInRangeOfPoint } from '@core/utils';
 
+@FiveMController()
 export class Client extends ClientController {
   private relationshipGroup: number;
 

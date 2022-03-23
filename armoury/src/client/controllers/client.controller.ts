@@ -1,5 +1,7 @@
-import { ClientController } from '../../../../[utils]/client/client.controller';
+import { ClientController } from '@core/client/client.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
 
+@FiveMController()
 export class Client extends ClientController {
   private menuToggles: Map<string, boolean> = new Map<string, boolean>();
 

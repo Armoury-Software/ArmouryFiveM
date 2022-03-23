@@ -1,9 +1,12 @@
-import { House } from '../../shared/models/house.interface';
-import { UIButton } from '../../../../[utils]/models/ui-button.model';
-import { numberWithCommas } from '../../../../[utils]/utils';
-import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
-import { ActionPoint } from '../../../../[utils]/models/action-point.model';
+import { ClientWithUIController } from '@core/client/client-ui.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { UIButton } from '@core/models/ui-button.model';
+import { ActionPoint } from '@core/models/action-point.model';
+import { numberWithCommas } from '@core/utils';
 
+import { House } from '@shared/models/house.interface';
+
+@FiveMController()
 export class Client extends ClientWithUIController {
   public constructor() {
     super();

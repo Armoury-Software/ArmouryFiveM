@@ -1,11 +1,10 @@
-import {
-  PhoneContact,
-  PhoneExtended,
-  ServiceContact,
-} from '../../shared/phone.model';
-import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
-import { toThousandsString } from '../../../../[utils]/utils';
+import { ClientWithUIController } from '@core/client/client-ui.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { toThousandsString } from '@core/utils';
 
+import { PhoneContact, PhoneExtended, ServiceContact } from '@shared/phone.model';
+
+@FiveMController()
 export class Client extends ClientWithUIController {
   private cachedTransactionsToAdd: any[] = [];
 

@@ -1,8 +1,11 @@
-import { Faction } from '../../shared/models/faction.interface';
-import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
-import { ActionPoint } from '../../../../[utils]/models/action-point.model';
-import { FactionData } from '../../shared/models/faction-data.interface';
+import { ClientWithUIController } from '@core/client/client-ui.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ActionPoint } from '@core/models/action-point.model';
 
+import { Faction } from '@shared/models/faction.interface';
+import { FactionData } from '@shared/models/faction-data.interface';
+
+@FiveMController()
 export class Client extends ClientWithUIController {
   public constructor() {
     super();

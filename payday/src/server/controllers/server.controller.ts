@@ -1,7 +1,10 @@
-import { Payday } from '../../shared/payday.interface';
-import { ServerController } from '../../../../[utils]/server/server.controller';
-import { numberWithCommas } from '../../../../[utils]/utils';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerController } from '@core/server/server.controller';
+import { numberWithCommas } from '@core/utils';
 
+import { Payday } from '@shared/payday.interface';
+
+@FiveMController()
 export class Server extends ServerController {
   private paydayInterval;
 
