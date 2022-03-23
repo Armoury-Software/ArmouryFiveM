@@ -27,6 +27,11 @@ export const ITEM_MAPPINGS = {
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
   },
+  vehiclekeys: {
+    description: (value: number) => `Your vehicle. (#${value})`,
+    value: (value: number) => '#' + value,
+    insertionCondition: (value: number) => value >= 0,
+  },
   weapons: {
     type: 'Weapon',
     description: (value: [number, Weapon]) =>

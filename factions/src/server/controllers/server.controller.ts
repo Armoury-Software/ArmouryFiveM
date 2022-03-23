@@ -7,7 +7,7 @@ import { Player } from '../../../../authentication/src/shared/models/player.mode
 @FiveMController()
 export class Server extends ServerEntityWithEntranceController<Faction> {
   public constructor(dbTableName: string) {
-    super(dbTableName);
+    super(dbTableName, true);
 
     this.registerCommands();
     this.registerExports();

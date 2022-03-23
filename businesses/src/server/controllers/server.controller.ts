@@ -7,7 +7,7 @@ import { Business } from '@shared/models/business.interface';
 
 export class Server extends ServerEntityWithEntranceController<Business> {
   public constructor(dbTableName: string) {
-    super(dbTableName);
+    super(dbTableName, true);
 
     this.registerCommands();
     this.registerListeners();

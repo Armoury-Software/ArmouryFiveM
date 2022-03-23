@@ -10,7 +10,7 @@ import { HOUSE_INTERIORS } from '@shared/house-interiors';
 @FiveMController()
 export class Server extends ServerEntityWithEntranceController<House> {
   public constructor(dbTableName: string) {
-    super(dbTableName);
+    super(dbTableName, true);
 
     this.registerCommands();
     this.registerListeners();

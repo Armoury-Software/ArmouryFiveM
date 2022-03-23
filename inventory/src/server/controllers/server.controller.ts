@@ -80,7 +80,9 @@ export class Server extends ServerController {
           business_keys: ItemConstructor.bundle(
             new ItemConstructor(this.inventoryPIFunction(source), 'businesskeys', 'business').get()
           ),
-          vehicles: [],
+          vehicles: ItemConstructor.bundle(
+            new ItemConstructor(this.inventoryPIFunction(source), 'vehiclekeys', 'vehicle').get()
+          ),
           weapons: ItemConstructor.bundle(
             new ItemConstructor(this.inventoryPIFunction(source), 'weapons', 'weapon').get()
           ),
