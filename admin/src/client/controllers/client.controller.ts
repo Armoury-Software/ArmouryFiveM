@@ -1,4 +1,4 @@
-import { ClientController } from '@core/client';
+import { ClientController } from '@core/client/client.controller';
 import { EventListener, EVENT_DIRECTIONS } from '@core/decorators';
 import { Delay } from '@core/utils';
 

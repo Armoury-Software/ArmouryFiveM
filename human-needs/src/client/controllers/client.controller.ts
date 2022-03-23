@@ -6,7 +6,7 @@ export class Client extends ClientController {
 
     this.assignListeners();
   }
-
+  private isPlayingAnim: boolean = false;
   private assignListeners(): void {
     onNet(
       `${GetCurrentResourceName()}:apply-player-damage`,
@@ -19,34 +19,69 @@ export class Client extends ClientController {
     );
 
     onNet(`${GetCurrentResourceName()}:play-animation`, (action: string) => {
-      let animationDict: string;
-      let animationName: string;
-      switch (action) {
-        case 'eat': {
-          break;
+      if (!this.isPlayingAnim && !IsPedInAnyVehicle(GetPlayerPed(-1), true)) {
+        let animationDict: string;
+        let animationName: string;
+        switch (action) {
+          case 'eat': {
+            break;
+          }
+          case 'drink': {
+            animationDict = IsPedMale(GetPlayerPed(-1))
+              ? 'amb@world_human_drinking@beer@male@idle_a'
+              : 'amb@world_human_drinking@beer@female@idle_a';
+            animationName = 'idle_c';
+            break;
+          }
         }
-        case 'drink': {
-          animationDict = IsPedMale(GetPlayerPed(-1))
-            ? 'amb@code_human_wander_drinking@beer@male@base'
-            : 'amb@code_human_wander_drinking@beer@female@base';
-          animationName = 'static';
-          break;
-        }
+        RequestAnimDict(animationDict);
+        console.log(animationDict + ' ///// ' + animationName);
+        let bottle = CreateObject(
+          'prop_ld_flow_bottle',
+          0,
+          0,
+          0,
+          true,
+          false,
+          false
+        );
+        AttachEntityToEntity(
+          bottle,
+          GetPlayerPed(-1),
+          GetPedBoneIndex(GetPlayerPed(-1), 6286),
+          0.12,
+          0.05,
+          -0.03,
+          55,
+          70,
+          140,
+          false,
+          true,
+          true,
+          true,
+          GetEntityRotation(GetPlayerPed(-1))[0],
+          true
+        );
+        TaskPlayAnim(
+          GetPlayerPed(-1),
+          animationDict,
+          animationName,
+          2.0,
+          2.0,
+          5000,
+          0,
+          0,
+          false,
+          false,
+          false
+        );
+        this.isPlayingAnim = true;
+        setTimeout(() => {
+          StopAnimTask(GetPlayerPed(-1), animationDict, animationName, 2.0);
+          this.isPlayingAnim = false;
+          DeleteEntity(bottle);
+        }, 5000);
       }
-      console.log(animationDict + ' ///// ' + animationName);
-      TaskPlayAnim(
-        GetPlayerPed(-1),
-        animationDict,
-        animationName,
-        1.0,
-        1.0,
-        10000,
-        -1,
-        0.0,
-        false,
-        false,
-        false
-      );
     });
 
     onNet('authentication:success', () => {
