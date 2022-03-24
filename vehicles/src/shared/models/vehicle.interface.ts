@@ -1,3 +1,5 @@
+import { ExternalItem } from '../../../../inventory/src/shared/item-list.model';
+
 export interface Vehicle {
   id: number;
   modelHash: number;
@@ -9,9 +11,10 @@ export interface Vehicle {
   posZ: number;
   posH: number;
   plate: string;
+  items: ExternalItem[];
 }
 
-export interface VehicleExtended {
+export interface VehicleExtended extends Vehicle {
   instanceId?: number;
   ownerName?: string;
   ownerInstance?: number;

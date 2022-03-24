@@ -13,8 +13,9 @@ export class Client extends ClientWithUIController {
     this.addUIListener('inventory-item-dropped');
     this.addUIListener('inventory-item-clicked');
     this.addUIListener('transfer-confirm');
+    this.addUIListener('trade-confirm');
 
-    this.addDebugPeds();
+    // this.addDebugPeds();
   }
 
   public onForceHideUI(): void {
@@ -59,11 +60,25 @@ export class Client extends ClientWithUIController {
             eventData.item
           );
         }
+
+        if (eventData.wasDraggedFromMyInventoryIntoAdditionalInventory) {
+          TriggerServerEvent(
+            `${GetCurrentResourceName()}:client-give-to-additional-inventory`,
+            eventData.item
+          );
+        }
         break;
       }
       case 'transfer-confirm': {
         TriggerServerEvent(
           `${GetCurrentResourceName()}:client-confirm-purchase`,
+          eventData
+        );
+        break;
+      }
+      case 'trade-confirm': {
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:client-confirm-trade`,
           eventData
         );
         break;
@@ -211,6 +226,15 @@ export class Client extends ClientWithUIController {
         JSON.stringify({
           type: 'show-purchase-dialog',
           myMoney: data.myMoney,
+          item: data.item,
+        })
+      );
+    });
+
+    onNet(`${GetCurrentResourceName()}:cshow-trade-dialog`, (data) => {
+      SendNuiMessage(
+        JSON.stringify({
+          type: 'show-trade-dialog',
           item: data.item,
         })
       );

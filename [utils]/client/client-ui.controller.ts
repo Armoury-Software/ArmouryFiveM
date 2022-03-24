@@ -85,6 +85,8 @@ export class ClientWithUIController extends ClientController implements IClientW
 
         on(`__cfx_nui:dismiss`, (data: any, callback: Function) => {
             this.onForceHideUI();
+            TriggerServerEvent(`${GetCurrentResourceName()}:on-force-hidden`);
+            emit(`${GetCurrentResourceName()}:on-force-hidden`);
             callback('ok');
         });
 

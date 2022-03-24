@@ -1,5 +1,6 @@
 import {
   EventListener,
+  Export,
   FiveMController,
 } from '@core/decorators/armoury.decorators';
 import { ServerDBDependentController } from '@core/server/server-db-dependent.controller';
@@ -14,6 +15,34 @@ export class Server extends ServerDBDependentController<Vehicle> {
     number,
     VehicleExtended
   >();
+
+  @Export()
+  public getVehicleItems(spawnedVehicleId: number): any[] {
+    if (this.loadedVehicles.has(spawnedVehicleId)) {
+      const vehicleDBId: number = this.loadedVehicles.get(spawnedVehicleId).id;
+      const vehicleEntity: Vehicle = this.getEntityByDBId(vehicleDBId);
+
+      return vehicleEntity.items;
+    }
+
+    return [];
+  }
+
+  @Export()
+  public updateVehicleItems(spawnedVehicleId: number, items: any[]): void {
+    if (this.loadedVehicles.has(spawnedVehicleId)) {
+      const vehicleDBId: number = this.loadedVehicles.get(spawnedVehicleId).id;
+      const vehicleEntity: Vehicle = this.getEntityByDBId(vehicleDBId);
+
+      vehicleEntity.items = items;
+      this.loadedVehicles.set(spawnedVehicleId, {
+        ...this.loadedVehicles.get(spawnedVehicleId),
+        items,
+      });
+
+      this.saveDBEntityAsync(vehicleDBId);
+    }
+  }
 
   protected override onBoundEntityDestroyed(
     _entity: Vehicle,

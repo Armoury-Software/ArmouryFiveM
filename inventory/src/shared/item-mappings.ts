@@ -12,63 +12,120 @@ import {
   toThousandsString,
 } from '../../../[utils]/utils';
 import { Items } from '../../../authentication/src/shared/models/player.model';
+import { WeaponHash } from 'fivem-js';
 
 // Each key in this object is the exact match of one of the keys in the player interface in authentication resource
 export const ITEM_MAPPINGS = {
+  // TODO: Add bruteAmount property for EACH item / item collection !!!
+  // TODO: bruteAmount NEEDS to have following parameters: (value (this would be image), piKey)
   housekeys: {
+    bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
     description: (value: number) =>
       `A clean key made of brass. Unlocks the door to House #${value}.`,
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
+    isTransferrable: () => false,
   },
   businesskeys: {
+    bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
     description: (value: number) =>
       `A clean key made of brass. Unlocks the door to Business #${value}.`,
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
+    isTransferrable: () => false,
   },
   vehiclekeys: {
+    bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
     description: (value: number) => `Your vehicle. (#${value})`,
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
+    isTransferrable: () => false,
   },
   weapons: {
     type: 'Weapon',
     description: (value: [number, Weapon]) =>
       WEAPON_MAPPINGS[Number(value[0])].description ||
       'Description to be added',
+    bruteAmount: (piKey: number | string, piKeyParentValue: Weapons) => {
+      if (typeof piKey === 'string') {
+        return piKeyParentValue[WeaponHash[piKey]]?.ammo;
+      }
+
+      return piKeyParentValue[Number(piKey)]?.ammo;
+    },
     value: (value: [number, Weapon]) => value[1].ammo.toString(),
     topLeft: (value: [number, Weapon]) => WEAPON_NAMES[value[0]],
     image: (value: [number, Weapon]) => WEAPON_NAMES_FOR_TESTS[value[0]],
     incrementor: (
       currentValue: Weapons,
       incrementWhich: number,
-      incrementBy: Weapon
+      incrementBy: number,
+      otherValue?: Weapons // When amount is < 0, this is the destinationValue. When it is >= 0, it is the sourceValue
     ) => {
-      if (currentValue[incrementWhich]) {
-        currentValue[incrementWhich].ammo += incrementBy.ammo;
+      if (currentValue[WeaponHash[incrementWhich]]) {
+        if (
+          incrementBy < 0 &&
+          otherValue &&
+          !otherValue[WeaponHash[incrementWhich]]
+        ) {
+          delete currentValue[WeaponHash[incrementWhich]];
+          return currentValue;
+        }
 
-        if (currentValue[incrementWhich].ammo <= 0) {
-          delete currentValue[incrementWhich];
+        currentValue[WeaponHash[incrementWhich]].ammo += incrementBy;
+
+        if (currentValue[WeaponHash[incrementWhich]].ammo < 0) {
+          currentValue[WeaponHash[incrementWhich]].ammo = 0;
         }
       } else {
-        currentValue[incrementWhich] = incrementBy;
+        if (
+          incrementBy >= 0 &&
+          otherValue &&
+          otherValue[WeaponHash[incrementWhich]]
+        ) {
+          currentValue[WeaponHash[incrementWhich]] = {
+            ammo: otherValue[WeaponHash[incrementWhich]]?.ammo,
+          };
+          return currentValue;
+        }
+        currentValue[WeaponHash[incrementWhich]] = { ammo: incrementBy };
       }
 
       return currentValue;
     },
+    shouldSkipAmountConfirmation: (
+      giver: Weapons,
+      receiver: Weapons,
+      type: number | string
+    ) => {
+      if (giver && receiver) {
+        const computedHash: number =
+          typeof type === 'string' ? WeaponHash[type] : type;
+
+        if (!receiver[computedHash] || !giver[computedHash]?.ammo) {
+          return true;
+        }
+      }
+
+      return false;
+    },
   },
   phone: {
     type: 'Electronics',
+    bruteAmount: (piKey: number | string, piKeyParentValue: number) =>
+      piKeyParentValue,
     description: (value: number) =>
       `A slick phone with numerous functionalities. SIM number: ${phoneFormatted(
         value
       )}.`,
     value: (value: number) => phoneFormatted(value),
     insertionCondition: (value: number) => Number(value) > 0,
+    isTransferrable: () => false,
   },
   cash: {
     type: 'Currency',
+    bruteAmount: (piKey: number | string, piKeyParentValue: number) =>
+      piKeyParentValue,
     description: (value: number) =>
       `Your hard-earned money. You have $${numberWithCommas(
         value
@@ -78,6 +135,9 @@ export const ITEM_MAPPINGS = {
   },
   items: {
     type: 'Miscellaneous',
+    bruteAmount: (piKey: number | string, piKeyParentValue: object) => {
+      return piKeyParentValue[piKey];
+    },
     description: (value: [string, number]) =>
       MISC_ITEM_MAPPINGS[value[0]].description || 'Description to be added',
     value: (value: [string, number]) => value[1].toString(),
@@ -99,6 +159,8 @@ export const ITEM_MAPPINGS = {
 
       return currentValue;
     },
+    isTransferrable: (value: string) =>
+      MISC_ITEM_MAPPINGS[value].transferrable ?? true,
   },
 };
 
@@ -163,6 +225,11 @@ export const MISC_ITEM_MAPPINGS = {
   toolbox: {
     description:
       'A toolbox containing several tools you can use to repair a damaged vehicle.',
+  },
+  vehicle_documents: {
+    description:
+      'Ring binder containing several documents with information about your vehicle.',
+    transferrable: false,
   },
 };
 

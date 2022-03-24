@@ -14,7 +14,12 @@ export class Server extends ServerController {
     this.assignExports();
   }
 
-  public givePlayerItem(playerId: number, item: Item, amount: any): void {
+  public givePlayerItem(
+    playerId: number,
+    item: Item,
+    amount: any,
+    fromSourceValue?: any
+  ): void {
     global.exports['authentication'].setPlayerInfo(
       playerId,
       item._piKey,
@@ -25,14 +30,19 @@ export class Server extends ServerController {
             playerInfoKey
           ),
         item._piKey
-      ).incrementFromSource(undefined, amount, item.image),
+      ).incrementFromSource(fromSourceValue || undefined, amount, item.image),
       false
     );
 
     emit(`inventory:client-inventory-request`, playerId);
   }
 
-  public consumePlayerItem(playerId: number, item: Item, amount: any): void {
+  public consumePlayerItem(
+    playerId: number,
+    item: Item,
+    amount: any,
+    toDestinationValue?: any
+  ): void {
     global.exports['authentication'].setPlayerInfo(
       playerId,
       item._piKey,
@@ -43,7 +53,11 @@ export class Server extends ServerController {
             playerInfoKey
           ),
         item._piKey
-      ).incrementFromSource(undefined, -amount, item.image),
+      ).incrementFromSource(
+        toDestinationValue || undefined,
+        -amount,
+        item.image
+      ),
       false
     );
 
@@ -109,6 +123,17 @@ export class Server extends ServerController {
       (source: number, data: any) => {
         TriggerClientEvent(
           `${GetCurrentResourceName()}:cshow-purchase-dialog`,
+          source || global.source,
+          data
+        );
+      }
+    );
+
+    onNet(
+      `${GetCurrentResourceName()}:show-trade-dialog`,
+      (source: number, data: any) => {
+        TriggerClientEvent(
+          `${GetCurrentResourceName()}:cshow-trade-dialog`,
           source || global.source,
           data
         );

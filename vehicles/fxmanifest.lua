@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Armoury Development Team'
-description 'Armoury FiveM Boilerplate'
+description 'Armoury FiveM Personal Vehicles'
 version '1.0.0'
 
 client_script 'dist/client/*.client.js'

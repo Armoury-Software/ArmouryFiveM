@@ -121,7 +121,7 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         );
 
         if (result?.length) {
-            this._entities.forEach((entity: T) => {
+            result.forEach((entity: T) => {
                 this._entities.push(entity);
 
                 if (bindTo) {

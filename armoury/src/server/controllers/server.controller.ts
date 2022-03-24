@@ -1,5 +1,6 @@
 import { ServerController } from '@core/server/server.controller';
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import { Export, FiveMController } from '@core/decorators/armoury.decorators';
+import { calculateDistance } from '@core/utils';
 
 @FiveMController()
 export class Server extends ServerController {
@@ -9,28 +10,51 @@ export class Server extends ServerController {
     super();
 
     this.registerFiveMEventListeners();
-    this.registerListeners();
     this.registerExports();
 
     this._players = [];
   }
 
-  private registerListeners(): void {
-    onNet(`${GetCurrentResourceName()}:open-general-menu`, () => {
-      global.exports['armoury-overlay'].showContextMenu(source, {
-        title: 'General Menu',
-        id: 'general-menu',
-        items: [
-          {
-            label: 'GPS',
-            active: true,
-          },
-          {
-            label: 'Legitimation',
-          },
-        ],
-      });
-    });
+  @Export()
+  public isVehicleNearbyPlayer(
+    vehicleId: number,
+    playerId: number,
+    range: number = 3.5
+  ): boolean {
+    const playerPosition: number[] = GetEntityCoords(
+      GetPlayerPed(playerId),
+      true
+    );
+    const vehiclePosition: number[] = GetEntityCoords(vehicleId, true);
+
+    if (
+      calculateDistance([
+        playerPosition[0],
+        playerPosition[1],
+        playerPosition[2],
+        vehiclePosition[0],
+        vehiclePosition[1],
+        vehiclePosition[2],
+      ]) <= range
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  @Export()
+  public getVehiclesStillNearbyFrom(
+    playerId: number,
+    nearestVehicles: [number, string][]
+  ): [number, string][] {
+    return nearestVehicles.filter((nearVehicle: [number, string]) =>
+      // TODO: Add fallback here if NetworkGetEntityFromNetworkId returns falsy response
+      this.isVehicleNearbyPlayer(
+        NetworkGetEntityFromNetworkId(nearVehicle[0]),
+        playerId
+      )
+    );
   }
 
   private registerFiveMEventListeners(): void {

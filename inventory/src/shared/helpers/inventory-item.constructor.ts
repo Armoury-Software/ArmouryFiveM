@@ -7,7 +7,7 @@ export class ItemConstructor {
   public constructor(
     protected readonly func: Function,
     protected readonly playerInfoKey: string,
-    protected readonly category: string = 'misc'
+    protected readonly category?: string
   ) {}
 
   public get(): Item | Item[] {
@@ -21,8 +21,13 @@ export class ItemConstructor {
       return null;
     }
 
+    const computedCategory: string =
+      this.category ||
+      ITEM_MAPPINGS[this.playerInfoKey]?.defaultCategory ||
+      'misc';
+
     const originalMapped = {
-      ...CATEGORY_MAPPINGS[this.category],
+      ...CATEGORY_MAPPINGS[computedCategory],
       ...ITEM_MAPPINGS[this.playerInfoKey],
     };
 
@@ -48,22 +53,22 @@ export class ItemConstructor {
       )
         .map((_value) => ({
           ...originalMapped,
-          image: CATEGORY_MAPPINGS[this.category].image || (ITEM_MAPPINGS[this.playerInfoKey].image ? ITEM_MAPPINGS[this.playerInfoKey].image(_value) : undefined) || this.playerInfoKey,
+          image: CATEGORY_MAPPINGS[computedCategory].image || (ITEM_MAPPINGS[this.playerInfoKey].image ? ITEM_MAPPINGS[this.playerInfoKey].image(_value) : undefined) || this.playerInfoKey,
           bottomRight: ITEM_MAPPINGS[this.playerInfoKey].value
             ? ITEM_MAPPINGS[this.playerInfoKey].value(_value)
-            : CATEGORY_MAPPINGS[this.category].value
-            ? CATEGORY_MAPPINGS[this.category].value(_value)
+            : CATEGORY_MAPPINGS[computedCategory].value
+            ? CATEGORY_MAPPINGS[computedCategory].value(_value)
             : JSON.stringify(_value),
           type:
             originalMapped.type ||
-            (CATEGORY_MAPPINGS[this.category].useCategoryNameAsType
-              ? this.category
+            (CATEGORY_MAPPINGS[computedCategory].useCategoryNameAsType
+              ? computedCategory
               : 'item'),
           description: ITEM_MAPPINGS[this.playerInfoKey].description
             ? ITEM_MAPPINGS[this.playerInfoKey].description(_value)
             : 'Just an inventory item.',
           topLeft:
-            CATEGORY_MAPPINGS[this.category].topLeft ||
+            CATEGORY_MAPPINGS[computedCategory].topLeft ||
             (ITEM_MAPPINGS[this.playerInfoKey].topLeft ? ITEM_MAPPINGS[this.playerInfoKey].topLeft(_value) : undefined) ||
             '1',
           _piKey: this.playerInfoKey
@@ -115,11 +120,16 @@ export class ItemConstructor {
       JSON.stringify(this.func(this.playerInfoKey))
     );
 
+    let _newSourceValue: PlayerInfoType = sourceValue
+      ? JSON.parse(JSON.stringify(sourceValue))
+      : undefined;
+
     if (CATEGORY_MAPPINGS[this.category]?.incrementor) {
       return CATEGORY_MAPPINGS[this.category]?.incrementor(
         _newPastValue,
         key,
-        amount
+        amount,
+        _newSourceValue
       );
     }
 
@@ -127,15 +137,12 @@ export class ItemConstructor {
       return ITEM_MAPPINGS[this.playerInfoKey].incrementor(
         _newPastValue,
         key,
-        amount
+        amount,
+        _newSourceValue
       );
     }
 
-    let _newSourceValue: PlayerInfoType = JSON.parse(
-      JSON.stringify(sourceValue)
-    );
-
-    switch (typeof sourceValue) {
+    switch (typeof (sourceValue || _newPastValue)) {
       case 'number': {
         _newPastValue = (Number(_newPastValue) || 0) + Number(amount);
 
