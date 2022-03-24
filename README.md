@@ -39,6 +39,9 @@ ensure payday
 ensure skills
 ensure banking
 ensure weapons
+ensure vehicles
+ensure trunk
+ensure general-context-menu
 
 ## Maps
 ensure vinewoodfloorMain
