@@ -1,7 +1,6 @@
 import { ClientController } from '@core/client/client.controller';
 import { FiveMController } from '@core/decorators/armoury.decorators';
 import { igObject } from '@shared/igObject.model';
-import { ITEM_MAPPINGS } from '../../../../inventory/src/shared/item-mappings';
 
 @FiveMController()
 export class Client extends ClientController {
