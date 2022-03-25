@@ -32,7 +32,7 @@ export class Client extends ClientController {
             });
 
             SetEntityRotation(
-              GetPlayerPed(-1),
+              PlayerPedId(),
               spawnPosition[3],
               spawnPosition[4],
               spawnPosition[5],
@@ -68,7 +68,7 @@ export class Client extends ClientController {
           unknown8,
         ]: any[] = _args;
 
-        if (killed === GetPlayerPed(-1) && !!didPedDie) {
+        if (killed === PlayerPedId() && !!didPedDie) {
           TriggerServerEvent(`${GetCurrentResourceName()}:onPlayerDeath`);
           emit(`${GetCurrentResourceName()}:onPlayerDeath`);
         }
@@ -79,7 +79,7 @@ export class Client extends ClientController {
   @Export()
   public findNearVehicles(): [number, string][] {
     const vehiclesToReturn: [number, string][] = [];
-    const playerPosition = GetEntityCoords(GetPlayerPed(-1), true);
+    const playerPosition = GetEntityCoords(PlayerPedId(), true);
     let [handle, _entity]: [number, number] = FindFirstVehicle(0);
 
     let found: boolean = true;

@@ -1,5 +1,8 @@
 import { ClientController } from '@core/client/client.controller';
-import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { EVENT_DIRECTIONS } from '@core/decorators/event.directions';
 import { Delay } from '@core/utils';
 
@@ -220,9 +223,9 @@ export class Client extends ClientController {
       Number(args[2])
     );
     console.log(zCoord + ' ' + source + ' ' + args.join(', '));
-    if (GetEntityCoords(GetPlayerPed(source))[2] < zCoord[1]) {
+    if (GetEntityCoords(PlayerPedId())[2] < zCoord[1]) {
       SetEntityCoords(
-        GetPlayerPed(source),
+        PlayerPedId(),
         Number(args[0]),
         Number(args[1]),
         Number(zCoord),

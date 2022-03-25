@@ -1,4 +1,4 @@
 export interface GarbageManPoint {
-    pos: number[];
-    count: number;
-};
+  pos: number[];
+  count: number;
+}

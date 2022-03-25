@@ -22,17 +22,13 @@ const server = {
     new webpack.DefinePlugin({ 'global.GENTLY': false }),
     new RemovePlugin({
       before: {
-        include: [
-          path.resolve(buildPath, 'server')
-        ]
+        include: [path.resolve(buildPath, 'server')],
       },
       watch: {
-        include: [
-          path.resolve(buildPath, 'server')
-        ]
-      }
+        include: [path.resolve(buildPath, 'server')],
+      },
     }),
-    new ESLintPlugin()
+    new ESLintPlugin(),
   ],
   optimization: {
     minimize: true,
@@ -46,7 +42,7 @@ const server = {
   },
   output: {
     filename: '[contenthash].server.js',
-    path: path.resolve(buildPath, 'server')
+    path: path.resolve(buildPath, 'server'),
   },
   target: 'node',
 };
@@ -66,17 +62,13 @@ const client = {
   plugins: [
     new RemovePlugin({
       before: {
-        include: [
-          path.resolve(buildPath, 'client')
-        ]
+        include: [path.resolve(buildPath, 'client')],
       },
       watch: {
-        include: [
-          path.resolve(buildPath, 'client')
-        ]
-      }
+        include: [path.resolve(buildPath, 'client')],
+      },
     }),
-    new ESLintPlugin()
+    new ESLintPlugin(),
   ],
   optimization: {
     minimize: true,
@@ -84,7 +76,7 @@ const client = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
     fallback: {
-      'events': require.resolve('events/')
+      events: require.resolve('events/'),
     },
     alias: {
       '@core': path.resolve(__dirname, './../[utils]'),
