@@ -1,9 +1,13 @@
 import { ServerController } from '@core/server/server.controller';
 import { FiveMController } from '@core/decorators/armoury.decorators';
-import { DECREMENTS_PER_MINUTE, ITEM_GAININGS_MAPPINGS} from '@shared/constants';
+import {
+  DECREMENTS_PER_MINUTE,
+  ITEM_GAININGS_MAPPINGS,
+} from '@shared/constants';
 
 import { Player } from '../../../../authentication/src/shared/models/player.model';
 import { Item } from '../../../../inventory/src/shared/item-list.model';
+import { ITEM_MAPPINGS } from '../../../../inventory/src/shared/item-mappings';
 
 @FiveMController()
 export class Server extends ServerController {
@@ -86,7 +90,7 @@ export class Server extends ServerController {
                 )
             );
             this.updateHungerThirstMessage(source);
-            this.triggerPedAnimation(source, 'eat');
+            this.triggerPedAnimation(source, itemClickEvent.item.image);
           }
 
           if (ITEM_GAININGS_MAPPINGS[itemClickEvent.item.image].healthGain) {
@@ -102,7 +106,7 @@ export class Server extends ServerController {
                 )
             );
             this.updateHungerThirstMessage(source);
-            this.triggerPedAnimation(source, 'drink');
+            this.triggerPedAnimation(source, itemClickEvent.item.image);
           }
 
           global.exports['inventory'].consumePlayerItem(
@@ -274,12 +278,18 @@ export class Server extends ServerController {
     }
   }
 
-  private triggerPedAnimation(target: number, action: string): void {
-    TriggerClientEvent(
-      `${GetCurrentResourceName()}:play-animation`,
-      target,
-      action
+  private triggerPedAnimation(target: number, item: string): void {
+    const igObject = ITEM_MAPPINGS.items.ingameObjectInformation(
+      item,
+      global.exports['authentication'].getPlayerInfo(source, 'items')
     );
+    if (igObject) {
+      TriggerClientEvent(
+        `${GetCurrentResourceName()}:play-animation`,
+        target,
+        igObject
+      );
+    }
   }
 
   private assignExports(): void {
