@@ -1,3 +1,4 @@
+import { Entity } from 'fivem-js';
 import { ClientController } from '../../../../[utils]/client/client.controller';
 
 export class Client extends ClientController {
@@ -22,8 +23,27 @@ export class Client extends ClientController {
       if (!this.isPlayingAnim && !IsPedInAnyVehicle(GetPlayerPed(-1), true)) {
         let animationDict: string;
         let animationName: string;
+        let object: number = CreateObject(
+          action === 'eat' ? 'prop_amb_donut' : 'prop_ecola_can',
+          0,
+          0,
+          0,
+          true,
+          false,
+          false
+        );
+        let propBone: number = action === 'eat' ? 18905 : 28422; // 6286
+        let propPlacement: number[] =
+          action == 'eat'
+            ? [0.13, 0.05, 0.02, -50.0, 16.0, 60.0]
+            : [0.0, 0.0, 0.0, 0.0, 0.0, 130.0]; // [0.12, 0.05, -0.03, 55, 70, 140]
+
         switch (action) {
           case 'eat': {
+            animationDict = IsPedMale(GetPlayerPed(-1))
+              ? 'mp_player_inteat@burger'
+              : 'amb@code_human_wander_eating_donut@female@idle_a';
+            animationName = 'mp_player_int_eat_burger';
             break;
           }
           case 'drink': {
@@ -35,26 +55,16 @@ export class Client extends ClientController {
           }
         }
         RequestAnimDict(animationDict);
-        console.log(animationDict + ' ///// ' + animationName);
-        let bottle = CreateObject(
-          'prop_ld_flow_bottle',
-          0,
-          0,
-          0,
-          true,
-          false,
-          false
-        );
         AttachEntityToEntity(
-          bottle,
+          object,
           GetPlayerPed(-1),
-          GetPedBoneIndex(GetPlayerPed(-1), 6286),
-          0.12,
-          0.05,
-          -0.03,
-          55,
-          70,
-          140,
+          GetPedBoneIndex(GetPlayerPed(-1), propBone),
+          propPlacement[0],
+          propPlacement[1],
+          propPlacement[2],
+          propPlacement[3],
+          propPlacement[4],
+          propPlacement[5],
           false,
           true,
           true,
@@ -76,11 +86,14 @@ export class Client extends ClientController {
           false
         );
         this.isPlayingAnim = true;
-        setTimeout(() => {
-          StopAnimTask(GetPlayerPed(-1), animationDict, animationName, 2.0);
-          this.isPlayingAnim = false;
-          DeleteEntity(bottle);
-        }, 5000);
+        setTimeout(
+          () => {
+            StopAnimTask(GetPlayerPed(-1), animationDict, animationName, 2.0);
+            this.isPlayingAnim = false;
+            DeleteEntity(object);
+          },
+          action === 'eat' ? 2000 : 5000
+        );
       }
     });
 
