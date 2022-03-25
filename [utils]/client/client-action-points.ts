@@ -33,11 +33,11 @@ export class ClientActionPoints extends ClientEntities {
         this.addToTickUnique({
             id: `${GetCurrentResourceName()}_actionpoints`,
             function: () => {
-                const position: number[] = GetEntityCoords(GetPlayerPed(-1), true);
+                const position: number[] = GetEntityCoords(PlayerPedId(), true);
                 let actionPointsToRemove: ActionPoint[] = [];
 
                 this._actionPoints.forEach((actionPoint: ActionPoint) => {
-                    if (isPlayerInRangeOfPoint(position[0], position[1], position[2], actionPoint.pos[0], actionPoint.pos[1], actionPoint.pos[2], 1 * (IsPedInAnyVehicle(GetPlayerPed(-1), false) ? 4: 1))) {
+                    if (isPlayerInRangeOfPoint(position[0], position[1], position[2], actionPoint.pos[0], actionPoint.pos[1], actionPoint.pos[2], 1 * (IsPedInAnyVehicle(PlayerPedId(), false) ? 4: 1))) {
                         actionPoint.action();
 
                         if (actionPoint.once) {

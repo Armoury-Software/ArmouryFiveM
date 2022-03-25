@@ -189,7 +189,7 @@ export class Client extends ClientWithUIController {
         });
 
         let _spawnedTruck: number;
-        if (!IsPedInAnyVehicle(GetPlayerPed(-1), false)) {
+        if (!IsPedInAnyVehicle(PlayerPedId(), false)) {
           const quickStartPositionAndHeading: {
             pos: number[];
             heading: number;
@@ -206,9 +206,9 @@ export class Client extends ClientWithUIController {
             true,
             true
           );
-          TaskWarpPedIntoVehicle(GetPlayerPed(-1), _spawnedTruck, -1);
+          TaskWarpPedIntoVehicle(PlayerPedId(), _spawnedTruck, -1);
         } else {
-          _spawnedTruck = GetVehiclePedIsIn(GetPlayerPed(-1), false);
+          _spawnedTruck = GetVehiclePedIsIn(PlayerPedId(), false);
         }
         const trailerToSpawnArray = TRUCKER_DELIVERY_TRAILERS.get(
           this.decideTrailerType(type)
@@ -327,7 +327,7 @@ export class Client extends ClientWithUIController {
   private finishDelivery(): void {
     emitNet(`${GetCurrentResourceName()}:job-finished`);
     DeleteEntity(
-      GetVehicleTrailerVehicle(GetVehiclePedIsUsing(GetPlayerPed(-1)))[1]
+      GetVehicleTrailerVehicle(GetVehiclePedIsUsing(PlayerPedId()))[1]
     );
   }
 }

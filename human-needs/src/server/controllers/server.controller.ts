@@ -1,6 +1,9 @@
 import { ServerController } from '@core/server/server.controller';
 import { FiveMController } from '@core/decorators/armoury.decorators';
-import { DECREMENTS_PER_MINUTE, ITEM_GAININGS_MAPPINGS} from '@shared/constants';
+import {
+  DECREMENTS_PER_MINUTE,
+  ITEM_GAININGS_MAPPINGS,
+} from '@shared/constants';
 
 import { Player } from '../../../../authentication/src/shared/models/player.model';
 import { Item } from '../../../../inventory/src/shared/item-list.model';

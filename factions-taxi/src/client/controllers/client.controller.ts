@@ -14,7 +14,7 @@ export class Client extends ClientController {
   }
 
   private spawnTaxiNPC(): void {
-    const position: number[] = GetEntityCoords(GetPlayerPed(-1));
+    const position: number[] = GetEntityCoords(PlayerPedId());
     const taxiPosition: [boolean, number[]] = GetClosestVehicleNode(
       position[0] + 100.0 * Math.pow(-1, Math.floor(Math.random() * 3)),
       position[1] + 100.0 * Math.pow(-1, Math.floor(Math.random() * 3)),
@@ -73,7 +73,7 @@ export class Client extends ClientController {
         this.addToTickUnique({
           id: `${GetCurrentResourceName()}_taxitransport`,
           function: () => {
-            const playerPosition: number[] = GetEntityCoords(GetPlayerPed(-1));
+            const playerPosition: number[] = GetEntityCoords(PlayerPedId());
             const taxiPosition: number[] = GetEntityCoords(ped);
             if (
               isPlayerInRangeOfPoint(
@@ -102,7 +102,7 @@ export class Client extends ClientController {
                   5.0,
                   1.0
                 );
-                TaskWarpPedIntoVehicle(GetPlayerPed(-1), vehicle, 0);
+                TaskWarpPedIntoVehicle(PlayerPedId(), vehicle, 0);
                 this.removeFromTick(
                   `${GetCurrentResourceName()}_taxitransport`
                 );

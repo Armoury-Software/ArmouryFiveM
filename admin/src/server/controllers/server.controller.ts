@@ -1,5 +1,8 @@
 import { ServerController } from '@core/server/server.controller';
-import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { WeaponHash } from 'fivem-js';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';

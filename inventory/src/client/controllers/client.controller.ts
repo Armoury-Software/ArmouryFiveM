@@ -203,7 +203,7 @@ export class Client extends ClientWithUIController {
       let [f, entity]: [boolean, number] = FindNextObject(handle);
       found = f;
 
-      if (entity !== GetPlayerPed(-1)) {
+      if (entity !== PlayerPedId()) {
         let coords = GetEntityCoords(entity, true);
         this.draw(coords[0], coords[1], coords[2]);
       }

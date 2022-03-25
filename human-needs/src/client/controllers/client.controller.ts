@@ -14,25 +14,25 @@ export class Client extends ClientController {
       `${GetCurrentResourceName()}:apply-player-damage`,
       (damage: number) => {
         SetEntityHealth(
-          GetPlayerPed(-1),
-          Math.floor(GetEntityHealth(GetPlayerPed(-1)) - damage)
+          PlayerPedId(),
+          Math.floor(GetEntityHealth(PlayerPedId()) - damage)
         );
       }
     );
 
     onNet('authentication:success', () => {
-      SetEntityMaxHealth(GetPlayerPed(-1), 200);
-      SetEntityHealth(GetPlayerPed(-1), 200);
+      SetEntityMaxHealth(PlayerPedId(), 200);
+      SetEntityHealth(PlayerPedId(), 200);
     });
 
     on('armoury:onPlayerDeath', () => {
       setTimeout(() => {
         if (
-          GetEntityMaxHealth(GetPlayerPed(-1)) !== 200 &&
-          !IsEntityDead(GetPlayerPed(-1))
+          GetEntityMaxHealth(PlayerPedId()) !== 200 &&
+          !IsEntityDead(PlayerPedId())
         ) {
-          SetEntityMaxHealth(GetPlayerPed(-1), 200);
-          SetEntityHealth(GetPlayerPed(-1), 200);
+          SetEntityMaxHealth(PlayerPedId(), 200);
+          SetEntityHealth(PlayerPedId(), 200);
         }
       }, 5000);
     });

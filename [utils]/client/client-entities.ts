@@ -179,7 +179,7 @@ export class ClientEntities extends ClientBase {
         this.addToTickUnique({
             id: `${GetCurrentResourceName()}_markers`,
             function: async () => {
-                const position: number[] = GetEntityCoords(GetPlayerPed(-1), true);
+                const position: number[] = GetEntityCoords(PlayerPedId(), true);
 
                 this._markers.forEach(async (marker: MarkerMonitored) => {
                     if (isPlayerInRangeOfPoint(position[0], position[1], position[2], marker.pos[0], marker.pos[1], marker.pos[2], marker.renderDistance)) {
@@ -223,7 +223,7 @@ export class ClientEntities extends ClientBase {
             }
 
             if (putPlayerInVehicle) {
-                TaskWarpPedIntoVehicle(GetPlayerPed(-1), createdVehicle, -1);
+                TaskWarpPedIntoVehicle(PlayerPedId(), createdVehicle, -1);
             }
         }
         return createdVehicle;
