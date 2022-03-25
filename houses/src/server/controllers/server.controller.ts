@@ -1,13 +1,16 @@
-import { House } from '../../shared/models/house.interface';
-import { ServerEntityWithEntranceController } from '../../../../[utils]/server/entity-controllers/server-entity-entrance.controller';
-import { HOUSE_INTERIORS } from '../../shared/house-interiors';
-import { numberWithCommas } from '../../../../[utils]/utils';
-import { UIDialog } from '../../../../[utils]/models/ui-dialog.model';
-import { addTenants, getTenants } from '../../shared/house.functions';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerEntityWithEntranceController } from '@core/server/entity-controllers/server-entity-entrance.controller';
+import { UIDialog } from '@core/models/ui-dialog.model';
+import { numberWithCommas } from '@core/utils';
 
+import { House } from '@shared/models/house.interface';
+import { addTenants, getTenants } from '@shared/house.functions';
+import { HOUSE_INTERIORS } from '@shared/house-interiors';
+
+@FiveMController()
 export class Server extends ServerEntityWithEntranceController<House> {
   public constructor(dbTableName: string) {
-    super(dbTableName);
+    super(dbTableName, true);
 
     this.registerCommands();
     this.registerListeners();

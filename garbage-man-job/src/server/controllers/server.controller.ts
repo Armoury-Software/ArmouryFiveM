@@ -1,7 +1,8 @@
-import { ServerController } from '../../../../[utils]/server/server.controller';
-import { isPlayerInRangeOfPoint } from '../../../../[utils]/utils';
-import { GARBAGE_MAN_CPOINTS } from '../../shared/positions';
+import { ServerController } from '@core/server/server.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+
 let count=1;
+@FiveMController()
 export class Server extends ServerController {
     public constructor() {
         super();

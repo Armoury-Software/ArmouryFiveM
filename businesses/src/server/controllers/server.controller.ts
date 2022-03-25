@@ -1,12 +1,13 @@
-import { Business } from '../../shared/models/business.interface';
-import { ServerEntityWithEntranceController } from '../../../../[utils]/server/entity-controllers/server-entity-entrance.controller';
-import { BUSINESS_INTERIORS } from '../../shared/business-interiors';
-import { numberWithCommas } from '../../../../[utils]/utils';
-import { UIDialog } from '../../../../[utils]/models/ui-dialog.model';
+import { UIDialog } from '@core/models/ui-dialog.model';
+import { ServerEntityWithEntranceController } from '@core/server/entity-controllers/server-entity-entrance.controller';
+import { numberWithCommas } from '@core/utils';
+
+import { BUSINESS_INTERIORS } from '@shared/business-interiors';
+import { Business } from '@shared/models/business.interface';
 
 export class Server extends ServerEntityWithEntranceController<Business> {
   public constructor(dbTableName: string) {
-    super(dbTableName);
+    super(dbTableName, true);
 
     this.registerCommands();
     this.registerListeners();

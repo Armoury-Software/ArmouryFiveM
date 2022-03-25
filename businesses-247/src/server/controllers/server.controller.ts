@@ -1,11 +1,15 @@
-import { ServerController } from '../../../../[utils]/server/server.controller';
-import { Business } from '../../../../businesses/src/shared/models/business.interface';
-import { Item } from '../../../../inventory/src/shared/item-list.model';
-import { ItemConstructor } from '../../../../inventory/src/client/helpers/inventory-item.constructor';
-import { EXTERNAL_INVENTORY_MAPPINGS } from '../../../../inventory/src/shared/external-inventory.mappings';
-import { BASE_ITEM_PRICES } from '../../shared/item.prices';
-import { numberWithCommas } from '../../../../[utils]/utils';
+import { ServerController } from '@core/server/server.controller';
+import { numberWithCommas } from '@core/utils';
+import { FiveMController } from '@core/decorators/armoury.decorators';
 
+import { BASE_ITEM_PRICES } from '@shared/item.prices';
+
+import { Business } from '../../../../businesses/src/shared/models/business.interface';
+import { EXTERNAL_INVENTORY_MAPPINGS } from '../../../../inventory/src/shared/external-inventory.mappings';
+import { ItemConstructor } from '../../../../inventory/src/client/helpers/inventory-item.constructor';
+import { Item } from '../../../../inventory/src/shared/item-list.model';
+
+@FiveMController()
 export class Server extends ServerController {
   protected _businessUsableName: string = '';
 

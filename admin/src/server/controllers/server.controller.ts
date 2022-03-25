@@ -1,8 +1,10 @@
-import { ServerController } from '../../../../[utils]/server/server.controller';
+import { ServerController } from '@core/server/server.controller';
+import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
 import { WeaponHash } from 'fivem-js';
-import { EventListener } from '@core/decorators/armoury.decorators';
-import { TELEPORT_POINTS } from '../../shared/teleport-locations';
 
+import { TELEPORT_POINTS } from '@shared/teleport-locations';
+
+@FiveMController()
 export class Server extends ServerController {
   private createdVehicles: number[] = [];
 

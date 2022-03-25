@@ -1,6 +1,9 @@
-import { Weapons } from '../../shared/models/weapon.model';
-import { ServerController } from '../../../../[utils]/server/server.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerController } from '@core/server/server.controller';
 
+import { Weapons } from '@shared/models/weapon.model';
+
+@FiveMController()
 export class Server extends ServerController {
     public constructor(){
         super();

@@ -1,5 +1,7 @@
-import { ClientFactionController } from '../../../../[utils]/client/client-faction.controller';
+import { ClientFactionController } from '@core/client/client-faction.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
 
+@FiveMController()
 export class Client extends ClientFactionController {
   public constructor() {
     super();

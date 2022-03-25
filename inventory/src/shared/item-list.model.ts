@@ -1,3 +1,5 @@
+import { PlayerInfoType } from '../../../authentication/src/shared/models/player-info.type';
+
 export interface ItemList {
   house_keys: Item[];
   business_keys: Item[];
@@ -16,6 +18,11 @@ export interface Item {
   description: string;
   _piKey?: string;
   value?: number;
+}
+
+export interface ExternalItem {
+  piKey: string;
+  amount: PlayerInfoType;
 }
 
 export interface AdditionalInventory {

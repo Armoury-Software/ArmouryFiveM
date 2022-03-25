@@ -1,9 +1,12 @@
-import { CARRIER_MARKERS, QUICK_START_POSITIONS } from '../../shared/positions';
-import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
-import { waitUntilThenDo } from '../../../../[utils]/utils';
-import { UIButton } from '../../../../[utils]/models/ui-button.model';
-import { CarrierDeliveryPoint } from '../../shared/models/delivery-point.model';
+import { ClientWithUIController } from '@core/client/client-ui.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { waitUntilThenDo } from '@core/utils';
+import { UIButton } from '@core/models/ui-button.model';
 
+import { CarrierDeliveryPoint } from '@shared/models/delivery-point.model';
+import { CARRIER_MARKERS, QUICK_START_POSITIONS } from '@shared/positions';
+
+@FiveMController()
 export class Client extends ClientWithUIController {
   public constructor() {
     super();

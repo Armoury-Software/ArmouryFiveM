@@ -1,13 +1,13 @@
-import { ClientController } from '../../../../[utils]/client/client.controller';
+import { ClientController } from '@core/client/client.controller';
+import { Export, FiveMController } from '@core/decorators/armoury.decorators';
+import { calculateDistance } from '@core/utils';
 
+@FiveMController()
 export class Client extends ClientController {
-  private menuToggles: Map<string, boolean> = new Map<string, boolean>();
-
   public constructor() {
     super();
 
     this.assignListeners();
-    this.registerKeyBindings();
     this.registerGlobalEvents();
   }
 
@@ -76,26 +76,43 @@ export class Client extends ClientController {
     });
   }
 
-  private registerKeyBindings(): void {
-    RegisterCommand(
-      '+opengeneralmenu',
-      () => {
-        if (this.menuToggles.get('general-menu') === true) {
-          this.menuToggles.set('general-menu', false);
-          return;
+  @Export()
+  public findNearVehicles(): [number, string][] {
+    const vehiclesToReturn: [number, string][] = [];
+    const playerPosition = GetEntityCoords(GetPlayerPed(-1), true);
+    let [handle, _entity]: [number, number] = FindFirstVehicle(0);
+
+    let found: boolean = true;
+    while (found) {
+      let [f, entity]: [boolean, number] = FindNextVehicle(handle);
+      found = f;
+
+      if (
+        NetworkDoesEntityExistWithNetworkId(
+          NetworkGetNetworkIdFromEntity(entity)
+        )
+      ) {
+        const vehiclePosition: number[] = GetEntityCoords(entity, true);
+        if (
+          calculateDistance([
+            playerPosition[0],
+            playerPosition[1],
+            playerPosition[2],
+            vehiclePosition[0],
+            vehiclePosition[1],
+            vehiclePosition[2],
+          ]) < 3.5
+        ) {
+          vehiclesToReturn.push([
+            VehToNet(entity),
+            GetDisplayNameFromVehicleModel(GetEntityModel(entity)),
+          ]);
         }
+      }
+    }
 
-        TriggerServerEvent(`${GetCurrentResourceName()}:open-general-menu`);
-        this.menuToggles.set('general-menu', true);
-      },
-      false
-    );
+    EndFindObject(handle);
 
-    RegisterKeyMapping(
-      '+opengeneralmenu',
-      'Open General Menu',
-      'keyboard',
-      'k'
-    );
+    return vehiclesToReturn;
   }
 }

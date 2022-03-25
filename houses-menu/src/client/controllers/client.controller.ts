@@ -1,5 +1,7 @@
-import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
+import { ClientWithUIController } from '@core/client/client-ui.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
 
+@FiveMController()
 export class Client extends ClientWithUIController {
   public constructor() {
     super();

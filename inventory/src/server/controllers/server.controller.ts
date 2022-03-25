@@ -1,12 +1,11 @@
-import {
-  Item,
-  AdditionalInventory,
-  ItemList,
-} from '../../shared/item-list.model';
-import { ServerController } from '../../../../[utils]/server/server.controller';
-import { EXTERNAL_INVENTORY_MAPPINGS } from '../../shared/external-inventory.mappings';
-import { ItemConstructor } from '../../client/helpers/inventory-item.constructor';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerController } from '@core/server/server.controller';
 
+import { EXTERNAL_INVENTORY_MAPPINGS } from '@shared/external-inventory.mappings';
+import { ItemConstructor } from '@shared/helpers/inventory-item.constructor';
+import { Item, AdditionalInventory, ItemList } from '@shared/item-list.model';
+
+@FiveMController()
 export class Server extends ServerController {
   public constructor() {
     super();
@@ -15,7 +14,12 @@ export class Server extends ServerController {
     this.assignExports();
   }
 
-  public givePlayerItem(playerId: number, item: Item, amount: any): void {
+  public givePlayerItem(
+    playerId: number,
+    item: Item,
+    amount: any,
+    fromSourceValue?: any
+  ): void {
     global.exports['authentication'].setPlayerInfo(
       playerId,
       item._piKey,
@@ -26,14 +30,19 @@ export class Server extends ServerController {
             playerInfoKey
           ),
         item._piKey
-      ).incrementFromSource(undefined, amount, item.image),
+      ).incrementFromSource(fromSourceValue || undefined, amount, item.image),
       false
     );
 
     emit(`inventory:client-inventory-request`, playerId);
   }
 
-  public consumePlayerItem(playerId: number, item: Item, amount: any): void {
+  public consumePlayerItem(
+    playerId: number,
+    item: Item,
+    amount: any,
+    toDestinationValue?: any
+  ): void {
     global.exports['authentication'].setPlayerInfo(
       playerId,
       item._piKey,
@@ -44,7 +53,11 @@ export class Server extends ServerController {
             playerInfoKey
           ),
         item._piKey
-      ).incrementFromSource(undefined, -amount, item.image),
+      ).incrementFromSource(
+        toDestinationValue || undefined,
+        -amount,
+        item.image
+      ),
       false
     );
 
@@ -81,7 +94,9 @@ export class Server extends ServerController {
           business_keys: ItemConstructor.bundle(
             new ItemConstructor(this.inventoryPIFunction(source), 'businesskeys', 'business').get()
           ),
-          vehicles: [],
+          vehicles: ItemConstructor.bundle(
+            new ItemConstructor(this.inventoryPIFunction(source), 'vehiclekeys', 'vehicle').get()
+          ),
           weapons: ItemConstructor.bundle(
             new ItemConstructor(this.inventoryPIFunction(source), 'weapons', 'weapon').get()
           ),
@@ -108,6 +123,17 @@ export class Server extends ServerController {
       (source: number, data: any) => {
         TriggerClientEvent(
           `${GetCurrentResourceName()}:cshow-purchase-dialog`,
+          source || global.source,
+          data
+        );
+      }
+    );
+
+    onNet(
+      `${GetCurrentResourceName()}:show-trade-dialog`,
+      (source: number, data: any) => {
+        TriggerClientEvent(
+          `${GetCurrentResourceName()}:cshow-trade-dialog`,
           source || global.source,
           data
         );

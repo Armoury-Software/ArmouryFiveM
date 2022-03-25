@@ -1,7 +1,10 @@
-import { ClientWithUIController } from '../../../../[utils]/client/client-ui.controller';
-import { UIButton } from '../../../../[utils]/models/ui-button.model';
-import { waitUntilThenDo } from '../../../../[utils]/utils';
+import { ClientWithUIController } from '@core/client/client-ui.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
+import { UIButton } from '@core/models/ui-button.model';
+import { waitUntilThenDo } from '@core/utils';
+
 var cpNumb=0;
+@FiveMController()
 export class Client extends ClientWithUIController {
     public constructor(){
         super();

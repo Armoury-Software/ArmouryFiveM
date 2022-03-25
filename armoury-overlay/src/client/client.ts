@@ -87,7 +87,6 @@ onNet(`${GetCurrentResourceName()}:hide-context-menu`, () => {
 
 RegisterNuiCallbackType('context-menu-item-pressed');
 on(`__cfx_nui:context-menu-item-pressed`, (data: any, callback: Function) => {
-  console.log(data);
   emit(`${GetCurrentResourceName()}:context-menu-item-pressed`, data);
   callback('ok');
 });

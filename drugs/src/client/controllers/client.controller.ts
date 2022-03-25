@@ -1,6 +1,9 @@
-import { Growth_State, Plant } from '../../shared/models/drugs.model';
-import { ClientController } from '../../../../[utils]/client/client.controller';
+import { ClientController } from '@core/client/client.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
 
+import { Plant } from '@shared/models/drugs.model';
+
+@FiveMController()
 export class Client extends ClientController {
   public constructor() {
     super();

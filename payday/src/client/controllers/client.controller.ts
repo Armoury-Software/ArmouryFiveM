@@ -1,6 +1,9 @@
-import { Payday, Tax } from '../../shared/payday.interface';
-import { ClientController } from '../../../../[utils]/client/client.controller';
+import { ClientController } from '@core/client/client.controller';
+import { FiveMController } from '@core/decorators/armoury.decorators';
 
+import { Payday, Tax } from '@shared/payday.interface';
+
+@FiveMController()
 export class Client extends ClientController {
   constructor() {
     super();
