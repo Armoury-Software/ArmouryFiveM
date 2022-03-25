@@ -16,8 +16,8 @@ export class Client extends ClientController {
       `${GetCurrentResourceName()}:apply-player-damage`,
       (damage: number) => {
         SetEntityHealth(
-          GetPlayerPed(-1),
-          Math.floor(GetEntityHealth(GetPlayerPed(-1)) - damage)
+          PlayerPedId(),
+          Math.floor(GetEntityHealth(PlayerPedId()) - damage)
         );
       }
     );
@@ -25,7 +25,7 @@ export class Client extends ClientController {
     onNet(
       `${GetCurrentResourceName()}:play-animation`,
       (igObject: igObject) => {
-        if (!this.isPlayingAnim && !IsPedInAnyVehicle(GetPlayerPed(-1), true)) {
+        if (!this.isPlayingAnim && !IsPedInAnyVehicle(PlayerPedId(), true)) {
           let object: number = CreateObject(
             igObject.animationOptions.prop,
             0,
@@ -38,9 +38,9 @@ export class Client extends ClientController {
           RequestAnimDict(igObject.animationDict);
           AttachEntityToEntity(
             object,
-            GetPlayerPed(-1),
+            PlayerPedId(),
             GetPedBoneIndex(
-              GetPlayerPed(-1),
+              PlayerPedId(),
               igObject.animationOptions.propBone
             ),
             igObject.animationOptions.propPlacement[0],
@@ -53,11 +53,11 @@ export class Client extends ClientController {
             true,
             true,
             true,
-            GetEntityRotation(GetPlayerPed(-1))[0],
+            GetEntityRotation(PlayerPedId())[0],
             true
           );
           TaskPlayAnim(
-            GetPlayerPed(-1),
+            PlayerPedId(),
             igObject.animationDict,
             igObject.animationName,
             2.0,
@@ -72,7 +72,7 @@ export class Client extends ClientController {
           this.isPlayingAnim = true;
           setTimeout(() => {
             StopAnimTask(
-              GetPlayerPed(-1),
+              PlayerPedId(),
               igObject.animationDict,
               igObject.animationName,
               2.0
@@ -85,18 +85,18 @@ export class Client extends ClientController {
     );
 
     onNet('authentication:success', () => {
-      SetEntityMaxHealth(GetPlayerPed(-1), 200);
-      SetEntityHealth(GetPlayerPed(-1), 200);
+      SetEntityMaxHealth(PlayerPedId(), 200);
+      SetEntityHealth(PlayerPedId(), 200);
     });
 
     on('armoury:onPlayerDeath', () => {
       setTimeout(() => {
         if (
-          GetEntityMaxHealth(GetPlayerPed(-1)) !== 200 &&
-          !IsEntityDead(GetPlayerPed(-1))
+          GetEntityMaxHealth(PlayerPedId()) !== 200 &&
+          !IsEntityDead(PlayerPedId())
         ) {
-          SetEntityMaxHealth(GetPlayerPed(-1), 200);
-          SetEntityHealth(GetPlayerPed(-1), 200);
+          SetEntityMaxHealth(PlayerPedId(), 200);
+          SetEntityHealth(PlayerPedId(), 200);
         }
       }, 5000);
     });
