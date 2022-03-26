@@ -16,6 +16,7 @@ import {
   Item,
   ExternalItem,
 } from '../../../../inventory/src/shared/item-list.model';
+import { eventNames } from 'process';
 
 @FiveMController()
 export class Server extends ServerController {
@@ -428,6 +429,16 @@ export class Server extends ServerController {
   public onPlayerDisconnect(): void {
     if (this.playersInspectingTrunks.has(source)) {
       this.playersInspectingTrunks.delete(source);
+    }
+  }
+
+  @EventListener()
+  public onResourceStop(resourceName: string): void {
+    if (
+      resourceName === GetCurrentResourceName() ||
+      resourceName === 'vehicles'
+    ) {
+      TriggerClientEvent(`inventory:force-hideui`, -1);
     }
   }
 }
