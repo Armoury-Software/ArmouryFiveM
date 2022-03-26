@@ -71,6 +71,7 @@ export class Client extends ClientController {
         if (killed === GetPlayerPed(-1) && !!didPedDie) {
           TriggerServerEvent(`${GetCurrentResourceName()}:onPlayerDeath`);
           emit(`${GetCurrentResourceName()}:onPlayerDeath`);
+          emit(`authentication:spawn-player`, [-450.3632, -341.0537, 34.50175]);
         }
       }
     });
