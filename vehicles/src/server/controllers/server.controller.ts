@@ -8,6 +8,7 @@ import { ServerDBDependentController } from '@core/server/server-db-dependent.co
 import { Vehicle, VehicleExtended } from '@shared/models/vehicle.interface';
 
 import { Player } from '@resources/authentication/src/shared/models/player.model';
+import { VEHICLES_DEFAULTS } from '../../../../dealership/src/shared/vehicles.defaults';
 
 @FiveMController()
 export class Server extends ServerDBDependentController<Vehicle> {
@@ -15,6 +16,50 @@ export class Server extends ServerDBDependentController<Vehicle> {
     number,
     VehicleExtended
   >();
+
+  @Export()
+  public createVehicle(
+    modelHash: number,
+    ownerServerId: number,
+    primaryColor: number,
+    secondaryColor: number,
+    posX: number,
+    posY: number,
+    posZ: number,
+    posH: number
+  ): number {
+    const createdVehicle: number = CreateVehicle(
+      modelHash,
+      posX,
+      posY,
+      posZ,
+      posH,
+      true,
+      true
+    );
+
+    this.createEntity({
+      id: 0,
+      modelHash,
+      owner: Number(
+        global.exports['authentication'].getPlayerInfo(ownerServerId, 'id')
+      ),
+      primaryColor,
+      secondaryColor,
+      posX,
+      posY,
+      posZ,
+      posH,
+      plate: 'ARMOURY',
+      items: [],
+    }).then((vehicle: Vehicle) => {
+      this.loadVehicle(vehicle, ownerServerId, createdVehicle);
+    });
+
+    SetVehicleColours(createdVehicle, primaryColor, secondaryColor);
+
+    return createdVehicle;
+  }
 
   @Export()
   public getVehicleItems(spawnedVehicleId: number): any[] {
@@ -44,6 +89,27 @@ export class Server extends ServerDBDependentController<Vehicle> {
     }
   }
 
+  @Export()
+  public getVehiclesHashesFromArray(vehiclesKeyIds: number[]): number[] {
+    return vehiclesKeyIds.map(
+      (vehicleKeyId: number) => this.getEntityByDBId(vehicleKeyId).modelHash
+    );
+  }
+
+  @Export()
+  public getVehicleHashKeyFromVehicleDbId(vehicleDbId: number): string {
+    const vehicle: Vehicle = this.getEntityByDBId(vehicleDbId);
+
+    if (vehicle) {
+      return Array.from(Object.keys(VEHICLES_DEFAULTS)).find(
+        (vehicleDefaultKey: string) =>
+          GetHashKey(vehicleDefaultKey) === vehicle.modelHash
+      );
+    }
+
+    return '';
+  }
+
   protected override onBoundEntityDestroyed(
     _entity: Vehicle,
     boundPlayer: number
@@ -65,15 +131,6 @@ export class Server extends ServerDBDependentController<Vehicle> {
           } else {
             this.loadVehicle(loadedVehicle, playerId);
           }
-
-          global.exports['authentication'].setPlayerInfo(
-            playerId,
-            'vehiclekeys',
-            (Array.isArray(loadedVehicle)
-              ? loadedVehicle
-              : [loadedVehicle]
-            ).map((vehicle: Vehicle) => vehicle.id)
-          );
         }
       }
     );
@@ -93,30 +150,54 @@ export class Server extends ServerDBDependentController<Vehicle> {
     }
   }
 
-  private loadVehicle(vehicle: Vehicle, owner: number): boolean {
+  private loadVehicle(
+    vehicle: Vehicle,
+    ownerServerId: number,
+    alreadySpawnedVehicle?: number
+  ): boolean {
     if (vehicle.posX && vehicle.posY && vehicle.posZ) {
       const spawnedVehicle: number = this.addToLoadedVehicles(
         vehicle,
-        CreateVehicle(
-          vehicle.modelHash,
-          vehicle.posX,
-          vehicle.posY,
-          vehicle.posZ,
-          vehicle.posH,
-          true,
-          true
-        ),
-        owner
+        alreadySpawnedVehicle ||
+          CreateVehicle(
+            vehicle.modelHash,
+            vehicle.posX,
+            vehicle.posY,
+            vehicle.posZ,
+            vehicle.posH,
+            true,
+            true
+          ),
+        ownerServerId
       );
 
-      SetVehicleColours(
-        spawnedVehicle,
-        vehicle.primaryColor,
-        vehicle.secondaryColor
-      );
+      if (!alreadySpawnedVehicle) {
+        SetVehicleColours(
+          spawnedVehicle,
+          vehicle.primaryColor,
+          vehicle.secondaryColor
+        );
 
-      SetVehicleNumberPlateText(spawnedVehicle, vehicle.plate || 'ARMOURY');
+        SetVehicleNumberPlateText(spawnedVehicle, vehicle.plate || 'ARMOURY');
+      }
+
+      const currentPlayerKeys: number[] = global.exports[
+        'authentication'
+      ].getPlayerInfo(ownerServerId, 'vehiclekeys');
+
+      global.exports['authentication'].setPlayerInfo(
+        ownerServerId,
+        'vehiclekeys',
+        [
+          ...(Array.isArray(currentPlayerKeys) ? currentPlayerKeys : []),
+          vehicle.id,
+        ].filter(
+          (vehicleKey: number, index: number, self: number[]) =>
+            self.indexOf(vehicleKey) === index
+        )
+      );
     }
+
     return false;
   }
 

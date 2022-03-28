@@ -1,5 +1,8 @@
 import { ServerController } from '@core/server/server.controller';
-import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { WeaponHash } from 'fivem-js';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
@@ -105,8 +108,8 @@ export class Server extends ServerController {
           true
         );
         TaskWarpPedIntoVehicle(GetPlayerPed(source), createdVehicle, -1);
-        SetVehicleCustomPrimaryColour(createdVehicle, 255, 255, 255);
-        SetVehicleCustomSecondaryColour(createdVehicle, 255, 255, 255);
+        SetVehicleCustomPrimaryColour(createdVehicle, 0, 0, 0);
+        SetVehicleCustomSecondaryColour(createdVehicle, 0, 0, 0);
         this.createdVehicles.push(createdVehicle);
       },
       false

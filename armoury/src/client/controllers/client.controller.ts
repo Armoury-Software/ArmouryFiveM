@@ -1,5 +1,9 @@
 import { ClientController } from '@core/client/client.controller';
-import { Export, FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  Export,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { calculateDistance } from '@core/utils';
 
 @FiveMController()
@@ -9,6 +13,11 @@ export class Client extends ClientController {
 
     this.assignListeners();
     this.registerGlobalEvents();
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:update-time` })
+  public onClockUpdated(hour: number, minute: number, second: number): void {
+    NetworkOverrideClockTime(hour, minute, second);
   }
 
   private assignListeners(): void {

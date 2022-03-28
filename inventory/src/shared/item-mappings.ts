@@ -38,8 +38,15 @@ export const ITEM_MAPPINGS = {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
     description: (value: number) => `Your vehicle. (#${value})`,
     value: (value: number) => '#' + value,
-    insertionCondition: (value: number) => value >= 0,
+    insertionCondition: (value: number[]) => !!value.length,
     isTransferrable: () => false,
+    image: (value: number) => {
+      console.log(
+        'computed image:',
+        global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value)
+      );
+      return global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value);
+    },
   },
   weapons: {
     type: 'Weapon',

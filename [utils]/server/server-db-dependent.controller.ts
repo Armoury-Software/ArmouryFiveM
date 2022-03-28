@@ -43,10 +43,11 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
                         entityValues
                     );
 
-                this._entities.push({ ...entity, id: forceId || id });
+                const createdEntity: T = { ...entity, id: forceId || id };
+                this._entities.push(createdEntity);
                 this.syncWithClients();
 
-                return forceId || id;
+                return createdEntity;
             }
             catch (error: any) {
                 console.log(error);
@@ -171,7 +172,7 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
 
     private getEntityPropertiesValues(entity: T, properties: string[]): string[] {
         return properties.map((key: string) => {
-            if (Array.isArray(entity[key])) {
+            if (Array.isArray(entity[key]) || typeof(entity[key]) === 'object') {
                 return JSON.stringify(entity[key]);
             }
 
@@ -202,7 +203,7 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         }
     }
 
-    protected onBoundEntityDestroyed(entity: T, boundPlayer: number): void { }
+    protected onBoundEntityDestroyed(_entity: T, _boundPlayer: number): void { }
 
     @EventListener()
     public onPlayerAuthenticate(playerId: number, _player: any): void {
