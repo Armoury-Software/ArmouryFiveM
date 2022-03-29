@@ -15,8 +15,7 @@ export class ServerJobController extends ServerController {
 
     public constructor() {
         super();
-
-        this._assignDefaultListeners();
+        
         this._jobInternalId = GetCurrentResourceName().split('-').slice(1).join();
 
         if (!GetCurrentResourceName().includes('job-')) {
@@ -24,33 +23,16 @@ export class ServerJobController extends ServerController {
         }
     }
 
-    private _assignDefaultListeners(): void {
-        // onNet(`${GetCurrentResourceName()}:get-job-information`, () => {
-        //     const faction: Faction = global.exports['factions'].getJob(this.factionInternalId);
-
-        //     if (faction) {
-        //         TriggerClientEvent(`${GetCurrentResourceName()}:get-faction-information-response`, source, faction);
-        //     }
-        // });
-
-        onNet('onResourceStop', (resourceName: string) => {
-            if (resourceName === GetCurrentResourceName()) {
-                this.removeVehicles();
-            }
-        });
-
-        onNet('playerDropped', () => {
-            // if (!(global.exports['armoury'].getPlayers()?.length > 0)) {
-            //     this.clearVehicleSpawnTimeout();
-            //     this.removeVehicles();
-            //     console.log(`No player left. Destroying faction vehicles of faction '${this.factionInternalId}'.`);
-            // }
-        });
+    @EventListener()
+    public onResourceStop(resourceName: string) {
+        if (resourceName === GetCurrentResourceName()) {
+            this.removeVehicles();
+        }
     }
 
     @EventListener()
-    public onPlayerDisconnect(source: number) {
-        this.destroyVehicle(source);
+    public onPlayerDisconnect() {
+        this.destroyPlayerVehicle(source);
     }
 
     @EventListener({ eventName: `${GetCurrentResourceName()}:add-job-vehicle-to-map` })
@@ -66,7 +48,7 @@ export class ServerJobController extends ServerController {
 
     @EventListener({ eventName: `${GetCurrentResourceName()}:destroy-job-vehicle-from-map` })
     public onDestroyVehicle(_source: number) {
-        this.destroyVehicle(source);
+        this.destroyPlayerVehicle(source);
     }
 
     protected assignJob(target: number): void {
@@ -91,7 +73,7 @@ export class ServerJobController extends ServerController {
         })
     }
 
-    private destroyVehicle(source: number): void {
+    private destroyPlayerVehicle(source: number): void {
         const spawnedVehicle = this.playersAssignedToVehicles.get(source).vehicleEntityId;
         this.removeVehicle(spawnedVehicle);
         if (this.playersAssignedToVehicles.get(source).metadata) {
