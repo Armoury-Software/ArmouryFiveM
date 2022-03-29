@@ -1,5 +1,6 @@
 import { EventListener } from "@core/decorators/armoury.decorators";
 import { ServerController } from "./server.controller";
+import { JobVehicleInfo } from "./models/job-vehicle.interface"
 
 export class ServerJobController extends ServerController {
     private _jobInternalId: string = '';
@@ -7,9 +8,9 @@ export class ServerJobController extends ServerController {
         return this._jobInternalId;
     }
 
-    private _spawnedVehicles: Map<number, JobVehicle> = new Map<number, JobVehicle>();
+    private playersAssignedToVehicles: Map<number, JobVehicleInfo> = new Map<number, JobVehicleInfo>();
     protected get spawnedVehicles() {
-        return this._spawnedVehicles;
+        return this.playersAssignedToVehicles;
     }
 
     public constructor() {
@@ -47,9 +48,25 @@ export class ServerJobController extends ServerController {
         });
     }
 
-    @EventListener({ eventName: `${GetCurrentResourceName()}:map-vehicle` })
-    public _mapVehicle(_spawnedVehicleNetworkId: number) {
+    @EventListener()
+    public onPlayerDisconnect(source: number) {
+        this.destroyVehicle(source);
+    }
+
+    @EventListener({ eventName: `${GetCurrentResourceName()}:add-job-vehicle-to-map` })
+    public onMapVehicle(_spawnedVehicleNetworkId: number, source: number, _metadata?: any) {
       const _spawnedVehicleEntityId: number = NetworkGetEntityFromNetworkId(_spawnedVehicleNetworkId)
+      this.playersAssignedToVehicles.set(source, {vehicleEntityId: _spawnedVehicleEntityId, metadata: _metadata? _metadata : {}});
+    }
+
+    @EventListener({ eventName: `${GetCurrentResourceName()}:update-job-vehicle-in-map` })
+    public onUpdateVehicles(source: number, _metadata: any) {
+        this.spawnedVehicles.set(source, {..._metadata? _metadata : {}});
+    }
+
+    @EventListener({ eventName: `${GetCurrentResourceName()}:destroy-job-vehicle-from-map` })
+    public onDestroyVehicle(_source: number) {
+        this.destroyVehicle(source);
     }
 
     protected assignJob(target: number): void {
@@ -62,35 +79,26 @@ export class ServerJobController extends ServerController {
       TriggerClientEvent(`${GetCurrentResourceName()}:job-assigned`, target);
     }
 
-    protected removeVehicle(vehicle: number, ignoreSplice?: boolean): void {
+    protected removeVehicle(vehicle: number): void {
         if (DoesEntityExist(vehicle)) {
             DeleteEntity(vehicle);
-        }
-
-        if (this._spawnedVehicles.indexOf(vehicle) > -1) {
-            if (!ignoreSplice) {
-                this._spawnedVehicles.splice(this._spawnedVehicles.indexOf(vehicle), 1);
-            }
         }
     }
 
     protected removeVehicles(): void {
-        this._spawnedVehicles.forEach((vehicle: number) => {
-            this.removeVehicle(vehicle, true);
-        });
-
-        this._spawnedVehicles = [];
+        Array.from(this.playersAssignedToVehicles.keys()).forEach((playerId: number) => {
+            this.removeVehicle(playerId);
+        })
     }
 
-    // protected spawnVehicle(vehicles: FactionVehicle[]): void {
-    //     const spawnedVehicle: number = CreateVehicle(vehicle.modelHash, vehicle.pos[0], vehicle.pos[1], vehicle.pos[2], 0.0, true, true);
-    //     this._spawnedVehicles.push(spawnedVehicle);
-    // }
-
-    // private clearVehicleSpawnTimeout(): void {
-    //     if (this.vehicleSpawnTimeout) {
-    //         clearTimeout(this.vehicleSpawnTimeout);
-    //         this.vehicleSpawnTimeout = null;
-    //     }
-    // }
+    private destroyVehicle(source: number): void {
+        const spawnedVehicle = this.playersAssignedToVehicles.get(source).vehicleEntityId;
+        this.removeVehicle(spawnedVehicle);
+        if (this.playersAssignedToVehicles.get(source).metadata) {
+            this.playersAssignedToVehicles.get(source).metadata.forEach((_metadata: string) => {
+                this.removeVehicle(this.playersAssignedToVehicles.get(source).metadata[_metadata]);
+            })
+        }
+        this.playersAssignedToVehicles.delete(source);
+    }
 }

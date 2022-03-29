@@ -83,7 +83,8 @@ export class Client extends ClientWithUIController {
           );
           TriggerServerEvent(
             `${GetCurrentResourceName()}:map-vehicle`,
-            _spawnedVehicle
+            _spawnedVehicle,
+            source
           )
         }
 

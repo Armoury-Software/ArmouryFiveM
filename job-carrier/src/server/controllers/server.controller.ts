@@ -171,10 +171,6 @@ export class Server extends ServerJobController {
       }
     );
 
-    onNet(`${GetCurrentResourceName()}:map-vehicle`, (_spawnedVehicle: number) => {
-      this.saveVehicle(_spawnedVehicle, source);
-    })
-
     onNet(`${GetCurrentResourceName()}:get-job`, () => {
       this.assignJob(source);
     });
