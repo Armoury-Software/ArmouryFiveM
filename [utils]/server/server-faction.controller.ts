@@ -32,6 +32,14 @@ export class ServerFactionController extends ServerController {
         }
     }
 
+    protected isPlayerMemberOfThisFaction(playerId: number): boolean {
+        return global.exports['factions'].isPlayerMemberOfFaction(this.factionInternalId, playerId)
+    }
+
+    protected isVehicleOwnedByThisFaction(vehicleId: number): boolean {
+        return this._spawnedVehicles.includes(vehicleId);
+    }
+
     protected registerVehicles(colors: number[], ...vehicles: FactionVehicle[]): void {
         const _vehicles: FactionVehicle[] = vehicles.map((factionVehicle: FactionVehicle) => ({ ...factionVehicle, color: colors }));
 

@@ -1,4 +1,4 @@
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import { Export, FiveMController } from '@core/decorators/armoury.decorators';
 import { ServerEntityWithEntranceController } from '@core/server/entity-controllers/server-entity-entrance.controller';
 import { Faction, FactionMember } from '@shared/models/faction.interface';
 
@@ -39,6 +39,16 @@ export class Server extends ServerEntityWithEntranceController<Faction> {
   public getFaction(internalId: string): Faction {
     return this.entities.find(
       (faction: Faction) => faction.internalId === internalId
+    );
+  }
+
+  @Export()
+  public isPlayerMemberOfFaction(
+    internalId: string,
+    playerId: number
+  ): boolean {
+    return this.getFaction(internalId)?.members.some(
+      (factionMember: FactionMember) => factionMember.onlineId === playerId
     );
   }
 

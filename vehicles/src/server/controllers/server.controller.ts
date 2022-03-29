@@ -119,6 +119,7 @@ export class Server extends ServerDBDependentController<Vehicle> {
 
   @EventListener()
   public override onPlayerAuthenticate(playerId: number, player: Player): void {
+    console.log('Reached here! Check if I get called twice mistakenly!');
     super.onPlayerAuthenticate(playerId, player);
 
     this.loadDBEntityFor(player.id, 'owner', playerId).then(

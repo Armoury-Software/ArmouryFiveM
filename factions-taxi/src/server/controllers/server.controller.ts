@@ -1,8 +1,361 @@
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  Export,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { ServerFactionController } from '@core/server/server-faction.controller';
+import { calculateDistanceInKm } from '@core/utils';
+import { TAXI_DEFAULTS } from '@shared/models/defaults';
+
+import { TaxiDutyData } from '@shared/models/taxi-duty.interface';
 
 @FiveMController()
 export class Server extends ServerFactionController {
+  private playersOnDuty: Map<number, TaxiDutyData> = new Map<
+    number,
+    TaxiDutyData
+  >();
+
+  @Export()
+  public getAvailableTaxiDrivers(): [number, number][] {
+    if (!this.playersOnDuty.size) {
+      return [[-1, TAXI_DEFAULTS.minFare]];
+    }
+
+    return Array.from(this.playersOnDuty.keys()).map((taxiDriverId: number) => [
+      taxiDriverId,
+      this.playersOnDuty.get(taxiDriverId).fare,
+    ]);
+  }
+
+  @Export()
+  public startPlayerRide(playerId: number): void {
+    const cachedFare: number = this.getPlayerFareCached(playerId);
+
+    this.playersOnDuty.set(playerId, {
+      ...this.playersOnDuty.get(playerId),
+      taximeterOpen: true,
+      fare: cachedFare,
+      currentRidePay: cachedFare,
+      lastDistanceCheckTimestamp: Date.now(),
+      lastDistanceCheckPosition: GetEntityCoords(GetPlayerPed(playerId), true),
+    });
+
+    global.exports['armoury-overlay'].setTaximeterValue(playerId, cachedFare);
+
+    const riders: number[] = this.playersOnDuty.get(playerId).riders;
+    if (riders.length) {
+      riders.forEach((riderId: number) => {
+        global.exports['armoury-overlay'].setTaximeterValue(
+          riderId,
+          cachedFare
+        );
+      });
+    }
+
+    TriggerClientEvent(`${GetCurrentResourceName()}:ride-started`, playerId);
+  }
+
+  @Export()
+  public stopPlayerRide(playerId: number): void {
+    if (this.playersOnDuty.has(playerId)) {
+      global.exports['armoury-overlay'].setTaximeterValue(playerId, 0);
+
+      const riders: number[] = this.playersOnDuty.get(playerId).riders;
+      if (riders.length) {
+        riders.forEach((riderId: number) => {
+          global.exports['armoury-overlay'].setTaximeterValue(riderId, 0);
+        });
+      }
+
+      this.playersOnDuty.set(playerId, {
+        ...this.playersOnDuty.get(playerId),
+        taximeterOpen: false,
+        currentRidePay: 0,
+      });
+    }
+
+    TriggerClientEvent(`${GetCurrentResourceName()}:ride-stopped`, playerId);
+  }
+
+  @Export()
+  public updatePlayerTaximeterValue(playerId: number, rideValue: number): void {
+    global.exports['armoury-overlay'].setTaximeterValue(playerId, rideValue);
+
+    if (this.playersOnDuty.has(playerId)) {
+      this.playersOnDuty.set(playerId, {
+        ...this.playersOnDuty.get(playerId),
+        currentRidePay: rideValue,
+      });
+    }
+  }
+
+  @Export()
+  public addToPlayerTaximeterValue(
+    playerId: number,
+    rideValueAddition: number
+  ): void {
+    if (this.playersOnDuty.has(playerId)) {
+      this.updatePlayerTaximeterValue(
+        playerId,
+        this.playersOnDuty.get(playerId).currentRidePay + rideValueAddition
+      );
+    }
+  }
+
+  @Export()
+  public isPlayerBusyWithRide(playerId: number): boolean {
+    return (
+      this.playersOnDuty.has(playerId) &&
+      this.playersOnDuty.get(playerId).taximeterOpen
+    );
+  }
+
+  @Export()
+  public startPlayerDuty(playerId: number): void {
+    global.exports['armoury-overlay'].setTaximeterValue(playerId, 0);
+
+    const existingRiders: number[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      const pedInVehicleSeat: number = GetPedInVehicleSeat(
+        GetVehiclePedIsIn(GetPlayerPed(playerId), false),
+        i
+      );
+
+      if (pedInVehicleSeat) {
+        const riderPlayerId: number = NetworkGetEntityOwner(pedInVehicleSeat);
+        existingRiders.push(riderPlayerId);
+        this.updatePlayerTaximeterValue(riderPlayerId, 0);
+      }
+    }
+
+    this.playersOnDuty.set(playerId, {
+      taximeterOpen: false,
+      fare: this.getPlayerFareCached(playerId),
+      currentRidePay: 0,
+      lastDistanceCheckTimestamp: Date.now(),
+      lastDistanceCheckPosition: GetEntityCoords(GetPlayerPed(playerId), true),
+      riders: existingRiders,
+    });
+
+    this.hideTaxiNotOnDutyMessage(playerId);
+  }
+
+  @Export()
+  public stopPlayerDuty(
+    playerId: number,
+    ignoreHudMessage: boolean = false
+  ): void {
+    if (this.playersOnDuty.has(playerId)) {
+      global.exports['armoury-overlay'].setTaximeterValue(playerId, NaN);
+
+      const riders: number[] = this.playersOnDuty.get(playerId).riders;
+      if (riders.length) {
+        riders.forEach((riderId: number) => {
+          global.exports['armoury-overlay'].setTaximeterValue(riderId, NaN);
+        });
+      }
+
+      this.playersOnDuty.delete(playerId);
+    }
+
+    if (!ignoreHudMessage) {
+      this.showTaxiNotOnDutyMessage(playerId);
+    }
+  }
+
+  @Export()
+  public isPlayerOnDuty(playerId: number): boolean {
+    return this.playersOnDuty.has(playerId);
+  }
+
+  @Export()
+  public getPlayerFare(playerId: number): number {
+    return this.playersOnDuty.has(playerId)
+      ? this.playersOnDuty.get(playerId).fare
+      : NaN;
+  }
+
+  @Export()
+  public getPlayerFareCached(playerId: number): number {
+    return (
+      Math.max(
+        TAXI_DEFAULTS.minFare,
+        Math.min(
+          TAXI_DEFAULTS.maxFare,
+          this.getPlayerClientsidedCacheKey(playerId, 'fare')
+        )
+      ) || Math.floor((TAXI_DEFAULTS.minFare + TAXI_DEFAULTS.maxFare) / 2)
+    );
+  }
+
+  @Export()
+  public setPlayerFare(playerId: number, fare: number): void {
+    const computedFare: number = Math.floor(
+      Math.min(Math.max(fare, TAXI_DEFAULTS.minFare), TAXI_DEFAULTS.maxFare)
+    );
+
+    if (this.playersOnDuty.has(playerId)) {
+      this.playersOnDuty.set(playerId, {
+        ...this.playersOnDuty.get(playerId),
+        fare: computedFare,
+      });
+    }
+
+    this.updatePlayerClientsidedCacheKey(playerId, 'fare', computedFare);
+  }
+
+  @Export()
+  public getMaxFare(): number {
+    return TAXI_DEFAULTS.maxFare;
+  }
+
+  @Export()
+  public getMinFare(): number {
+    return TAXI_DEFAULTS.minFare;
+  }
+
+  @EventListener()
+  public onPlayerEnterVehicle(
+    vehicleNetworkId: number,
+    seatIAmTryingToEnter: number
+  ): void {
+    const vehicleId: number = NetworkGetEntityFromNetworkId(vehicleNetworkId);
+
+    if (this.isVehicleOwnedByThisFaction(vehicleId)) {
+      if (this.isPlayerMemberOfThisFaction(source)) {
+        global.exports['general-context-menu'].addCachedButton(source, {
+          label: 'Taxi',
+          metadata: {
+            buttonId: 'taxi-driver',
+            vehicleNetworkId: vehicleNetworkId,
+          },
+        });
+
+        this.showTaxiNotOnDutyMessage(source);
+      }
+
+      if (seatIAmTryingToEnter > -1) {
+        const driver: number = GetPedInVehicleSeat(vehicleId, -1);
+        if (driver > 0 && driver !== GetPlayerPed(source)) {
+          const realDriver: number = NetworkGetEntityOwner(driver);
+
+          if (realDriver >= 0 && this.playersOnDuty.has(realDriver)) {
+            const mapValue: TaxiDutyData = this.playersOnDuty.get(realDriver);
+
+            this.playersOnDuty.set(realDriver, {
+              ...mapValue,
+              riders: [...this.playersOnDuty.get(realDriver).riders, source],
+            });
+
+            this.updatePlayerTaximeterValue(source, mapValue.currentRidePay);
+          }
+        }
+      }
+    }
+  }
+
+  @EventListener()
+  public onPlayerExitVehicle(_vehicleNetworkId: number): void {
+    // TODO: Send this NetworkGetEntityFromNetworkId directly from event as parameter, we are calling it from too many places!
+    const vehicle: number = NetworkGetEntityFromNetworkId(_vehicleNetworkId);
+
+    if (this.spawnedVehicles.includes(vehicle)) {
+      const driver: number = GetPedInVehicleSeat(vehicle, -1);
+      if (driver > 0 && driver !== GetPlayerPed(source)) {
+        const driverPlayerId: number = NetworkGetEntityOwner(driver);
+
+        if (this.playersOnDuty.has(driverPlayerId)) {
+          const mapValue: TaxiDutyData = this.playersOnDuty.get(driverPlayerId);
+
+          this.playersOnDuty.set(driverPlayerId, {
+            ...mapValue,
+            riders: mapValue.riders.filter(
+              (playerId: number) => playerId !== source
+            ),
+          });
+        }
+      }
+
+      if (this.isPlayerOnDuty(source)) {
+        this.stopPlayerDuty(source, true);
+      } else {
+        global.exports['armoury-overlay'].setTaximeterValue(source, NaN);
+      }
+
+      if (this.isPlayerMemberOfThisFaction(source)) {
+        global.exports['general-context-menu'].removeCachedButton(
+          source,
+          'taxi-driver'
+        );
+
+        this.hideTaxiNotOnDutyMessage(source);
+      }
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:driver-interval-passed`,
+  })
+  public onDriverIntervalPassed(): void {
+    if (
+      this.playersOnDuty.has(source) &&
+      Date.now() - this.playersOnDuty.get(source).lastDistanceCheckTimestamp >=
+        TAXI_DEFAULTS.intervalBetweenDistanceChecks -
+          0.1 * TAXI_DEFAULTS.intervalBetweenDistanceChecks
+    ) {
+      const playerPosition: number[] = GetEntityCoords(
+        GetPlayerPed(source),
+        true
+      );
+
+      const lastCheckPosition: number[] =
+        this.playersOnDuty.get(source).lastDistanceCheckPosition ||
+        playerPosition;
+
+      const distance: number = calculateDistanceInKm([
+        playerPosition[0],
+        playerPosition[1],
+        playerPosition[2],
+        lastCheckPosition[0],
+        lastCheckPosition[1],
+        lastCheckPosition[2],
+      ]);
+
+      this.playersOnDuty.set(source, {
+        ...this.playersOnDuty.get(source),
+        lastDistanceCheckTimestamp: Date.now(),
+        lastDistanceCheckPosition: playerPosition,
+      });
+
+      this.addToPlayerTaximeterValue(
+        source,
+        Math.max(0, Math.floor(distance * this.getPlayerFare(source)))
+      );
+
+      this.playersOnDuty.get(source).riders.forEach((rider: number) => {
+        this.updatePlayerTaximeterValue(
+          rider,
+          this.playersOnDuty.get(source).currentRidePay
+        );
+      });
+    }
+  }
+
+  private showTaxiNotOnDutyMessage(playerId: number): void {
+    global.exports['armoury-overlay'].setMessage(playerId, {
+      id: 'taxi-not-on-duty',
+      content: 'You will not yet receive calls because you are not on duty.',
+    });
+  }
+
+  private hideTaxiNotOnDutyMessage(playerId: number): void {
+    global.exports['armoury-overlay'].deleteMessage(playerId, {
+      id: 'taxi-not-on-duty',
+    });
+  }
+
   constructor() {
     super();
 

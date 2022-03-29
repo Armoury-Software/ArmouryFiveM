@@ -34,9 +34,18 @@ const hideContextMenu = (target: number) => {
   TriggerClientEvent(`${GetCurrentResourceName()}:hide-context-menu`, target);
 };
 
+const setTaximeterValue = (target: number, value: number) => {
+  TriggerClientEvent(
+    `${GetCurrentResourceName()}:set-taximeter-value`,
+    target,
+    value
+  );
+};
+
 exports('updateItem', updateItem);
 exports('showMoneyGainOverlay', showMoneyGainOverlay);
 exports('setMessage', setMessage);
 exports('deleteMessage', deleteMessage);
 exports('showContextMenu', showContextMenu);
 exports('hideContextMenu', hideContextMenu);
+exports('setTaximeterValue', setTaximeterValue);

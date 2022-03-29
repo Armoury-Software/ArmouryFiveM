@@ -8,6 +8,8 @@ import { calculateDistance } from '@core/utils';
 
 @FiveMController()
 export class Client extends ClientController {
+  private playerLeftVehicleInterval: NodeJS.Timer;
+
   public constructor() {
     super();
 
@@ -60,26 +62,51 @@ export class Client extends ClientController {
   private registerGlobalEvents(): void {
     on('gameEventTriggered', (name: string, _args: any[]) => {
       console.log(name);
-      if (name === 'CEventNetworkEntityDamage') {
-        const [
-          killed,
-          killer,
-          unknown1,
-          unknown2,
-          unknown3,
-          didPedDie,
-          weaponHash,
-          unknown4,
-          unknown5,
-          unknown6,
-          unknown7,
-          didPedHitParkedCar,
-          unknown8,
-        ]: any[] = _args;
+      switch (name) {
+        case 'CEventNetworkEntityDamage': {
+          const [
+            killed,
+            killer,
+            unknown1,
+            unknown2,
+            unknown3,
+            didPedDie,
+            weaponHash,
+            unknown4,
+            unknown5,
+            unknown6,
+            unknown7,
+            didPedHitParkedCar,
+            unknown8,
+          ]: any[] = _args;
 
-        if (killed === GetPlayerPed(-1) && !!didPedDie) {
-          TriggerServerEvent(`${GetCurrentResourceName()}:onPlayerDeath`);
-          emit(`${GetCurrentResourceName()}:onPlayerDeath`);
+          if (killed === GetPlayerPed(-1) && !!didPedDie) {
+            TriggerServerEvent(`${GetCurrentResourceName()}:onPlayerDeath`);
+            emit(`${GetCurrentResourceName()}:onPlayerDeath`);
+          }
+          break;
+        }
+        case 'CEventNetworkPlayerEnteredVehicle': {
+          const [_playerNetId, vehicleId]: any[] = _args;
+          if (_playerNetId === 128) {
+            TriggerServerEvent(
+              `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
+              NetworkGetNetworkIdFromEntity(vehicleId),
+              GetSeatPedIsTryingToEnter(PlayerPedId())
+            );
+            emit(
+              `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
+              NetworkGetNetworkIdFromEntity(vehicleId),
+              GetSeatPedIsTryingToEnter(PlayerPedId())
+            );
+
+            if (!this.playerLeftVehicleInterval) {
+              this.playerLeftVehicleInterval = setInterval(
+                () => this.onSecondPassedWhileStillInVehicle(),
+                1000
+              );
+            }
+          }
         }
       }
     });
@@ -123,5 +150,20 @@ export class Client extends ClientController {
     EndFindObject(handle);
 
     return vehiclesToReturn;
+  }
+
+  private onSecondPassedWhileStillInVehicle(): void {
+    if (this.playerLeftVehicleInterval) {
+      if (!GetVehiclePedIsIn(PlayerPedId(), false)) {
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:onPlayerExitVehicle`,
+          NetworkGetNetworkIdFromEntity(GetVehiclePedIsIn(PlayerPedId(), true))
+        );
+        emit(`${GetCurrentResourceName()}:onPlayerExitVehicle`);
+
+        clearInterval(this.playerLeftVehicleInterval);
+        this.playerLeftVehicleInterval = null;
+      }
+    }
   }
 }

@@ -1,7 +1,8 @@
 import { isJSON } from "../utils";
-import { EventListener, Export } from '../decorators/armoury.decorators';
+import { EventListener, Export, FiveMController } from '../decorators/armoury.decorators';
 import { ServerController } from "./server.controller";
 
+@FiveMController()
 export class ServerDBDependentController<T extends { id: number }> extends ServerController {
     private _entities: T[] = [];
     protected get entities(): T[] {

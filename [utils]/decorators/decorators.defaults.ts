@@ -4,4 +4,7 @@ export const DEFAULT_DECORATORS = {
     onPlayerDisconnect: 'playerDropped',
     onResourceStop: 'onResourceStop',
     onContextMenuItemPressed: 'armoury-overlay:context-menu-item-pressed',
+    onPlayerEnterVehicle: 'armoury:onPlayerEnterVehicle',
+    onPlayerExitVehicle: 'armoury:onPlayerExitVehicle',
+    onPlayerClientsidedCacheLoaded: 'armoury:player-resource-cache-loaded'
 }

@@ -40,13 +40,7 @@ export const ITEM_MAPPINGS = {
     value: (value: number) => '#' + value,
     insertionCondition: (value: number[]) => !!value.length,
     isTransferrable: () => false,
-    image: (value: number) => {
-      console.log(
-        'computed image:',
-        global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value)
-      );
-      return global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value);
-    },
+    image: (value: number) => global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value),
   },
   weapons: {
     type: 'Weapon',
