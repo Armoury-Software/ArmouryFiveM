@@ -1,12 +1,16 @@
 import { FiveMController } from '@core/decorators/armoury.decorators';
-import { ServerController } from '@core/server/server.controller';
+import { ServerJobController } from '../../../../[utils]/server/server-job.controller';
 import { calculateDistance, isPlayerInRangeOfPoint } from '@core/utils';
 
-import { Trucker, TruckerDeliveryPoint, TRUCKER_DELIVERY_TYPE } from '@shared/models/delivery-point.model';
+import {
+  Trucker,
+  TruckerDeliveryPoint,
+  TRUCKER_DELIVERY_TYPE,
+} from '@shared/models/delivery-point.model';
 import { TRUCKER_DELIVERY_POINTS, TRUCKER_MONEY_GAIN } from '@shared/positions';
 
 @FiveMController()
-export class Server extends ServerController {
+export class Server extends ServerJobController {
   public constructor() {
     super();
 
@@ -81,7 +85,7 @@ export class Server extends ServerController {
       });
       console.log(this.truckers.get(source));
       TriggerClientEvent(
-        'trucker-job:begin-job',
+        `${GetCurrentResourceName()}:begin-job`,
         source,
         {
           X: randomDeliveryPoint[0],
@@ -97,13 +101,7 @@ export class Server extends ServerController {
     });
 
     onNet(`${GetCurrentResourceName()}:get-job`, () => {
-      global.exports['authentication'].setPlayerInfo(
-        source,
-        'job',
-        'trucker',
-        false
-      );
-      TriggerClientEvent('trucker-job:job-assigned', source);
+      this.assignJob(source);
     });
 
     onNet(`${GetCurrentResourceName()}:job-finished`, () => {

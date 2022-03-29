@@ -65,12 +65,13 @@ export class Client extends ClientWithUIController {
         deliveryPosition: { X: number; Y: number; Z: number },
         shouldSpawnVehicle?: boolean
       ) => {
+        let _spawnedVehicle: number;
         if (shouldSpawnVehicle) {
           const spawnPositionAndHeading: CarrierDeliveryPoint =
             QUICK_START_POSITIONS[
               Math.floor(Math.random() * QUICK_START_POSITIONS.length)
             ];
-          await this.createVehicleAsync(
+          _spawnedVehicle = await this.createVehicleAsync(
             GetHashKey('Mule'),
             spawnPositionAndHeading.pos[0],
             spawnPositionAndHeading.pos[1],
@@ -80,6 +81,10 @@ export class Client extends ClientWithUIController {
             true,
             true
           );
+          TriggerServerEvent(
+            `${GetCurrentResourceName()}:map-vehicle`,
+            _spawnedVehicle
+          )
         }
 
         const deliveryPoint: number = this.createWaypoint(
@@ -147,7 +152,7 @@ export class Client extends ClientWithUIController {
         title: 'Carrier Job',
         description:
           "Carriers deliver local cargo to stores and other businesses. Businesses rely on Carriers' cargo in order to keep running.",
-        resource: 'carrier-job',
+        resource: GetCurrentResourceName(),
         buttons: [
           {
             title: 'Quick start',

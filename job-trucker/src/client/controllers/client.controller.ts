@@ -262,7 +262,7 @@ export class Client extends ClientWithUIController {
         title: 'Trucker Job',
         description:
           'Truckers deliver international cargo for usage in stores and other local businesses. They also help decentralize traffic outside the main area of influence.',
-        resource: 'trucker-job',
+        resource: GetCurrentResourceName(),
         buttons,
       })
     );

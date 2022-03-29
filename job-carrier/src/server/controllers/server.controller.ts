@@ -1,5 +1,5 @@
-import { FiveMController } from '@core/decorators/armoury.decorators';
-import { ServerController } from '@core/server/server.controller';
+import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import { ServerJobController } from '../../../../[utils]/server/server-job.controller';
 import { calculateDistance, isPlayerInRangeOfPoint } from '@core/utils';
 
 import { Carrier, CarrierDeliveryPoint } from '@shared/models/delivery-point.model';
@@ -8,7 +8,7 @@ import { CARRIER_PICKUP_POINTS, MAX_PLAYER_PACKAGES } from '@shared/positions';
 import { Business } from '../../../../businesses/src/shared/models/business.interface';
 
 @FiveMController()
-export class Server extends ServerController {
+export class Server extends ServerJobController {
   public constructor() {
     super();
 
@@ -171,14 +171,12 @@ export class Server extends ServerController {
       }
     );
 
+    onNet(`${GetCurrentResourceName()}:map-vehicle`, (_spawnedVehicle: number) => {
+      this.saveVehicle(_spawnedVehicle, source);
+    })
+
     onNet(`${GetCurrentResourceName()}:get-job`, () => {
-      global.exports['authentication'].setPlayerInfo(
-        source,
-        'job',
-        'carrier',
-        false
-      );
-      TriggerClientEvent('carrier-job:job-assigned', source);
+      this.assignJob(source);
     });
 
     onNet(`${GetCurrentResourceName()}:route-finished`, () => {
