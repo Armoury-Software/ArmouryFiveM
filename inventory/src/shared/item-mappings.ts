@@ -162,6 +162,16 @@ export const ITEM_MAPPINGS = {
     },
     isTransferrable: (value: string) =>
       MISC_ITEM_MAPPINGS[value].transferrable ?? true,
+    ingameObjectInformation: (
+      piKey: number | string,
+      piKeyParentValue: object
+    ) => {
+      if (MISC_ITEM_MAPPINGS[piKey]?.igObject) {
+        return MISC_ITEM_MAPPINGS[piKey]?.igObject;
+      }
+
+      return null;
+    },
   },
 };
 
@@ -169,47 +179,167 @@ export const MISC_ITEM_MAPPINGS = {
   apple: {
     description:
       'A fresh, delicious apple. An apple a day keeps the doctor away. (+10% hunger)',
+    igObject: {
+      animationDict: 'mp_player_inteat@burger',
+      animationName: 'mp_player_int_eat_burger',
+      animationOptions: {
+        prop: 'ng_proc_food_aple2a',
+        propBone: 18905,
+        propPlacement: [0.13, 0.05, -0.02, -50.0, 16.0, 60.0],
+      },
+      duration: 2000
+    },
   },
   chocolate: {
     description:
       'An ordinary chocolate milk tablet. Dairy product. (+15% hunger)',
+    igObject: {
+      animationDict: 'mp_player_inteat@burger',
+      animationName: 'mp_player_int_eat_burger',
+      animationOptions: {
+        prop: 'prop_choc_ego',
+        propBone: 60309,
+        propPlacement: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      },
+      duration: 2000
+    },
   },
   donut: {
     description: 'A fluffy donut glazed with vanilla cream. (+20% hunger)',
+    igObject: {
+      animationDict: 'mp_player_inteat@burger',
+      animationName: 'mp_player_int_eat_burger',
+      animationOptions: {
+        prop: 'prop_amb_donut',
+        propBone: 18905,
+        propPlacement: [0.13, 0.05, 0.02, -50.0, 16.0, 60.0],
+      },
+      duration: 2000
+    },
   },
   sandwich: {
     description:
       'A nicely-packed, delicious sandwich. Contains basic ingredients. (+30% hunger)',
+    igObject: {
+      animationDict: 'mp_player_inteat@burger',
+      animationName: 'mp_player_int_eat_burger',
+      animationOptions: {
+        prop: 'prop_sandwich_01',
+        propBone: 18905,
+        propPlacement: [0.13, 0.05, 0.02, -50.0, 16.0, 60.0],
+      },
+      duration: 2000
+    },
   },
   water: {
     description:
       'An ordinary 500ml bottle of water. Hydrate yourself! (+50% thirst)',
+    igObject: {
+      animationDict: 'amb@world_human_drinking@beer@male@idle_a',
+      animationName: 'idle_c',
+      animationOptions: {
+        prop: 'prop_ld_flow_bottle',
+        propBone: 6286,
+        propPlacement: [0.12, 0.05, -0.03, 55, 70, 140],
+      },
+      duration: 5000
+    },
   },
   coke: {
     description: 'An ordinary 330ml can of coke. (+30% thirst)',
+    igObject: {
+      animationDict: 'amb@world_human_drinking@beer@male@idle_a',
+      animationName: 'idle_c',
+      animationOptions: {
+        prop: 'prop_food_juice02',
+        propBone: 28422,
+        propPlacement: [0.0, 0.0, -0.06, 0.0, 0.0, 130.0],
+      },
+      duration: 5000
+    },
   },
   red_bull: {
     description:
       'A 330ml can of energy drink. Red Bull gives you wings! (+30% thirst)',
+    igObject: {
+      animationDict: 'amb@world_human_drinking@beer@male@idle_a',
+      animationName: 'idle_c',
+      animationOptions: {
+        prop: 'prop_ecola_can',
+        propBone: 28422,
+        propPlacement: [0.0, 0.0, 0.0, 0.0, 0.0, 130.0],
+      },
+      duration: 5000
+    },
   },
   cold_coffee: {
     description: 'A 330ml can of cold coffee. (+30% thirst, +5% hunger)',
+    igObject: {
+      animationDict: 'amb@world_human_drinking@beer@male@idle_a',
+      animationName: 'idle_c',
+      animationOptions: {
+        prop: 'p_amb_coffeecup_01',
+        propBone: 28422,
+        propPlacement: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      },
+      duration: 5000
+    },
   },
   beer_can: {
     description:
       'A 330ml can of good old Corona. Contains 4.5% alcohol. (+20% thirst, +25% drunkness)',
+    igObject: {
+      animationDict: 'amb@world_human_drinking@beer@male@idle_a',
+      animationName: 'idle_c',
+      animationOptions: {
+        prop: 'prop_amb_beer_bottle',
+        propBone: 28422,
+        propPlacement: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      },
+      duration: 5000
+    },
   },
   rum: {
     description:
       'A 700ml bottle of rum. Contains 42% alcohol. (+5% thirst, +50% drunkness per serving)',
+    igObject: {
+      animationDict: 'amb@world_human_drinking@beer@male@idle_a',
+      animationName: 'idle_c',
+      animationOptions: {
+        prop: 'prop_drink_redwine',
+        propBone: 28422,
+        propPlacement: [0.01, -0.01, -0.06, 0.0, 0.0, 0.0],
+      },
+      duration: 5000
+    },
   },
   whiskey: {
     description:
       'A 700ml bottle of Whisky. Contains 40% alcohol. (+5% thirst, +50% drunkness per serving)',
+    igObject: {
+      animationDict: 'amb@world_human_drinking@beer@male@idle_a',
+      animationName: 'idle_c',
+      animationOptions: {
+        prop: 'prop_drink_whisky',
+        propBone: 28422,
+        propPlacement: [0.01, -0.01, -0.06, 0.0, 0.0, 0.0],
+      },
+      duration: 5000
+    },
   },
   champagne: {
     description:
       'A 700ml bottle of cheap champagne. Contains 12% alcohol. (+10% thirst, +20% drunkness per sip)',
+    igObject: {
+      animationDict: 'anim@heists@humane_labs@finale@keycards',
+      animationName: 'ped_a_enter_loop',
+      animationOptions: {
+        prop: 'prop_drink_champ',
+        propBone: 18905,
+        propPlacement: [0.1, -0.03, 0.03, -100.0, 0.0, -10.0],
+      },
+      duration: 2000
+    },
   },
   bandages: {
     description:
