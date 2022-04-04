@@ -15,8 +15,8 @@ export class ServerEntityWithEntranceController<T extends { id: number, entrance
     }
 
     protected getClosestEntityOfSameTypeExitToPlayer(source: number): T {
-        const routingBucket: number = GetEntityRoutingBucket(GetPlayerPed(source));
-        const entity: T = this.getEntityByDBId(routingBucket);
+        const virtualWorld: number = Math.max(0, Number(global.exports['authentication'].getPlayerInfo(source, 'virtualWorld')));
+        const entity: T = this.getEntityByDBId(virtualWorld);
         const playerPosition: number[] = GetEntityCoords(GetPlayerPed(source), true);
 
         // TODO: Replace here to actually get the closest, not the first one in the range

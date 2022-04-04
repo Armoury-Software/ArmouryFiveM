@@ -13,8 +13,16 @@ export class Server extends ServerController {
     this.registerExports();
     this.registerTimers();
 
-    this._players = global.exports['authentication'].getAuthenticatedPlayers();
-    SetRoutingBucketPopulationEnabled(0, false);
+    SetRoutingBucketPopulationEnabled(0, true);
+    this._players = [];
+
+    try {
+      global.exports['authentication'].getAuthenticatedPlayers();
+    } catch (e) {
+      console.error(
+        "Attempted to grab the authenticated players into armoury's connected players, but couldn't."
+      );
+    }
   }
 
   @Export()
@@ -61,6 +69,7 @@ export class Server extends ServerController {
 
   private registerFiveMEventListeners(): void {
     onNet('playerJoining', (_source: number, _oldId: number) => {
+      this.setPlayerVirtualWorld(source, 0);
       this._players.push(source);
     });
 

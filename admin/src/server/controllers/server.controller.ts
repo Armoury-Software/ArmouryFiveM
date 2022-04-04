@@ -176,6 +176,31 @@ export class Server extends ServerController {
       false
     );
 
+    this.RegisterAdminCommand(
+      'setroutingbucket',
+      1,
+      (source: number, args: string[]) => {
+        if (!args.length) {
+          console.log(
+            'ERROR! You should use /setroutingbucket <player-name> <routingBucket>'
+          );
+          return;
+        }
+
+        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const routingBucket: number = Number(args[1]);
+
+        if (!this.checkTargetAvailability(targetPlayer)) {
+          return;
+        }
+
+        SetEntityRoutingBucket(GetPlayerPed(targetPlayer), routingBucket);
+
+        console.log(`Teleported to ${args[0]}.`);
+      },
+      false
+    );
+
     RegisterCommand(
       'stats',
       (source: number) => {

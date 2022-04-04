@@ -1,4 +1,4 @@
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import { Export, FiveMController } from '@core/decorators/armoury.decorators';
 import { ServerDBDependentController } from '@core/server/server-db-dependent.controller';
 
 import {
@@ -177,6 +177,7 @@ export class Server extends ServerDBDependentController<Phone> {
   }
 
   // First parameter: caller player ID, second parameter: callED player PHONE
+  @Export()
   private executeCall(byPlayer: number, callingTo: number): void {
     const playerFound: number = this.phones.get(callingTo);
     const byPlayerPhone: number = Number(

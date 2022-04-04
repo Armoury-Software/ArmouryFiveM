@@ -1,4 +1,4 @@
-import { ClientController } from '@core/client/client.controller';
+import { ClientFactionController } from '@core/client/client-faction.controller';
 import {
   EventListener,
   FiveMController,
@@ -8,7 +8,7 @@ import { isPlayerInRangeOfPoint } from '@core/utils';
 import { TAXI_DEFAULTS } from '@shared/models/defaults';
 
 @FiveMController()
-export class Client extends ClientController {
+export class Client extends ClientFactionController {
   private relationshipGroup: number;
   private driverCurrentTripInterval: NodeJS.Timer;
 
@@ -44,7 +44,6 @@ export class Client extends ClientController {
   }
 
   private clearDriverInterval(): void {
-    console.log('driver interval attempt to clear!');
     if (this.driverCurrentTripInterval) {
       clearInterval(this.driverCurrentTripInterval);
       this.driverCurrentTripInterval = null;

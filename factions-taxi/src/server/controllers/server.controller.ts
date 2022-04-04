@@ -224,7 +224,10 @@ export class Server extends ServerFactionController {
     const vehicleId: number = NetworkGetEntityFromNetworkId(vehicleNetworkId);
 
     if (this.isVehicleOwnedByThisFaction(vehicleId)) {
-      if (this.isPlayerMemberOfThisFaction(source)) {
+      if (
+        this.isPlayerMemberOfThisFaction(source) &&
+        seatIAmTryingToEnter === -1
+      ) {
         global.exports['general-context-menu'].addCachedButton(source, {
           label: 'Taxi',
           metadata: {
@@ -358,6 +361,10 @@ export class Server extends ServerFactionController {
 
   constructor() {
     super();
+
+    this.registerVehicleKeyLockerPosition([
+      1161.79833984375, -3198.590087890625, -39.00794219970703,
+    ]);
 
     this.registerVehicles(
       [88, 88],

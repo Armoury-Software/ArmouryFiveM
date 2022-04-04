@@ -123,7 +123,7 @@ function setPlayerInfo(
 
   SetConvarReplicated(`${source}_PI_${stat}`, value.toString());
 
-  if (!ignoreSQLCommand) {
+  if (!ignoreSQLCommand && cachedPlayerProperties.includes(stat)) {
     let statsString: string = `${stat} = ?`;
     additionalValues.forEach((additionalValue) => {
       statsString += `, ${additionalValue.stat} = ?`;
@@ -245,6 +245,8 @@ const AuthenticatePlayer = (target: number, stats: Player) => {
       }
     }
   }
+
+  console.log(cachedPlayerProperties);
 
   authenticatedPlayers.set(target, {
     ...(<PlayerMonitored>(<PlayerBase>stats)),

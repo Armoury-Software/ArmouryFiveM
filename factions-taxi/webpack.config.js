@@ -75,6 +75,9 @@ const client = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    fallback: {
+      events: require.resolve('events/'),
+    },
     alias: {
       '@core': path.resolve(__dirname, './../[utils]'),
       '@shared': path.resolve(__dirname, './src/shared'),

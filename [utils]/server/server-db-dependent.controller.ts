@@ -138,26 +138,26 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         return null;
     }
 
-    private loadDBEntities(): void {
-        setImmediate(async () => {
-            const result: T[] = (await global.exports['oxmysql'].query_async(`SELECT * FROM \`${this.dbTableName}\``, [])).map(
-                (resultItem: any) => {
-                    Object.keys(resultItem).forEach((property: string) => {
-                        resultItem[property] = JSON.parse(isJSON(resultItem[property].toString()) ? resultItem[property] : `"${resultItem[property]}"`, function(_k, v) { 
-                            return (typeof v === "object" || isNaN(v)) ? v : Number(v); 
-                        });
+    protected async loadDBEntities(): Promise<T[]> {
+        const result: T[] = (await global.exports['oxmysql'].query_async(`SELECT * FROM \`${this.dbTableName}\``, [])).map(
+            (resultItem: any) => {
+                Object.keys(resultItem).forEach((property: string) => {
+                    resultItem[property] = JSON.parse(isJSON(resultItem[property].toString()) ? resultItem[property] : `"${resultItem[property]}"`, function(_k, v) { 
+                        return (typeof v === "object" || isNaN(v)) ? v : Number(v); 
                     });
+                });
 
-                    return resultItem;
-                }
-            );
-
-            if (result?.length) {
-                this._entities = result;
-                
-                setTimeout(() => { this.syncWithClients(); }, 2000);
+                return resultItem;
             }
-        });
+        );
+
+        if (result?.length) {
+            this._entities = result;
+            
+            setTimeout(() => { this.syncWithClients(); }, 2000);
+        }
+
+        return this._entities;
     }
 
     private getEntityProperties(entity: T): string[] {

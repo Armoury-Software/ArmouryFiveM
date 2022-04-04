@@ -1,6 +1,7 @@
 export const HOUSE_INTERIORS = [
   {
-    pos: [346.5362548828125, -1012.4703369140625, -99.216796875], // Mid-tier apartment, 2 rooms + kitchen
+    pos: [346.5362548828125, -1012.4703369140625, -99.216796875], // Mid-tier apartment, 2 rooms + kitchen,
+    fridgePos: [343.90338134765627, -1001.1803588867188, -99.19627380371094],
   },
   {
     pos: [266.0835266113281, -1007.3274536132812, -101.019775390625], // Low-to-mid-tier apartment, 2 rooms + bath + kitchen

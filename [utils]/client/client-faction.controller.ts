@@ -1,9 +1,12 @@
+import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import { ActionPoint } from '@core/models/action-point.model';
 import { Faction } from '../../factions/src/shared/models/faction.interface';
 import { Blip, BlipMonitored } from '../models/blip.model';
 
 import { ClientWithUIController } from './client-ui.controller';
 
-export abstract class ClientFactionController extends ClientWithUIController {
+@FiveMController()
+export class ClientFactionController extends ClientWithUIController {
     private _factionInternalId: string = '';
     protected get factionInternalId() {
         return this._factionInternalId;
@@ -44,6 +47,42 @@ export abstract class ClientFactionController extends ClientWithUIController {
           )
         ))?.instance;
       }
+    }
+
+    @EventListener({ eventName: `${GetCurrentResourceName()}:add-vehicle-locker-action-points` })
+    public onShouldAddVehicleLockerActionPoints(actionPointsPositions: number[][]): void {
+      this.createActionPoints(
+        ...actionPointsPositions.map((position: number[], index: number) => ({
+          pos: position,
+          action: () => {
+            DisableControlAction(0, 38, true);
+            DisableControlAction(0, 68, true);
+            DisableControlAction(0, 86, true);
+            DisableControlAction(0, 29, true);
+
+            BeginTextCommandDisplayHelp('STRING');
+            AddTextComponentSubstringPlayerName('Press ~INPUT_PICKUP~ to open up the key locker.');
+            EndTextCommandDisplayHelp(0, false, true, 1);
+
+            if (IsDisabledControlJustPressed(0, 38)) {
+              ExecuteCommand(`openkeylocker ${index}`);
+            }
+          }
+        }))
+      );
+
+      this.createMarkers([...actionPointsPositions.map((position: number[]) => ({
+        marker: 36,
+        pos: position,
+        scale: 0.75,
+        rgba: [255, 255, 255, 255],
+        renderDistance: 10.0,
+        underlyingCircle: {
+          marker: 25,
+          scale: 1.3,
+          rgba: [255, 255, 255, 255]
+        }
+      }))]);
     }
 
     /** Makes onSingleEntityResponse trigger immediately */

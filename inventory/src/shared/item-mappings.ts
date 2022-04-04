@@ -40,7 +40,16 @@ export const ITEM_MAPPINGS = {
     value: (value: number) => '#' + value,
     insertionCondition: (value: number[]) => !!value.length,
     isTransferrable: () => false,
-    image: (value: number) => global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value),
+    image: (value: number) =>
+      global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value),
+  },
+  factionvehiclekeys: {
+    bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
+    description: (value: number) => `A faction vehicle key. (#${value})`,
+    value: (value: number) => '#' + value,
+    insertionCondition: (value: number[]) => !!value.length,
+    isTransferrable: () => false,
+    image: () => 'key',
   },
   weapons: {
     type: 'Weapon',
@@ -162,6 +171,8 @@ export const ITEM_MAPPINGS = {
     },
     isTransferrable: (value: string) =>
       MISC_ITEM_MAPPINGS[value].transferrable ?? true,
+    isRefridgeratable: (value: string) =>
+      MISC_ITEM_MAPPINGS[value].refridgeratable ?? false,
   },
 };
 
@@ -169,47 +180,59 @@ export const MISC_ITEM_MAPPINGS = {
   apple: {
     description:
       'A fresh, delicious apple. An apple a day keeps the doctor away. (+10% hunger)',
+    refridgeratable: true,
   },
   chocolate: {
     description:
       'An ordinary chocolate milk tablet. Dairy product. (+15% hunger)',
+    refridgeratable: true,
   },
   donut: {
     description: 'A fluffy donut glazed with vanilla cream. (+20% hunger)',
+    refridgeratable: true,
   },
   sandwich: {
     description:
       'A nicely-packed, delicious sandwich. Contains basic ingredients. (+30% hunger)',
+    refridgeratable: true,
   },
   water: {
     description:
       'An ordinary 500ml bottle of water. Hydrate yourself! (+50% thirst)',
+    refridgeratable: true,
   },
   coke: {
     description: 'An ordinary 330ml can of coke. (+30% thirst)',
+    refridgeratable: true,
   },
   red_bull: {
     description:
       'A 330ml can of energy drink. Red Bull gives you wings! (+30% thirst)',
+    refridgeratable: true,
   },
   cold_coffee: {
     description: 'A 330ml can of cold coffee. (+30% thirst, +5% hunger)',
+    refridgeratable: true,
   },
   beer_can: {
     description:
       'A 330ml can of good old Corona. Contains 4.5% alcohol. (+20% thirst, +25% drunkness)',
+    refridgeratable: true,
   },
   rum: {
     description:
       'A 700ml bottle of rum. Contains 42% alcohol. (+5% thirst, +50% drunkness per serving)',
+    refridgeratable: true,
   },
   whiskey: {
     description:
       'A 700ml bottle of Whisky. Contains 40% alcohol. (+5% thirst, +50% drunkness per serving)',
+    refridgeratable: true,
   },
   champagne: {
     description:
       'A 700ml bottle of cheap champagne. Contains 12% alcohol. (+10% thirst, +20% drunkness per sip)',
+    refridgeratable: true,
   },
   bandages: {
     description:
@@ -230,6 +253,11 @@ export const MISC_ITEM_MAPPINGS = {
   vehicle_documents: {
     description:
       'Ring binder containing several documents with information about your vehicle.',
+    transferrable: false,
+  },
+  fridge_documents: {
+    description:
+      'Warranty and unit information about this particular fridge.',
     transferrable: false,
   },
 };
