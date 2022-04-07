@@ -83,8 +83,8 @@ export class Client extends ClientWithUIController {
           );
           TriggerServerEvent(
             `${GetCurrentResourceName()}:map-vehicle`,
-            _spawnedVehicle,
-            source
+            source,
+            NetworkGetNetworkIdFromEntity(_spawnedVehicle)
           )
         }
 
