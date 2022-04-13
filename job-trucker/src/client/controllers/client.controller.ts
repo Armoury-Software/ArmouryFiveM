@@ -273,7 +273,7 @@ export class Client extends ClientWithUIController {
     AttachVehicleToTrailer(_spawnedTruck, spawnedTrailer, 100.0);
     TriggerServerEvent(
       `${GetCurrentResourceName()}:update-job-vehicle-in-map`,
-        GetPlayerServerId(PlayerId()),
+      GetPlayerServerId(PlayerId()),
       { trailer: NetworkGetNetworkIdFromEntity(spawnedTrailer) }
     );
   }

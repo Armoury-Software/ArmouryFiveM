@@ -42,7 +42,7 @@ export class ServerJobController extends ServerController {
       if (this.playersAssignedToVehicles.has(target)) {
           this.destroyPlayerVehicle(target);
       }
-      this.playersAssignedToVehicles.set(target, {vehicleEntityId: _spawnedVehicleEntityId, metadata: {}});
+      this.playersAssignedToVehicles.set(target, {...this.playersAssignedToVehicles.get(target), vehicleEntityId: _spawnedVehicleEntityId});
     }
 
     @EventListener({ eventName: `${GetCurrentResourceName()}:update-job-vehicle-in-map` })
@@ -100,5 +100,35 @@ export class ServerJobController extends ServerController {
             })
         }
         this.playersAssignedToVehicles.delete(target);
+        TriggerClientEvent(
+            `${GetCurrentResourceName()}:cancel-waypoint-and-action`,
+            target
+        )
+    }
+
+    @EventListener({ eventName: `${GetCurrentResourceName()}:start-work` })
+    public onStartWork(target: number): void {
+        this.playersAssignedToVehicles.set(target, {...this.playersAssignedToVehicles.get(target), isWorking: true})
+    }
+
+    @EventListener({ eventName: `${GetCurrentResourceName()}:stop-work` })
+    public onStopWork(target: number): void {
+        this.playersAssignedToVehicles.set(target, {...this.playersAssignedToVehicles.get(target), isWorking: false});
+    }
+
+    protected isWorking(target: number): boolean {
+        if (this.playersAssignedToVehicles.get(target).isWorking) {
+            global.exports['armoury-overlay'].setMessage(source, {
+                id: 'job-error',
+                content: `You can't start another job if you're currently working.`
+            })
+
+            setTimeout(() => {
+                global.exports['armoury-overlay'].deleteMessage(source, {
+                id: 'job-error'
+                })
+            }, 5000);
+        }
+        return (this.playersAssignedToVehicles.get(target).isWorking)
     }
 }

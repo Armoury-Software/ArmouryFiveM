@@ -31,6 +31,10 @@ export class Server extends ServerJobController {
       true
     );
 
+    if (this.isWorking) {
+      return;
+    }
+
     let randomDeliveryPoint: number[];
     Array.from(this.savedPositions.keys()).forEach((position) => {
       if (
@@ -95,6 +99,8 @@ export class Server extends ServerJobController {
       type
     );
 
+    this.onStartWork(source);
+
     setTimeout(() => {
       this.savedPositions.delete(playerPosition);
     }, 10000);
@@ -135,11 +141,13 @@ export class Server extends ServerJobController {
               )),
           false
         );
+        this.onUpdateVehicles(source, {});
         TriggerClientEvent(`${GetCurrentResourceName()}:force-showui`, source);
         global.exports['skills'].incrementPlayerSkill(source, 'trucker', 0.05);
         if (this.truckers.has(source)) {
           this.truckers.delete(source);
         }
+        this.onStopWork(source);
         return;
       }
     });

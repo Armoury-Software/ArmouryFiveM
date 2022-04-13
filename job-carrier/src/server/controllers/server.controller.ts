@@ -29,6 +29,11 @@ export class Server extends ServerJobController {
       GetPlayerPed(playerId),
       true
     );
+
+    if (this.isWorking) {
+      return;
+    }
+
     let randomDeliveryPoint: number[];
 
     Array.from(this.savedPositions.keys()).forEach((position) => {
@@ -80,6 +85,8 @@ export class Server extends ServerJobController {
       },
       shouldSpawnVehicle
     );
+
+    this.onStartWork(source);
 
     setTimeout(() => {
       this.savedPositions.delete(playerPosition);
@@ -167,6 +174,7 @@ export class Server extends ServerJobController {
           distance: 0,
           packages: MAX_PLAYER_PACKAGES,
         });
+
         this.beginRouteForPlayer(source, !refill);
       }
     );
@@ -212,11 +220,12 @@ export class Server extends ServerJobController {
                 'carrier',
                 0.01
               );
-              console.log(this.carriers.get(source));
               this.carriers.set(source, {
                 distance: 0,
                 packages: this.carriers.get(source).packages - 1,
               });
+              
+              this.onStopWork(source);
 
               if (this.carriers.get(source).packages === 0) {
                 this.triggerPickup(source);
@@ -233,6 +242,7 @@ export class Server extends ServerJobController {
 
   private triggerPickup(source: number): void {
     this.updatePackageUI();
+    
     TriggerClientEvent(`${GetCurrentResourceName()}:pickup-route`, source, {
       X: CARRIER_PICKUP_POINTS.pos[0],
       Y: CARRIER_PICKUP_POINTS.pos[1],
