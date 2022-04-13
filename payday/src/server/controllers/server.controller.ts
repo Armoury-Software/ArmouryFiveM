@@ -47,7 +47,7 @@ export class Server extends ServerController {
               .getEntities()
               .find((house: any) => house.owner === GetPlayerName(player))
               ?.firstPurchasePrice || 0;
-          const houseTax: number = Number(0.0005 * housePrice);
+          const houseTax: number = Math.floor(Number(0.0005 * housePrice));
           const businessPrice: number =
             businesses.find(
               (business: any) => business.owner === GetPlayerName(player)

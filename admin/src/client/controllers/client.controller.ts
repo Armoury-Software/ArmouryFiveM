@@ -1,7 +1,9 @@
 import { ClientController } from '@core/client/client.controller';
-import { EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { EVENT_DIRECTIONS } from '@core/decorators/event.directions';
-import { Delay } from '@core/utils';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
 import {
@@ -24,7 +26,6 @@ export class Client extends ClientController {
   public constructor() {
     super();
 
-    this.assignCommands();
     this.registerKeyBindings();
   }
 
@@ -232,13 +233,5 @@ export class Client extends ClientController {
         false
       );
     }
-  }
-
-  private assignCommands(): void {
-    // TODO: REMOVE FOLLOWING !!!
-    setTick(async () => {
-      NetworkOverrideClockTime(12, 0, 0);
-      await Delay(10000);
-    });
   }
 }

@@ -1,3 +1,6 @@
+import { PlayerInfoType } from '../../../../authentication/src/shared/models/player-info.type';
+import { Pet } from '../../../../pets/src/shared/models/pet.interface';
+
 export interface House {
   id: number;
   owner: string;
@@ -12,4 +15,10 @@ export interface House {
   sellingPrice: number;
   rentPrice: number;
   tenantIds: number[];
+  pet: Pet | object;
+  fridge: PlayerInfoType;
+}
+
+export interface HouseExtended extends House {
+  ownerInstance?: number;
 }

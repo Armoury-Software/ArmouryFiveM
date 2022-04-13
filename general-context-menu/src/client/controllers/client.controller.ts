@@ -29,6 +29,13 @@ export class Client extends ClientController {
     );
   }
 
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:refresh-menu-toggle`,
+  })
+  public onMenuToggleRefreshed(key: string): void {
+    this.menuToggles.set(key, false);
+  }
+
   private registerKeyBindings(): void {
     RegisterCommand(
       '+opengeneralmenu',

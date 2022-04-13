@@ -3,6 +3,7 @@ export class ServerBase {
         this.assignServerBaseListeners();
     }
 
+    // TODO: Remove this. We have created a brand new cool decorator for this
     protected RegisterAdminCommand(commandName: string, adminLevelRequired: number, handlerFunction: Function, restricted: boolean) {
         RegisterCommand(
             commandName,

@@ -1,4 +1,8 @@
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  Command,
+  Export,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { ServerEntityWithEntranceController } from '@core/server/entity-controllers/server-entity-entrance.controller';
 import { Faction, FactionMember } from '@shared/models/faction.interface';
 
@@ -12,6 +16,58 @@ export class Server extends ServerEntityWithEntranceController<Faction> {
     this.registerCommands();
     this.registerExports();
     this.registerListeners();
+  }
+
+  @Command()
+  public enterFaction(source: number): void {
+    const faction: Faction =
+      this.getClosestEntityOfSameTypeEntranceToPlayer(source);
+
+    if (!faction) {
+      global.exports['chat'].addMessage(
+        source,
+        "Couldn't find a valid faction entrance."
+      );
+      return;
+    }
+
+    SetEntityCoords(
+      GetPlayerPed(source),
+      faction.exitX,
+      faction.exitY,
+      faction.exitZ,
+      true,
+      false,
+      false,
+      true
+    );
+    SetEntityRoutingBucket(GetPlayerPed(source), faction.id);
+  }
+
+  @Command()
+  public exitFaction(source: number): void {
+    const faction: Faction =
+      this.getClosestEntityOfSameTypeExitToPlayer(source);
+
+    if (!faction) {
+      global.exports['chat'].addMessage(
+        source,
+        "Couldn't find a valid faction exit."
+      );
+      return;
+    }
+
+    SetEntityCoords(
+      GetPlayerPed(source),
+      faction.entranceX,
+      faction.entranceY,
+      faction.entranceZ,
+      true,
+      false,
+      false,
+      true
+    );
+    SetEntityRoutingBucket(GetPlayerPed(source), 0);
   }
 
   public getOnlineFactionMembers(internalId: string): FactionMember[] {
@@ -39,6 +95,25 @@ export class Server extends ServerEntityWithEntranceController<Faction> {
   public getFaction(internalId: string): Faction {
     return this.entities.find(
       (faction: Faction) => faction.internalId === internalId
+    );
+  }
+
+  @Export()
+  public isPlayerMemberOfFaction(
+    internalId: string,
+    playerId: number
+  ): boolean {
+    return this.getFaction(internalId)?.members.some(
+      (factionMember: FactionMember) => factionMember.onlineId === playerId
+    );
+  }
+
+  @Export()
+  public getFactionMemberRank(internalId: string, playerId: number): number {
+    return Number(
+      this.getFaction(internalId)?.members.find(
+        (factionMember: FactionMember) => factionMember.onlineId === playerId
+      )?.rank
     );
   }
 

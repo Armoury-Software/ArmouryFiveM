@@ -2,7 +2,11 @@ import { ClientWithUIController } from '@core/client/client-ui.controller';
 import { FiveMController } from '@core/decorators/armoury.decorators';
 import { toThousandsString } from '@core/utils';
 
-import { PhoneContact, PhoneExtended, ServiceContact } from '@shared/phone.model';
+import {
+  PhoneContact,
+  PhoneExtended,
+  ServiceContact,
+} from '@shared/phone.model';
 
 @FiveMController()
 export class Client extends ClientWithUIController {
@@ -153,10 +157,12 @@ export class Client extends ClientWithUIController {
             value: Number(this.getPlayerInfo('hoursPlayed')).toFixed(1),
           },
         ],
-        contacts: data.contacts.map((contact: PhoneContact) => ({
-          ...contact,
-          phone: contact.phone.toString(),
-        })),
+        contacts: data.contacts
+          ? data.contacts.map((contact: PhoneContact) => ({
+              ...contact,
+              phone: contact.phone.toString(),
+            }))
+          : [],
         myNumber: data.myNumber,
         isBeingCalledBy: data.isBeingCalledBy,
         serviceAgents: data.serviceAgents,

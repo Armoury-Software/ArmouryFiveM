@@ -18,7 +18,8 @@ export class Server extends ServerController {
     playerId: number,
     item: Item,
     amount: any,
-    fromSourceValue?: any
+    fromSourceValue?: any,
+    ignoreInventoryRefresh?: boolean
   ): void {
     global.exports['authentication'].setPlayerInfo(
       playerId,
@@ -34,14 +35,17 @@ export class Server extends ServerController {
       false
     );
 
-    emit(`inventory:client-inventory-request`, playerId);
+    if (!ignoreInventoryRefresh) {
+      emit(`inventory:client-inventory-request`, playerId);
+    }
   }
 
   public consumePlayerItem(
     playerId: number,
     item: Item,
     amount: any,
-    toDestinationValue?: any
+    toDestinationValue?: any,
+    ignoreInventoryRefresh?: boolean
   ): void {
     global.exports['authentication'].setPlayerInfo(
       playerId,
@@ -61,7 +65,9 @@ export class Server extends ServerController {
       false
     );
 
-    emit(`inventory:client-inventory-request`, playerId);
+    if (!ignoreInventoryRefresh) {
+      emit(`inventory:client-inventory-request`, playerId);
+    }
   }
 
   private assignListeners(): void {
@@ -103,7 +109,8 @@ export class Server extends ServerController {
           misc: ItemConstructor.bundle(
             new ItemConstructor(this.inventoryPIFunction(source), 'cash').get(),
             new ItemConstructor(this.inventoryPIFunction(source), 'phone').get(),
-            new ItemConstructor(this.inventoryPIFunction(source), 'items').get()
+            new ItemConstructor(this.inventoryPIFunction(source), 'items').get(),
+            new ItemConstructor(this.inventoryPIFunction(source), 'factionvehiclekeys').get()
           ),
         };
 

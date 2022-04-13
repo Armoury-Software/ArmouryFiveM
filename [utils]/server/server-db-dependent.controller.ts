@@ -1,7 +1,8 @@
 import { isJSON } from "../utils";
-import { EventListener, Export } from '../decorators/armoury.decorators';
+import { EventListener, Export, FiveMController } from '../decorators/armoury.decorators';
 import { ServerController } from "./server.controller";
 
+@FiveMController()
 export class ServerDBDependentController<T extends { id: number }> extends ServerController {
     private _entities: T[] = [];
     protected get entities(): T[] {
@@ -43,10 +44,11 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
                         entityValues
                     );
 
-                this._entities.push({ ...entity, id: forceId || id });
+                const createdEntity: T = { ...entity, id: forceId || id };
+                this._entities.push(createdEntity);
                 this.syncWithClients();
 
-                return forceId || id;
+                return createdEntity;
             }
             catch (error: any) {
                 console.log(error);
@@ -136,26 +138,26 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         return null;
     }
 
-    private loadDBEntities(): void {
-        setImmediate(async () => {
-            const result: T[] = (await global.exports['oxmysql'].query_async(`SELECT * FROM \`${this.dbTableName}\``, [])).map(
-                (resultItem: any) => {
-                    Object.keys(resultItem).forEach((property: string) => {
-                        resultItem[property] = JSON.parse(isJSON(resultItem[property].toString()) ? resultItem[property] : `"${resultItem[property]}"`, function(_k, v) { 
-                            return (typeof v === "object" || isNaN(v)) ? v : Number(v); 
-                        });
+    protected async loadDBEntities(): Promise<T[]> {
+        const result: T[] = (await global.exports['oxmysql'].query_async(`SELECT * FROM \`${this.dbTableName}\``, [])).map(
+            (resultItem: any) => {
+                Object.keys(resultItem).forEach((property: string) => {
+                    resultItem[property] = JSON.parse(isJSON(resultItem[property].toString()) ? resultItem[property] : `"${resultItem[property]}"`, function(_k, v) { 
+                        return (typeof v === "object" || isNaN(v)) ? v : Number(v); 
                     });
+                });
 
-                    return resultItem;
-                }
-            );
-
-            if (result?.length) {
-                this._entities = result;
-                
-                setTimeout(() => { this.syncWithClients(); }, 2000);
+                return resultItem;
             }
-        });
+        );
+
+        if (result?.length) {
+            this._entities = result;
+            
+            setTimeout(() => { this.syncWithClients(); }, 2000);
+        }
+
+        return this._entities;
     }
 
     private getEntityProperties(entity: T): string[] {
@@ -171,7 +173,7 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
 
     private getEntityPropertiesValues(entity: T, properties: string[]): string[] {
         return properties.map((key: string) => {
-            if (Array.isArray(entity[key])) {
+            if (Array.isArray(entity[key]) || typeof(entity[key]) === 'object') {
                 return JSON.stringify(entity[key]);
             }
 
@@ -202,7 +204,7 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
         }
     }
 
-    protected onBoundEntityDestroyed(entity: T, boundPlayer: number): void { }
+    protected onBoundEntityDestroyed(_entity: T, _boundPlayer: number): void { }
 
     @EventListener()
     public onPlayerAuthenticate(playerId: number, _player: any): void {

@@ -1,16 +1,53 @@
-import { ClientController } from '@core/client/client.controller';
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import { ClientFactionController } from '@core/client/client-faction.controller';
+import {
+  EventListener,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
+import { EVENT_DIRECTIONS } from '@core/decorators/event.directions';
 import { isPlayerInRangeOfPoint } from '@core/utils';
+import { TAXI_DEFAULTS } from '@shared/models/defaults';
 
 @FiveMController()
-export class Client extends ClientController {
+export class Client extends ClientFactionController {
   private relationshipGroup: number;
+  private driverCurrentTripInterval: NodeJS.Timer;
 
   public constructor() {
     super();
 
     // this.spawnTaxiNPC();
     this.setupNPCBehaviour();
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:ride-started` })
+  public onDriverRideStarted(): void {
+    if (!this.driverCurrentTripInterval) {
+      this.driverCurrentTripInterval = setInterval(
+        () => this.onDriverIntervalPassed(),
+        TAXI_DEFAULTS.intervalBetweenDistanceChecks
+      );
+    }
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:ride-stopped` })
+  public onDriverRideStopped(): void {
+    this.clearDriverInterval();
+  }
+
+  @EventListener({ direction: EVENT_DIRECTIONS.CLIENT_TO_CLIENT })
+  public onPlayerExitVehicle(): void {
+    this.clearDriverInterval();
+  }
+
+  private onDriverIntervalPassed(): void {
+    TriggerServerEvent(`${GetCurrentResourceName()}:driver-interval-passed`);
+  }
+
+  private clearDriverInterval(): void {
+    if (this.driverCurrentTripInterval) {
+      clearInterval(this.driverCurrentTripInterval);
+      this.driverCurrentTripInterval = null;
+    }
   }
 
   private spawnTaxiNPC(): void {

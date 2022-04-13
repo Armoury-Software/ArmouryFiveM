@@ -1,5 +1,3 @@
-import { constants } from "os";
-
 const Delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 const isPlayerInArea = (playerPosX: number, playerPosY: number, playerPosZ: number, areaMinX: number, areaMinY: number, areaMinZ: number, areaMaxX: number, areaMaxY: number, areaMaxZ: number): boolean => {
@@ -30,6 +28,14 @@ export const calculateDistance = (pos: number[]) => {
     var c = pos[5] - pos[2];
 
     return Math.hypot(a, b, c);
+}
+
+export const calculateDistanceInKm = (pos: number[]) => {
+    var a = pos[3] - pos[0];
+    var b = pos[4] - pos[1];
+    var c = pos[5] - pos[2];
+
+    return Math.hypot(a, b, c) * 0.004;
 }
 
 const numberWithCommas = (x: number) => {
