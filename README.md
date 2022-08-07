@@ -62,4 +62,5 @@ set sv_enforceGameBuild 2189
 set mysql_connection_string "user=<user>;database=<db>;host=<host>;password=<password>"
 set mysql_debug true
 ```
-5. Boot up the server. Everything should be working fine now!
+5. We advise you to also install and activate bob74_ipl resource, as the server is highly based on it.
+6. Boot up the server. Everything should be working fine now!
