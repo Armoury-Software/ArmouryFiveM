@@ -246,8 +246,6 @@ const AuthenticatePlayer = (target: number, stats: Player) => {
     }
   }
 
-  console.log(cachedPlayerProperties);
-
   authenticatedPlayers.set(target, {
     ...(<PlayerMonitored>(<PlayerBase>stats)),
     lastHoursPlayedCheck: new Date(),
@@ -268,6 +266,7 @@ function savePlayerCriticalStats(player: number): void {
       { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) },
       { stat: 'weapons', _value: getPlayerInfo(player, 'weapons') },
       { stat: 'drugs', _value: getPlayerInfo(player, 'drugs') },
+      { stat: 'xp', _value: getPlayerInfo(player, 'xp') },
       {
         stat: 'hunger',
         _value: global.exports['human-needs'].getPlayerHungerLevel(player),
