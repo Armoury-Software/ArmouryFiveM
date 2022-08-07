@@ -46,13 +46,6 @@ ensure drugs
 ensure experience
 ensure pets
 
-## Maps
-ensure vinewoodfloorMain
-ensure vinewoodfloorLSPD
-ensure vinewoodfloorStairs
-ensure vinewoodfloorGarage
-ensure vinewoodfloorUG
-
 set sv_enforceGameBuild 2189
 ```
 3. Use the .sql file provided at the root of the repository in order to initialize your database table structure
