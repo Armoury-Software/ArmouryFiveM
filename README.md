@@ -1,4 +1,6 @@
-# ArmouryFiveM
+## Documentation: https://github.com/Armoury-Software/ArmouryFiveM/wiki/Armoury-Framework-Documentation
+
+## Quick start:
 
 In order to be able to run the server:
 
