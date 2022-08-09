@@ -5,5 +5,5 @@ read resourcename
 [ -d "../${resourcename}" ] && echo 'That resource already exists!' && read closeup && exit N
 unzip "defaults/[armoury-boilerplate].zip" -d "../"
 mv ../[armoury-boilerplate] "../${resourcename}" && echo $'\n\nInstalling prerequisites..\n\n'
-cd "../${resourcename}" && npm install && npm run build
+cd "../${resourcename}" && npm install && npm run build && yarn import
 echo $'\nYour resource has been successfully created! Press any key to continue..' && read closeup
