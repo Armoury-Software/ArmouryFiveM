@@ -84,16 +84,16 @@ export class Client extends ClientWithUIController {
         factions.forEach((faction: Faction) => {
           this.createMarkers([
             {
-              marker: 29,
+              marker: 0,
               pos: [faction.entranceX, faction.entranceY, faction.entranceZ],
-              rgba: [144, 226, 167, 255],
+              rgba: [255, 255, 255, 255],
               renderDistance: 35.0,
-              scale: 1.2,
+              scale: 0.75,
               rotation: [0.0, 0.0, 0.0],
               underlyingCircle: {
                 marker: 25,
                 scale: 1.75,
-                rgba: [93, 182, 229, 255],
+                rgba: [255, 255, 255, 255],
               },
             },
           ]);
@@ -151,17 +151,13 @@ export class Client extends ClientWithUIController {
 
                 BeginTextCommandDisplayHelp('STRING');
                 AddTextComponentSubstringPlayerName(
-                  'Press ~INPUT_PICKUP~ to exit the faction HQ.~n~Press ~INPUT_INTERACTION_MENU~ to open up the menu.'
+                  'Press ~INPUT_PICKUP~ to exit the faction HQ.'
                 );
                 EndTextCommandDisplayHelp(0, false, true, 1);
 
                 if (IsDisabledControlJustPressed(0, 38)) {
                   // TODO: Currently, server-sidedly when /exitbusiness is used the server is looping through every business. Instead, add metadata functionality to actionPoints and send the business ID (grabbed from metadata) to the server here in the command.
                   ExecuteCommand('exitfaction');
-                }
-
-                if (IsDisabledControlJustPressed(0, 244)) {
-                  ExecuteCommand('factionmenu');
                 }
               },
             });

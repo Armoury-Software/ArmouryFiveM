@@ -85,6 +85,29 @@ onNet(`${GetCurrentResourceName()}:hide-context-menu`, () => {
   );
 });
 
+onNet(`${GetCurrentResourceName()}:set-taximeter-value`, (value: number) => {
+  SendNuiMessage(
+    JSON.stringify({
+      type: 'updatetaximetervalue',
+      taximeterValue: value,
+    })
+  );
+});
+
+onNet(
+  `${GetCurrentResourceName()}:update-resource-metadata`,
+  (resource: string, key: string, value: any) => {
+    SendNuiMessage(
+      JSON.stringify({
+        type: 'addtoresourcecache',
+        resource,
+        cacheKey: key,
+        cacheValue: value,
+      })
+    );
+  }
+);
+
 RegisterNuiCallbackType('context-menu-item-pressed');
 on(`__cfx_nui:context-menu-item-pressed`, (data: any, callback: Function) => {
   emit(`${GetCurrentResourceName()}:context-menu-item-pressed`, data);
@@ -95,5 +118,17 @@ RegisterNuiCallbackType('hide-context-menu');
 on(`__cfx_nui:hide-context-menu`, (_data: any, callback: Function) => {
   emit(`${GetCurrentResourceName()}:hide-context-menu`);
   emit(`${GetCurrentResourceName()}:context-menu-hidden`);
+  callback('ok');
+});
+
+// This callback should ONLY be called when armoury-overlay FIRST STARTS!!!!!!!!!!!
+RegisterNuiCallbackType('resources-metadata-loaded');
+on(`__cfx_nui:resources-metadata-loaded`, (_data: any, callback: Function) => {
+  const computedData = JSON.parse(_data);
+  if (computedData != null) {
+    setTimeout(() => {
+      TriggerServerEvent('armoury:player-resource-cache-loaded', computedData);
+    }, 3000);
+  }
   callback('ok');
 });

@@ -25,6 +25,7 @@ export interface Player extends PlayerBase {
   hunger: number;
   thirst: number;
   lastLocation: number[];
+  xp: number;
 }
 
 export interface Items {

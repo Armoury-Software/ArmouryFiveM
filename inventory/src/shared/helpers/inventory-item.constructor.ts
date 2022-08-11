@@ -142,6 +142,12 @@ export class ItemConstructor {
       );
     }
 
+    if (this.playerInfoKey === 'factionvehiclekeys') {
+      console.log('key:', key);
+      console.log('amount:', amount);
+    }
+
+    // prettier-ignore
     switch (typeof (sourceValue || _newPastValue)) {
       case 'number': {
         _newPastValue = (Number(_newPastValue) || 0) + Number(amount);
@@ -153,21 +159,25 @@ export class ItemConstructor {
         break;
       }
       case 'object': {
-        if (Array.isArray(_newSourceValue) && Array.isArray(_newPastValue)) {
-          if (typeof key === 'number') {
-            (<number[]>_newPastValue).push(
+        if (Array.isArray(_newPastValue)) {
+          if (typeof amount === 'number') {
+            (<number[]>_newPastValue).push(amount);
+
+            if (sourceValue) {
               (<number[]>_newSourceValue).splice(
-                (<number[]>_newSourceValue).indexOf(key),
+                (<number[]>_newSourceValue).indexOf(amount),
                 1
-              )[0]
-            );
-          } else if (typeof key === 'string') {
-            (<string[]>_newPastValue).push(
+              )
+            }
+          } else if (typeof amount === 'string') {
+            (<string[]>_newPastValue).push(amount);
+
+            if (sourceValue) {
               (<string[]>_newSourceValue).splice(
-                (<string[]>_newSourceValue).indexOf(key),
+                (<string[]>_newSourceValue).indexOf(amount),
                 1
-              )[0]
-            );
+              )
+            }
           }
         } else {
           if (typeof amount === 'number') {

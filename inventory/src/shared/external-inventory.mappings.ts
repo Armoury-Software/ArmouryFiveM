@@ -38,6 +38,16 @@ export const EXTERNAL_INVENTORY_MAPPINGS: { [key: string]: ExternalInventoryMapp
         ).get()
     ),
   },
+  factionvehiclekeys: {
+    title: 'Faction Keys',
+    items: ItemConstructor.bundle(
+      new ItemConstructor(() => ({
+          vehicle_documents: 1
+        }),
+        'items'
+      ).get()
+    ),
+  },
 };
 
 export interface ExternalInventoryMapping {

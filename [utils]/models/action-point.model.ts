@@ -1,5 +1,5 @@
 export interface ActionPoint {
-    pos: number[],
-    action: Function,
-    once?: boolean
+  pos: number[],
+  action: Function,
+  once?: boolean
 }

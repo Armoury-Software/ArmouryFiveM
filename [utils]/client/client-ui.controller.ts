@@ -93,5 +93,9 @@ export class ClientWithUIController extends ClientController implements IClientW
         onNet(`${GetCurrentResourceName()}:force-showui`, (data: any) => {
             this.onForceShowUI(data);
         });
+
+        onNet(`${GetCurrentResourceName()}:force-hideui`, () => {
+            this.onForceHideUI();
+        });
     }
 }

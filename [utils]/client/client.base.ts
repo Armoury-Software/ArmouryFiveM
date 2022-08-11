@@ -1,3 +1,5 @@
+import { isJSON } from "../utils";
+
 export class ClientBase {
     private tickInstance: number = null;
     private tickFunctions: { id: string, function: Function }[] = [];
@@ -73,5 +75,15 @@ export class ClientBase {
     protected setEntityRoutingBucket(routingBucket: number): void {
         TriggerServerEvent(`${GetCurrentResourceName()}:set-client-routing-bucket`, routingBucket);
         this.routingBucket = routingBucket;
+    }
+
+    protected getPlayerInfo(stat: string, playerId?: number): string | number | number[] | string[] | Object {
+        let value: string | number | number[] | string[] = GetConvar(`${playerId || global.GetPlayerServerId(global.PlayerId())}_PI_${stat}`, '-1');
+
+        if (isJSON(value.toString())) {
+            value = JSON.parse(value.toString(), function(_k, v) { return (typeof v === "object" || isNaN(v)) ? v : Number(v); });
+        }
+
+        return value;
     }
 }

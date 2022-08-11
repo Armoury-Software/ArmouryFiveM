@@ -123,7 +123,7 @@ function setPlayerInfo(
 
   SetConvarReplicated(`${source}_PI_${stat}`, value.toString());
 
-  if (!ignoreSQLCommand) {
+  if (!ignoreSQLCommand && cachedPlayerProperties.includes(stat)) {
     let statsString: string = `${stat} = ?`;
     additionalValues.forEach((additionalValue) => {
       statsString += `, ${additionalValue.stat} = ?`;
@@ -269,6 +269,7 @@ function savePlayerCriticalStats(player: number): void {
       { stat: 'bank', _value: Number(getPlayerInfo(player, 'bank')) },
       { stat: 'weapons', _value: getPlayerInfo(player, 'weapons') },
       { stat: 'drugs', _value: getPlayerInfo(player, 'drugs') },
+      { stat: 'xp', _value: getPlayerInfo(player, 'xp') },
       {
         stat: 'hunger',
         _value: global.exports['human-needs'].getPlayerHungerLevel(player),

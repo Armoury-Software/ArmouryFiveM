@@ -1,6 +1,6 @@
-# __DON'T PUSH INTO MASTER BRANCH!!!!!!!!!!!! PUSH INTO YOUR OWN SEPARATE BRANCHES!!!__
+## Documentation: https://github.com/Armoury-Software/ArmouryFiveM/wiki/Armoury-Framework-Documentation
 
-# ArmouryFiveM
+## Quick start:
 
 In order to be able to run the server:
 
@@ -42,20 +42,20 @@ ensure weapons
 ensure vehicles
 ensure trunk
 ensure general-context-menu
-
-## Maps
-ensure vinewoodfloorMain
-ensure vinewoodfloorLSPD
-ensure vinewoodfloorStairs
-ensure vinewoodfloorGarage
-ensure vinewoodfloorUG
-```
-3. Add the following at the bottom of your server.cfg:
-```
-## MySQL configurations
-set mysql_connection_string "user=armouryr_fivem_user;database=armouryr_fivem;host=89.44.138.150;password=a9c4e4ee55551234"
-set mysql_debug true
+ensure custom-vehicles
+ensure dealership
+ensure drugs
+ensure experience
+ensure pets
 
 set sv_enforceGameBuild 2189
 ```
-4. Send me (Radu) your IP so I can add you to the whitelist for the database
+3. Use the .sql file provided at the root of the repository in order to initialize your database table structure
+4. Set up your MySQL connectivity by adding the following configurations inside your server.cfg:
+```
+## MySQL configurations
+set mysql_connection_string "user=<user>;database=<db>;host=<host>;password=<password>"
+set mysql_debug true
+```
+5. We advise you to also install and activate bob74_ipl resource, as the server is highly based on it.
+6. Boot up the server. Everything should be working fine now!

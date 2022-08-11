@@ -6,4 +6,4 @@ description 'Armoury FiveM Admin Features'
 version '1.0.0'
 
 server_script 'dist/server/*.server.js'
-server_script 'dist/client/*.client.js'
+client_script 'dist/client/*.client.js'

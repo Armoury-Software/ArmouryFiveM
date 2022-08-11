@@ -4,7 +4,8 @@ import { UIButton } from '@core/models/ui-button.model';
 import { ActionPoint } from '@core/models/action-point.model';
 import { numberWithCommas } from '@core/utils';
 
-import { House } from '@shared/models/house.interface';
+import { House, HouseExtended } from '@shared/models/house.interface';
+import { HOUSE_INTERIORS } from '@shared/house-interiors';
 
 @FiveMController()
 export class Client extends ClientWithUIController {
@@ -25,7 +26,7 @@ export class Client extends ClientWithUIController {
     super.onForceHideUI();
   }
 
-  private updateUIData(house: House): void {
+  private updateUIData(house: HouseExtended): void {
     const isOwnedByMe: boolean = house.owner === this.getPlayerInfo('name');
     const isUnowned: boolean = !house.owner;
     const housePrice: number = !isUnowned
@@ -53,15 +54,20 @@ export class Client extends ClientWithUIController {
         buttons: [
           {
             title: 'Purchase',
-            subtitle: `Purchase this house for $${numberWithCommas(
-              housePrice
-            )}.`,
+            subtitle: !house.owner
+              ? `Purchase this house for $${numberWithCommas(housePrice)}.`
+              : 'Contact owner to purchase',
             icon: 'attach_money',
             ...(isUnowned || house.sellingPrice > 0
               ? Number(this.getPlayerInfo('cash')) < housePrice
                 ? {
                     disabled: true,
                     tooltip: 'You do not have enough money',
+                  }
+                : !isUnowned && house.ownerInstance < 0
+                ? {
+                    disabled: true,
+                    tooltip: 'Owner not yet in city',
                   }
                 : {
                     disabled: false,
@@ -148,7 +154,6 @@ export class Client extends ClientWithUIController {
 
   private assignListeners(): void {
     onNet(`${GetCurrentResourceName()}:db-send-entities`, (houses: House[]) => {
-      console.log(houses);
       this.clearMarkers();
       this.clearBlips();
       this.clearActionPoints();
@@ -198,22 +203,15 @@ export class Client extends ClientWithUIController {
 
             BeginTextCommandDisplayHelp('STRING');
             AddTextComponentSubstringPlayerName(
-              `Press ~INPUT_PICKUP~ to enter the house.${
-                house.owner && house.sellingPrice > 0
-                  ? `~n~Press ~INPUT_SPECIAL_ABILITY_SECONDARY~ to buy for $${numberWithCommas(
-                      house.sellingPrice
-                    )}.`
-                  : ''
-              }`
+              house.owner === GetPlayerName(-1) ||
+                house.tenantIds.includes(Number(this.getPlayerInfo('id')))
+                ? 'Press ~INPUT_PICKUP~ to enter the house.'
+                : 'Press ~INPUT_PICKUP~ to interact.'
             );
             EndTextCommandDisplayHelp(0, false, true, 1);
 
             if (IsDisabledControlJustPressed(0, 38)) {
               // TODO: Currently, server-sidedly when /enterhouse is used the server is looping through every house. Instead, add metadata functionality to actionPoints and send the house ID (grabbed from metadata) to the server here in the command.
-              ExecuteCommand('enterhouse');
-            }
-
-            if (IsDisabledControlJustPressed(0, 29)) {
               ExecuteCommand('enterhouse');
             }
           },
@@ -226,30 +224,65 @@ export class Client extends ClientWithUIController {
               actionPoint.pos[2] === house.exitZ;
           })
         ) {
-          this.createActionPoints({
-            pos: [house.exitX, house.exitY, house.exitZ],
-            action: () => {
-              DisableControlAction(0, 38, true);
-              DisableControlAction(0, 68, true);
-              DisableControlAction(0, 86, true);
-              DisableControlAction(0, 244, true);
+          const defaultHouseInteriorIndex: number = HOUSE_INTERIORS.indexOf(
+            HOUSE_INTERIORS.find(
+              (_dhi) =>
+                Math.floor(_dhi.pos[0]) === Math.floor(house.exitX) &&
+                Math.floor(_dhi.pos[1]) === Math.floor(house.exitY) &&
+                Math.floor(_dhi.pos[2]) === Math.floor(house.exitZ)
+            )
+          );
 
-              BeginTextCommandDisplayHelp('STRING');
-              AddTextComponentSubstringPlayerName(
-                'Press ~INPUT_PICKUP~ to exit the house.~n~Press ~INPUT_INTERACTION_MENU~ to open up the house menu.'
-              );
-              EndTextCommandDisplayHelp(0, false, true, 1);
+          this.createActionPoints(
+            {
+              pos: [house.exitX, house.exitY, house.exitZ],
+              action: () => {
+                DisableControlAction(0, 38, true);
+                DisableControlAction(0, 68, true);
+                DisableControlAction(0, 86, true);
+                DisableControlAction(0, 244, true);
 
-              if (IsDisabledControlJustPressed(0, 38)) {
-                // TODO: Currently, server-sidedly when /exithouse is used the server is looping through every house. Instead, add metadata functionality to actionPoints and send the house ID (grabbed from metadata) to the server here in the command.
-                ExecuteCommand('exithouse');
-              }
+                BeginTextCommandDisplayHelp('STRING');
+                AddTextComponentSubstringPlayerName(
+                  'Press ~INPUT_PICKUP~ to exit the house.~n~Press ~INPUT_INTERACTION_MENU~ to open up the house menu.'
+                );
+                EndTextCommandDisplayHelp(0, false, true, 1);
 
-              if (IsDisabledControlJustPressed(0, 244)) {
-                ExecuteCommand('housemenu');
-              }
+                if (IsDisabledControlJustPressed(0, 38)) {
+                  // TODO: Currently, server-sidedly when /exithouse is used the server is looping through every house. Instead, add metadata functionality to actionPoints and send the house ID (grabbed from metadata) to the server here in the command.
+                  ExecuteCommand('exithouse');
+                }
+
+                if (IsDisabledControlJustPressed(0, 244)) {
+                  ExecuteCommand('housemenu');
+                }
+              },
             },
-          });
+            {
+              pos: [
+                HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[0],
+                HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[1],
+                HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[2],
+              ],
+              action: () => {
+                DisableControlAction(0, 38, true);
+                DisableControlAction(0, 68, true);
+                DisableControlAction(0, 86, true);
+                DisableControlAction(0, 244, true);
+
+                BeginTextCommandDisplayHelp('STRING');
+                AddTextComponentSubstringPlayerName(
+                  'Press ~INPUT_PICKUP~ to check the fridge'
+                );
+                EndTextCommandDisplayHelp(0, false, true, 1);
+
+                if (IsDisabledControlJustPressed(0, 38)) {
+                  // TODO: Currently, server-sidedly when /exithouse is used the server is looping through every house. Instead, add metadata functionality to actionPoints and send the house ID (grabbed from metadata) to the server here in the command.
+                  ExecuteCommand('checkfridge');
+                }
+              },
+            }
+          );
         }
       });
     });
