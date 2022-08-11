@@ -11,7 +11,6 @@ export class Server extends ServerController {
 
     this.registerFiveMEventListeners();
     this.registerExports();
-    this.registerTimers();
 
     SetRoutingBucketPopulationEnabled(0, true);
     this._players = [];
@@ -86,27 +85,5 @@ export class Server extends ServerController {
 
   private registerExports(): void {
     exports('getPlayers', this.getPlayers.bind(this));
-  }
-
-  private registerTimers(): void {
-    const date: Date = new Date();
-    TriggerClientEvent(
-      `${GetCurrentResourceName()}:update-time`,
-      -1,
-      date.getHours(),
-      date.getMinutes(),
-      date.getSeconds()
-    );
-
-    setInterval(() => {
-      const date: Date = new Date();
-      TriggerClientEvent(
-        `${GetCurrentResourceName()}:update-time`,
-        -1,
-        date.getHours(),
-        date.getMinutes(),
-        date.getSeconds()
-      );
-    }, 60000);
   }
 }

@@ -24,6 +24,7 @@ export interface Player extends PlayerBase {
   drugs: Drugs;
   hunger: number;
   thirst: number;
+  lastLocation: number[];
   xp: number;
 }
 

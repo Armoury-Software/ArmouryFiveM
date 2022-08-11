@@ -250,6 +250,9 @@ const AuthenticatePlayer = (target: number, stats: Player) => {
     ...(<PlayerMonitored>(<PlayerBase>stats)),
     lastHoursPlayedCheck: new Date(),
   });
+
+  spawnPlayer(target);
+
   TriggerClientEvent('authentication:success', target, 'test');
   emit('authentication:player-authenticated', target, stats);
 };
@@ -274,6 +277,14 @@ function savePlayerCriticalStats(player: number): void {
       {
         stat: 'thirst',
         _value: global.exports['human-needs'].getPlayerThirstLevel(player),
+      },
+      {
+        stat: 'lastLocation',
+        _value: [
+          GetEntityCoords(GetPlayerPed(player))[0],
+          GetEntityCoords(GetPlayerPed(player))[1],
+          GetEntityCoords(GetPlayerPed(player))[2],
+        ],
       }
     );
     authenticatedPlayers.delete(player);
@@ -295,3 +306,8 @@ on('playerDropped', (_reason: string) => {
   emit('authentication:player-logout', source);
   clearPlayerInfo(global.source);
 });
+
+function spawnPlayer(target: number): void {
+  const position: number[] = getPlayerInfo(target, 'lastLocation');
+  TriggerClientEvent('authentication:spawn-player', target, position);
+}
