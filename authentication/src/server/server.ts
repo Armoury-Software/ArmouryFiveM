@@ -251,7 +251,7 @@ const AuthenticatePlayer = (target: number, stats: Player) => {
     lastHoursPlayedCheck: new Date(),
   });
 
-  spawnPlayer(target, stats.lastLocation);
+  spawnPlayer(target);
 
   TriggerClientEvent('authentication:success', target, 'test');
   emit('authentication:player-authenticated', target, stats);
@@ -307,7 +307,7 @@ on('playerDropped', (_reason: string) => {
   clearPlayerInfo(global.source);
 });
 
-function spawnPlayer(target: number, position?: number[]): void {
-  position = position || getPlayerInfo(target, 'lastLocation');
+function spawnPlayer(target: number): void {
+  const position: number[] = getPlayerInfo(target, 'lastLocation');
   TriggerClientEvent('authentication:spawn-player', target, position);
 }

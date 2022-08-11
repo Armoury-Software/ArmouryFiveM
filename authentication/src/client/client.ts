@@ -61,12 +61,15 @@ onNet('authentication:success', () => {
 
 onNet('authentication:spawn-player', (playerPosition: number[]) => {
   if (playerPosition) {
-    global.exports['spawnmanager'].spawnPlayer({
-      x: playerPosition[0],
-      y: playerPosition[1],
-      z: playerPosition[2],
-      skipFade: false,
+    globalThis.exports.spawnmanager.setAutoSpawnCallback(() => {
+      global.exports['spawnmanager'].spawnPlayer({
+        x: playerPosition[0],
+        y: playerPosition[1],
+        z: playerPosition[2],
+        skipFade: false,
+      });
     });
+    global.exports['spawnmanager'].forceRespawn();
   } else {
     global.exports['spawnmanager'].spawnPlayer();
   }

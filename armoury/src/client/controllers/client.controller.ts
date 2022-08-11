@@ -17,11 +17,6 @@ export class Client extends ClientController {
     this.registerGlobalEvents();
   }
 
-  @EventListener({ eventName: `${GetCurrentResourceName()}:update-time` })
-  public onClockUpdated(hour: number, minute: number, second: number): void {
-    NetworkOverrideClockTime(hour, minute, second);
-  }
-
   private assignListeners(): void {
     const spawnPosition = [
       247.83297729492188, -343.20001220703125, 44.4615478515625, 0, 0,
@@ -83,7 +78,10 @@ export class Client extends ClientController {
           if (killed === GetPlayerPed(-1) && !!didPedDie) {
             TriggerServerEvent(`${GetCurrentResourceName()}:onPlayerDeath`);
             emit(`${GetCurrentResourceName()}:onPlayerDeath`);
-            emit(`authentication:spawn-player`, [-450.3632, -341.0537, 34.50175]);
+            emit(
+              `authentication:spawn-player`,
+              [-450.3632, -341.0537, 34.50175]
+            );
           }
           break;
         }
