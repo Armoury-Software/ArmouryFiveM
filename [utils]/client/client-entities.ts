@@ -52,17 +52,36 @@ export class ClientEntities extends ClientBase {
   }
 
   protected createBlip(blip: Blip): number {
-    const _blip: number = AddBlipForCoord(blip.pos[0], blip.pos[1], blip.pos[2]);
+    const _blip: number = (
+      !blip.type || blip.type === 'coords'
+        ? AddBlipForCoord(blip.pos[0], blip.pos[1], blip.pos[2])
+        : (
+          blip.type === 'range'
+            ? AddBlipForRadius(blip.pos[0], blip.pos[1], blip.pos[2], blip.scale || 1.0)
+            : AddBlipForEntity(blip.entityId ?? PlayerPedId())
+        )
+    );
+    if (!blip.type || blip.type !== 'range') {
+      SetBlipScale(_blip, blip.scale || 1.0);
+    }
     SetBlipSprite(_blip, blip.id);
     SetBlipDisplay(_blip, 4);
-    SetBlipScale(_blip, 1.0);
     SetBlipColour(_blip, blip.color);
+    SetBlipAlpha(_blip, blip.alpha || 255);
     SetBlipAsShortRange(_blip, !blip.longRange);
     BeginTextCommandSetBlipName('STRING');
     AddTextComponentString(blip.title);
     EndTextCommandSetBlipName(_blip);
 
     return _blip;
+  }
+
+  protected clearBlip(blipId: number): void {
+    this._blips = this._blips.filter((_blip) => _blip.instance !== blipId);
+
+    if (DoesBlipExist(blipId)) {
+      RemoveBlip(blipId);
+    }
   }
 
   protected clearBlips(): void {
@@ -82,7 +101,7 @@ export class ClientEntities extends ClientBase {
   }
 
   /** Defines a custom, irreplaceable waypoint */
-  protected createWaypoint(pos: number[], title?: string, color?: number, id?: number, routeColor?: number): number {
+  protected createWaypoint(pos: number[], title?: string, color?: number, id?: number, routeColor?: number, diameter: number = 3.0): number {
     const currentResource: string = GetCurrentResourceName().replace('-', ' ');
     const defaultTitle: string = `${currentResource.slice(0, 1).toUpperCase()}${currentResource.slice(1)}`;
 
@@ -93,11 +112,13 @@ export class ClientEntities extends ClientBase {
       pos,
       longRange: true
     });
-    this.createCheckpoint(2, pos[0], pos[1], pos[2], null, null, null, 3, COLOR_MAPPINGS[color][0], COLOR_MAPPINGS[color][1], COLOR_MAPPINGS[color][2], 255, 0);
+    this.createCheckpoint(2, pos[0], pos[1], pos[2], null, null, null, diameter, COLOR_MAPPINGS[color][0], COLOR_MAPPINGS[color][1], COLOR_MAPPINGS[color][2], 255, 0);
     
-    SetBlipRoute(_waypoint, true);
-    if (routeColor) {
-      SetBlipRouteColour(_waypoint, routeColor);
+    if (routeColor !== -1) {
+      SetBlipRoute(_waypoint, true);
+      if (routeColor) {
+        SetBlipRouteColour(_waypoint, routeColor);
+      }
     }
 
     this._waypoints.push(_waypoint);
@@ -169,39 +190,10 @@ export class ClientEntities extends ClientBase {
   protected createMarkers(markers: Marker[]): void {
     const _markers: MarkerMonitored[] = markers.map((marker: Marker) => ({ ...marker, instance: null }));
     this._markers.push(..._markers);
-    this.refreshMarkers();
   }
 
   protected clearMarkers(): void {
     this._markers = [];
-    this.removeFromTick(`${GetCurrentResourceName()}_markers`);
-  }
-
-  private refreshMarkers(): void {
-    this.addToTickUnique({
-      id: `${GetCurrentResourceName()}_markers`,
-      function: async () => {
-        const position: number[] = GetEntityCoords(GetPlayerPed(-1), true);
-
-        this._markers.forEach(async (marker: MarkerMonitored) => {
-          if (isPlayerInRangeOfPoint(position[0], position[1], position[2], marker.pos[0], marker.pos[1], marker.pos[2], marker.renderDistance)) {
-            if (marker.textureDict && !HasStreamedTextureDictLoaded(marker.textureDict)) {
-              RequestStreamedTextureDict(marker.textureDict, true);
-              
-              while (!HasStreamedTextureDictLoaded(marker.textureDict)) {
-                await Delay(100);
-              }
-            }
-            
-            DrawMarker(marker.marker, marker.pos[0], marker.pos[1], marker.pos[2], 0.0, 0.0, 0.0, marker.rotation?.[0] || 0.0, marker.rotation?.[1] || 0.0, marker.rotation?.[2] || 0.0, marker.scale, marker.scale, marker.scale, marker.rgba[0], marker.rgba[1], marker.rgba[2], marker.rgba[3], false, true, 2, false, marker.textureDict || null, marker.textureName || null, false);
-            
-            if (marker.underlyingCircle) {
-              DrawMarker(marker.underlyingCircle.marker, marker.pos[0], marker.pos[1], marker.pos[2] - 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, marker.underlyingCircle.scale, marker.underlyingCircle.scale, marker.underlyingCircle.scale, marker.underlyingCircle.rgba[0] || marker.rgba[0], marker.underlyingCircle.rgba[1] || marker.rgba[1], marker.underlyingCircle.rgba[2] || marker.rgba[2], marker.underlyingCircle.rgba[3] || marker.rgba[3], false, true, 2, false, null, null, false);
-            }
-          }
-        });
-      }
-    });
   }
 
   /** Wrapper of FiveM's native CreateVehicle - includes requesting the model */

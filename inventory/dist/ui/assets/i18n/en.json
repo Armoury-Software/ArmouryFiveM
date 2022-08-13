@@ -1,0 +1,18 @@
+{
+  "locationItems": "{{location}} items ({{number}})",
+  "totalItems": "Total items: {{ number }}/{{ max }}",
+  "business keys": "Business Keys",
+  "house keys": "House Keys",
+  "vehicles": "Vehicles",
+  "weapons": "Weapons",
+  "misc": "Misc.",
+  "transferDialog": {
+    "adjustAmount": "Please adjust the amount below or confirm.",
+    "amountConfirmation": "Amount confirmation",
+    "buy": "Buy",
+    "transfer": "Transfer",
+    "youAreAboutToBuy": "You are about to buy {{ number }} of this item for ${{ price }}.",
+    "youAreAboutToTransfer": "You are about to transfer {{ number }} of this item.",
+    "youWillPay": "You'll pay"
+  }
+}

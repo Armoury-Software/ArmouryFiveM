@@ -5,4 +5,7 @@ export interface FactionData {
   rightMenu: any;
   title: string;
   resource: string;
+  isWide: boolean;
+  bottomSide?: string;
+  news?: { timestamp: string; content: string }[];
 }

@@ -8,7 +8,9 @@ import {
   ServiceContact,
 } from '@shared/phone.model';
 
-@FiveMController()
+import { i18n } from '../i18n';
+
+@FiveMController({ translationFile: i18n })
 export class Client extends ClientWithUIController {
   private cachedTransactionsToAdd: any[] = [];
 
@@ -120,40 +122,40 @@ export class Client extends ClientWithUIController {
         apps: [
           {
             icon: 'call',
-            text: 'Dial',
+            text: this.translate('dial'),
             page: 'call',
           },
           {
             icon: 'contact_page',
-            text: 'Contacts',
+            text: this.translate('contacts'),
             page: 'contacts',
           },
           {
             icon: 'email',
-            text: 'Messages',
+            text: this.translate('messages'),
             page: 'messages',
           },
           {
             icon: 'savings',
-            text: 'Mobile Banking',
+            text: this.translate('mobile_banking'),
             page: 'mobile-banking',
           },
           {
             icon: 'support',
-            text: 'Services',
+            text: this.translate('services'),
             page: 'services',
           },
         ],
         homescreenWidgets: [
           {
-            title: 'Bank',
+            title: this.translate('bank'),
             value: `$${toThousandsString(
               Number(this.getPlayerInfo('bank')),
               1
             )}`,
           },
           {
-            title: 'Days',
+            title: this.translate('days'),
             value: Number(this.getPlayerInfo('hoursPlayed')).toFixed(1),
           },
         ],
@@ -182,9 +184,9 @@ export class Client extends ClientWithUIController {
 
     onNet(`${GetCurrentResourceName()}:execute-call`, (callingTo: number) => {
       /*SendNuiMessage(JSON.stringify({
-                type: 'execute-call',
-                contact: data
-            }));*/
+          type: 'execute-call',
+          contact: data
+      }));*/
     });
 
     onNet(`${GetCurrentResourceName()}:being-called`, (calledBy: number) => {});

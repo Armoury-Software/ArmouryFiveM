@@ -22,11 +22,16 @@ export class ClientWithUIController extends ClientController implements IClientW
         return Date.now() < this.uiDisplayCooldownTimestamp;
     }
 
-    protected showUI(): void {
+    protected showUI(ignoreCursorMode: boolean = false, ignoreFocus: boolean = false): void {
         if (!this.isUIShowing()) {
-            EnterCursorMode();
-            SetNuiFocus(true, true);
-            SetNuiFocusKeepInput(false);
+            if (!ignoreCursorMode) {
+                EnterCursorMode();
+            }
+
+            if (!ignoreFocus) {
+                SetNuiFocus(true, true);
+                SetNuiFocusKeepInput(false);
+            }
         }
         this.uiDisplay = true;
     
@@ -72,8 +77,8 @@ export class ClientWithUIController extends ClientController implements IClientW
     /** Remember that you NEED to use addUIListener in order to be able to listen for events */
     protected onIncomingUIMessage(eventName: string, eventData: any): void { }
 
-    public onForceShowUI(data: any): void {
-        this.showUI();
+    public onForceShowUI(data: any, ignoreCursorMode: boolean = false, ignoreFocus: boolean = false): void {
+        this.showUI(ignoreCursorMode, ignoreFocus);
     }
 
     public onForceHideUI(): void {

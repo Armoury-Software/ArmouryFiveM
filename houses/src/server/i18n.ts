@@ -1,0 +1,168 @@
+export const i18n = {
+  en: {
+    burglar_alarm: 'Burglar Alarm',
+    burglar_alarm_description:
+      'Burglar Alarms notify the Police when burglars attempt to break into your house. Do you wish to buy this Burglar Alarm for ${price}/{hr}',
+    burglar_alarm_confirmation:
+      'Are you sure you want to buy this Burglar Alarm for ${price}/{hr}? This is an hourly payment!',
+    burglar_alarm_disable: 'Disable Alarm',
+    burglar_alarm_disable_confirmation:
+      'Are you sure you want to disable your Burglar Alarm? This will make your house more susceptible to break-ins!',
+    burglar_alarm_disable_short_description:
+      'Disable the Burglar Alarm inside your house',
+    confirm: 'Confirm',
+    close: 'Close',
+    field_min_length: 'Please use at least {length} characters.',
+    field_max_length: 'Please use no more than {length} characters.',
+    field_required: 'This field is required',
+    fridge: 'Fridge',
+    hour_shortened: 'hr',
+    level: 'Level',
+    house_disable_rent: 'Disable rent',
+    house_disable_rent_short_description: 'Stop charging for rent',
+    house_enable_rent: 'Enable rent',
+    house_enable_rent_short_description: 'Manage rent options',
+    house_enable_rent_description:
+      'When rent is enabled, your house can hold tenants who pay rent for every hour spent in the city. You can evict tenants at any time.',
+    house_headline: "House Menu - {owner}'s House (#{id})",
+    house_management: 'House Management',
+    house_not_for_sale: 'Not For Sale',
+    house_sell_to_bank: 'Sell To Bank',
+    house_sell_to_bank_short_description: 'Sell immediately for 50% value',
+    house_sell_to_bank_sum: 'Sell To Bank (+${price})',
+    house_sell_to_bank_confirmation:
+      'Are you sure you want to sell this house immediately? Selling your house to the bank gives you 50% of its original value. You will not own it anymore, and any pets will be lost. This action is irreversible.',
+    house_set_for_sale: 'Set House for Sale',
+    house_set_for_sale_short_description: 'Enable players to buy your house',
+    house_set_for_sale_shortened: 'Set for Sale',
+    house_set_for_sale_stop: 'Stop Selling',
+    house_set_for_sale_stop_short_description: 'Set as no longer for sale',
+    house_set_for_sale_description:
+      "Setting your house for sale will make your house show up as purchasable, and citizens will be able to call you directly while you're in the city.",
+    house_selling_price: 'Selling price',
+    house_purchase_ask: 'Purchase this house?',
+    house_purchase_ask_description:
+      'Are you sure you want to purchase this house for ${price}?',
+    house_rent_price_slider: 'Rent price ($/hr spent in city)',
+    house_tenants_evict_all: 'Evict All Tenants',
+    house_tenants_evict_all_short_description: 'Evict all tenants immediately',
+    house_tenants_evict_all_sum: 'Evict All Tenants ({number} tenants)',
+    house_tenants_evict_all_confirmation:
+      'Are you sure you want to evict all tenants? This will kick them out of your house, and if you do this wrongfully, they can press charges!',
+    house_tenants_evict_no_tenants: 'No tenants to evict',
+    house_upgrades: 'House Upgrades',
+    house_upgrade_alarm: 'Alarm Upgrade',
+    house_upgrade_alarm_short_description: 'Burglar protection for ${price}/hr',
+    max_income: 'Max Income',
+    none: 'None',
+    pet: 'Pet',
+    pet_already_have_pet_shortened_description: 'You already have a pet',
+    pet_name: 'Pet name',
+    pet_no_pets: "You don't have a pet",
+    pet_set_for_adoption: 'Rehome Pet',
+    pet_set_for_adoption_confirmation:
+      'Are you sure you want to rehome {name}? They will miss you!',
+    pet_set_for_adoption_short_description: 'Set your pet for adoption',
+    pet_shop: 'Pet Shop',
+    pet_shop_description:
+      'Have a look around our pet catalog to find your soon to-be best friend forever!',
+    pet_shop_select_pet_description:
+      'Are you sure you want to buy this pet for ${price}?',
+    pet_shortened: 'Pet',
+    pet_expenses: 'Pet Expenses',
+    pet_short_description: 'Buy a pet for your house',
+    pet_status: 'Pet Status',
+    price: 'Price',
+    rent_price: 'Rent Price',
+    security: 'Security',
+    tenants: 'Tenants',
+    taxes: 'Taxes',
+    upgrades: 'Upgrades',
+    value: 'Value',
+  },
+  ro: {
+    burglar_alarm: 'Alarma Anti-Efractie',
+    burglar_alarm_description:
+      'Alarmele Anti-Efractie notifica Politia atunci cand cineva incearca sa intre prin efractie in casa ta. Doresti sa cumperi aceasta Alarma Anti-Efractie cu ${price}/{hr}?',
+    burglar_alarm_confirmation:
+      'Esti sigur ca doresti sa cumperi aceasta Alarma Anti-Efractie cu ${price}/{hr}? Pretul acesta este per luna petrecuta in oras!',
+    burglar_alarm_disable: 'Dezactiveaza Alarma',
+    burglar_alarm_disable_confirmation:
+      'Esti sigur ca vrei sa iti dezactivezi sistemul anti-efractie? Facand asta, casa ta va fi mai susceptibila spargerilor!',
+    burglar_alarm_disable_short_description:
+      'Dezactiveaza sistemul anti-efractie',
+    confirm: 'Confirma',
+    close: 'Inchide',
+    field_min_length: 'Foloseste cel putin {length} caractere.',
+    field_max_length: 'Foloseste cel mult {length} caractere.',
+    field_required: 'Acest camp este obligatoriu',
+    fridge: 'Frigider',
+    hour_shortened: 'luna',
+    level: 'Nivel',
+    house_disable_rent: 'Dezactiveaza chirie',
+    house_disable_rent_short_description: 'Scoate pretul chiriei',
+    house_enable_rent: 'Activeaza chirie',
+    house_enable_rent_short_description: 'Schimba setarile chiriei',
+    house_enable_rent_description:
+      'Cand chiria este activa, orice persoana poate inchiria oricand o camera in casa ta. In plus, poti da afara orice chirias, oricand, in termeni legali.',
+    house_headline: 'Meniul Casei - Casa lui {owner} (#{id})',
+    house_management: 'Meniul Casei',
+    house_not_for_sale: 'Fara pret',
+    house_sell_to_bank: 'Vinde bancii',
+    house_sell_to_bank_short_description:
+      'Vinde imediat cu 50% din pretul original',
+    house_sell_to_bank_sum: 'Vinde bancii (+${price})',
+    house_sell_to_bank_confirmation:
+      'Esti sigur ca vrei sa iti vinzi casa imediat bancii? Atunci cand vinzi casa bancii, primesti instant 50% din valoarea ei originala. Nu o vei mai detine, si vei pierde orice animal de companie. Aceasta actiune este ireversibila.',
+    house_set_for_sale: 'Pune la vanzare',
+    house_set_for_sale_short_description: 'Permite jucatorilor sa cumpere casa',
+    house_set_for_sale_shortened: 'Pune la vanzare',
+    house_set_for_sale_stop: 'Scoate de la vanzare',
+    house_set_for_sale_stop_short_description:
+      'Opreste orice anunt despre vanzarea acestei case',
+    house_set_for_sale_description:
+      'Atunci cand iti pui casa la vanzare, alti oameni vor putea sa te contacteze direct pentru a-ti cumpara casa.',
+    house_selling_price: 'Pret de vanzare',
+    house_purchase_ask: 'Cumperi aceasta casa?',
+    house_purchase_ask_description:
+      'Esti sigur ca vrei sa cumperi aceasta casa cu ${price}?',
+    house_rent_price_slider: 'Pret chirie ($/luna in oras)',
+    house_tenants_evict_all: 'Evacueaza chiriasii',
+    house_tenants_evict_all_short_description: 'Da afara toti chiriasii',
+    house_tenants_evict_all_sum: 'Da afara toti chiriasii ({number} chiriasi)',
+    house_tenants_evict_all_confirmation:
+      'Esti sigur ca vrei sa evacuezi toti chiriasii? Facand asta ei nu vor mai avea acces deloc la casa ta, si in caz nelegitim acestia te pot da in judecata!',
+    house_tenants_evict_no_tenants: 'Nu exista chiriasi',
+    house_upgrades: 'Upgrade-uri casa',
+    house_upgrade_alarm: 'Upgrade Alarma',
+    house_upgrade_alarm_short_description:
+      'Impotriva spargatorilor (${price}/luna)',
+    max_income: 'Venit potential',
+    none: 'N/A',
+    pet: 'Animal de Companie',
+    pet_already_have_pet_shortened_description: 'Ai deja unul',
+    pet_name: 'Numele animalului de companie',
+    pet_no_pets: 'Nu ai unul',
+    pet_set_for_adoption: 'Pune spre adoptie',
+    pet_set_for_adoption_confirmation:
+      'Esti sigur ca vrei sa il/o pui pe {name} spre adoptie? Ii va fi dor de tine!',
+    pet_set_for_adoption_short_description:
+      'Pune-ti animalul de companie spre adoptie',
+    pet_shop: 'Pet Shop',
+    pet_shop_description:
+      'Arunca o privire prin acest catalog de animale de companie si alege-l pe cel pe care il doresti.',
+    pet_shortened: 'Animal de Companie',
+    pet_expenses: 'Cheltuieli Animal de Companie',
+    pet_short_description: 'Cumpara un animal de companie',
+    pet_shop_select_pet_description:
+      'Esti sigur ca vrei sa cumperi acest animal de companie cu ${price}?',
+    pet_status: 'Stare Animal',
+    price: 'Pret',
+    rent_price: 'Pret Chirie',
+    security: 'Securitate',
+    taxes: 'Cheltuieli',
+    tenants: 'Chiriasi',
+    upgrades: 'Upgrade-uri',
+    value: 'Valoare',
+  },
+};

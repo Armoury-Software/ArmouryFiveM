@@ -5,7 +5,7 @@ const isPlayerInArea = (playerPosX: number, playerPosY: number, playerPosZ: numb
 }
 
 const isPlayerInRangeOfPoint = (playerPosX: number, playerPosY: number, playerPosZ: number, pointX: number, pointY: number, pointZ: number, range: number): boolean => {
-    return playerPosX >= pointX - range && playerPosX <= pointX + range && playerPosY >= pointY - range && playerPosY <= pointY + range && playerPosZ >= pointZ - range && playerPosZ <= pointZ + range;
+    return calculateDistance([playerPosX, playerPosY, playerPosZ, pointX, pointY, pointZ]) <= range;
 }
 
 const waitUntilThenDo = async (condition: Function, func: Function) => {
@@ -36,6 +36,24 @@ export const calculateDistanceInKm = (pos: number[]) => {
     var c = pos[5] - pos[2];
 
     return Math.hypot(a, b, c) * 0.004;
+}
+
+export const getRandomPositionInsideArea = (x1: number, x2: number, y1: number, y2: number): [number, number] => {
+    const sortedXs = [x1, x2].sort((current, previous) => current <= previous ? -1 : 1);
+    const sortedYs = [y1, y2].sort((current, previous) => current <= previous ? -1 : 1);
+    const [lowestX, highestX] = [sortedXs[0], sortedXs.slice(-1)[0]];
+    const [lowestY, highestY] = [sortedYs[0], sortedYs.slice(-1)[0]];
+
+    return [lowestX + (Math.random() * (highestX - lowestX)), lowestY + (Math.random() * (highestY - lowestY))];
+}
+
+export const isPositionIn2DArea = (x: number, y: number, x1: number, x2: number, y1: number, y2: number): boolean => {
+    const sortedXs = [x1, x2].sort((current, previous) => current <= previous ? -1 : 1);
+    const sortedYs = [y1, y2].sort((current, previous) => current <= previous ? -1 : 1);
+    const [lowestX, highestX] = [sortedXs[0], sortedXs.slice(-1)[0]];
+    const [lowestY, highestY] = [sortedYs[0], sortedYs.slice(-1)[0]];
+
+    return x >= lowestX && x <= highestX && y >= lowestY && y <= highestY;
 }
 
 const numberWithCommas = (x: number) => {
@@ -97,6 +115,15 @@ export const fromThousandsString = (input: string): number => {
                     .map((suffix: string) => suffix.toLowerCase())
                     .indexOf(existingSuffix.toLowerCase())
         )
+    );
+}
+
+export const toTitleCase = (str) => {
+    return str.replace(
+        /\w\S*/g,
+        function(txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        }
     );
 }
 

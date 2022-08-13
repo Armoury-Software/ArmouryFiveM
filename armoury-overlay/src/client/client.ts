@@ -62,6 +62,27 @@ onNet(`${GetCurrentResourceName()}:show-money-overlay`, (gain: number) => {
   );
 });
 
+onNet(
+  `${GetCurrentResourceName()}:play-background-music`,
+  (url: string, volume: number = 1.0) => {
+    SendNuiMessage(
+      JSON.stringify({
+        type: 'addbackgroundmusic',
+        url,
+        volume,
+      })
+    );
+  }
+);
+
+onNet(`${GetCurrentResourceName()}:stop-background-music`, () => {
+  SendNuiMessage(
+    JSON.stringify({
+      type: 'stopbackgroundmusic',
+    })
+  );
+});
+
 onNet(`${GetCurrentResourceName()}:show-context-menu`, (data: ContextMenu) => {
   SetNuiFocus(true, false);
   SetNuiFocusKeepInput(true);

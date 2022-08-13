@@ -7,7 +7,10 @@ version '1.0.0'
 
 resource_type 'gametype' { name = 'Armoury Light Roleplay' }
 
-client_script 'dist/client/*.client.js'
+client_scripts {
+    'dist/client/*.client.js',
+    'dist/lua/*.client.lua'
+}
 server_script 'dist/server/*.server.js'
 
 loadscreen 'dist/ui/loading.html'

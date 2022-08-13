@@ -1,4 +1,8 @@
-import { Export, FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  Export,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { ServerDBDependentController } from '@core/server/server-db-dependent.controller';
 
 import {
@@ -18,162 +22,161 @@ export class Server extends ServerDBDependentController<Phone> {
   public constructor(dbTableName: string) {
     super(dbTableName, false);
 
-    this.registerListeners();
     this.fetchOnlinePlayersPhones();
   }
 
-  private registerListeners(): void {
-    onNet(`${GetCurrentResourceName()}:add-contact`, (data: PhoneContact) => {
-      const playerPhone: Phone = this.entities.find(
+  @EventListener({ eventName: `${GetCurrentResourceName()}:add-contact` })
+  public onContactAdded(data: PhoneContact): void {
+    const playerPhone: Phone = this.entities.find(
+      (phone: Phone) =>
+        phone.id ===
+        Number(global.exports['authentication'].getPlayerInfo(source, 'phone'))
+    );
+
+    if (playerPhone) {
+      playerPhone.contacts.push(data);
+      this.saveDBEntityAsync(playerPhone.id);
+    }
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:request-use-phone` })
+  public onPhoneShouldOpen(): void {
+    const serviceAgents: ServiceContact[] = [
+      ...global.exports['factions-taxi']
+        .getAvailableTaxiDrivers()
+        .map(([factionMember, fare]: [number, number]) => {
+          return {
+            name: `${
+              factionMember === -1 ? 'Vikash B.' : GetPlayerName(factionMember)
+            } ($${fare}/km)`,
+            phone:
+              factionMember === -1
+                ? '5555'
+                : global.exports['authentication']
+                    .getPlayerInfo(factionMember, 'phone')
+                    .toString(),
+            service: 'taxi',
+          };
+        }),
+    ];
+
+    const playerPhone: Phone = {
+      ...this.entities.find(
         (phone: Phone) =>
           phone.id ===
           Number(
             global.exports['authentication'].getPlayerInfo(source, 'phone')
           )
-      );
+      ),
+      serviceAgents: serviceAgents || [],
+    };
 
-      if (playerPhone) {
-        playerPhone.contacts.push(data);
-        this.saveDBEntityAsync(playerPhone.id);
-      }
-    });
+    TriggerClientEvent(
+      `${GetCurrentResourceName()}:force-showui`,
+      source,
+      playerPhone
+    );
+  }
 
-    onNet(`${GetCurrentResourceName()}:request-use-phone`, () => {
-      const serviceAgents: ServiceContact[] = [
-        ...global.exports['factions-taxi']
-          .getAvailableTaxiDrivers()
-          .map(([factionMember, fare]: [number, number]) => {
-            return {
-              name: `${
-                factionMember === -1
-                  ? 'Vikash B.'
-                  : GetPlayerName(factionMember)
-              } ($${fare}/km)`,
-              phone:
-                factionMember === -1
-                  ? '5555'
-                  : global.exports['authentication']
-                      .getPlayerInfo(factionMember, 'phone')
-                      .toString(),
-              service: 'taxi',
-            };
-          }),
-      ];
-
-      const playerPhone: Phone = {
-        ...this.entities.find(
-          (phone: Phone) =>
-            phone.id ===
-            Number(
-              global.exports['authentication'].getPlayerInfo(source, 'phone')
-            )
-        ),
-        serviceAgents: serviceAgents || [],
-      };
-
-      console.log(playerPhone);
-
-      TriggerClientEvent(
-        `${GetCurrentResourceName()}:force-showui`,
-        source,
-        playerPhone
-      );
-    });
-
-    onNet(
-      `${GetCurrentResourceName()}:request-service-call`,
-      (contact: ServiceContact) => {
-        if (!contact.phone) {
-          // Call was made to the company directly and not to a specific taxi driver
-          switch (contact.service) {
-            case 'taxi': {
-              break;
-            }
-          }
-          return;
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:request-service-call`,
+  })
+  public onServiceCallRequested(contact: ServiceContact): void {
+    if (!contact.phone) {
+      // Call was made to the company directly and not to a specific taxi driver
+      switch (contact.service) {
+        case 'taxi': {
+          break;
         }
-
-        this.executeCall(source, Number(contact.phone));
       }
+      return;
+    }
+
+    this.executeCall(source, Number(contact.phone));
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:execute-call` })
+  public onCallShouldExecute(callingTo: number): void {
+    this.executeCall(source, callingTo);
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:answer-call` })
+  public onCallShouldAnswer(answeredToPhone: number): void {
+    const currentPlayerPhone: number = Number(
+      global.exports['authentication'].getPlayerInfo(source, 'phone')
+    );
+    this.answerCall(currentPlayerPhone, answeredToPhone);
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:refuse-call` })
+  public onCallShouldRefuse(toRefused: number): void {
+    const currentPlayerPhone: number = Number(
+      global.exports['authentication'].getPlayerInfo(source, 'phone')
     );
 
-    onNet(`${GetCurrentResourceName()}:execute-call`, (callingTo: number) => {
-      this.executeCall(source, callingTo);
-    });
+    if (!toRefused) {
+      toRefused = Array.from(this.activeConversations.keys()).find(
+        (_phoneNumber: number) =>
+          this.activeConversations.get(_phoneNumber) === currentPlayerPhone
+      );
+    }
 
-    onNet(
-      `${GetCurrentResourceName()}:answer-call`,
-      (answeredToPhone: number) => {
-        const currentPlayerPhone: number = Number(
-          global.exports['authentication'].getPlayerInfo(source, 'phone')
-        );
-        this.answerCall(currentPlayerPhone, answeredToPhone);
-      }
-    );
+    if (toRefused) {
+      this.refuseCall(currentPlayerPhone, toRefused);
+    } else if (this.activeConversations.has(currentPlayerPhone)) {
+      this.hangUp(
+        currentPlayerPhone,
+        this.activeConversations.get(currentPlayerPhone)
+      );
+    }
+  }
 
-    onNet(`${GetCurrentResourceName()}:refuse-call`, (toRefused: number) => {
-      const currentPlayerPhone: number = Number(
-        global.exports['authentication'].getPlayerInfo(source, 'phone')
+  @EventListener()
+  public onPlayerAuthenticate(
+    playerAuthenticated: number,
+    player: Player
+  ): void {
+    super.onPlayerAuthenticate(playerAuthenticated, player);
+
+    let phone: number =
+      !isNaN(player.phone) && player.phone > 0 ? player.phone : 0;
+
+    if (!phone) {
+      phone = 1000000 + player.id;
+
+      global.exports['authentication'].setPlayerInfo(
+        playerAuthenticated,
+        'phone',
+        phone,
+        false
       );
 
-      if (!toRefused) {
-        toRefused = Array.from(this.activeConversations.keys()).find(
-          (_phoneNumber: number) =>
-            this.activeConversations.get(_phoneNumber) === currentPlayerPhone
-        );
-      }
+      this.createEntity(
+        {
+          id: phone,
+          contacts: [],
+        },
+        phone
+      );
+    } else {
+      this.loadDBEntityFor(phone, 'id', playerAuthenticated);
+    }
 
-      if (toRefused) {
-        this.refuseCall(currentPlayerPhone, toRefused);
-      } else if (this.activeConversations.has(currentPlayerPhone)) {
-        this.hangUp(
-          currentPlayerPhone,
-          this.activeConversations.get(currentPlayerPhone)
-        );
-      }
-    });
+    this.phones.set(phone, playerAuthenticated);
+  }
 
-    onNet(
-      'authentication:player-authenticated',
-      (playerAuthenticated: number, player: Player) => {
-        let phone: number =
-          !isNaN(player.phone) && player.phone > 0 ? player.phone : 0;
+  @EventListener()
+  public onPlayerDisconnect(): void {
+    super.onPlayerDisconnect();
 
-        if (!phone) {
-          phone = 1000000 + player.id;
-
-          global.exports['authentication'].setPlayerInfo(
-            playerAuthenticated,
-            'phone',
-            phone,
-            false
-          );
-
-          this.createEntity(
-            {
-              id: phone,
-              contacts: [],
-            },
-            phone
-          );
-        } else {
-          this.loadDBEntityFor(phone, 'id', playerAuthenticated);
-        }
-
-        this.phones.set(phone, playerAuthenticated);
-      }
+    const playerDroppedPhone: number = Array.from(this.phones.keys()).find(
+      (phone: number) => this.phones[phone] === source
     );
 
-    onNet('playerDropped', () => {
-      const playerDroppedPhone: number = Array.from(this.phones.keys()).find(
-        (phone: number) => this.phones[phone] === source
-      );
-
-      if (playerDroppedPhone) {
-        // TODO: Debug if this actually happens
-        this.phones.delete(playerDroppedPhone);
-      }
-    });
+    if (playerDroppedPhone) {
+      // TODO: Debug if this actually happens
+      this.phones.delete(playerDroppedPhone);
+    }
   }
 
   // First parameter: caller player ID, second parameter: callED player PHONE

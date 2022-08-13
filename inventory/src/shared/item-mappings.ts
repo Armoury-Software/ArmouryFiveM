@@ -11,8 +11,12 @@ import {
   phoneFormatted,
   toThousandsString,
 } from '../../../[utils]/utils';
-import { Items } from '../../../authentication/src/shared/models/player.model';
+import {
+  Clothings,
+  Items,
+} from '../../../authentication/src/shared/models/player.model';
 import { WeaponHash } from 'fivem-js';
+import { Clothing } from './models/clothing.model';
 
 // Each key in this object is the exact match of one of the keys in the player interface in authentication resource
 export const ITEM_MAPPINGS = {
@@ -20,23 +24,30 @@ export const ITEM_MAPPINGS = {
   // TODO: bruteAmount NEEDS to have following parameters: (value (this would be image), piKey)
   housekeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) =>
-      `A clean key made of brass. Unlocks the door to House #${value}.`,
+    description: (value: number) => [
+      'item_housekey_description',
+      { id: value },
+    ],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
     isTransferrable: () => false,
   },
   businesskeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) =>
-      `A clean key made of brass. Unlocks the door to Business #${value}.`,
+    description: (value: number) => [
+      'item_businesskey_description',
+      { id: value },
+    ],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
     isTransferrable: () => false,
   },
   vehiclekeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) => `Your vehicle. (#${value})`,
+    description: (value: number) => [
+      'item_vehiclekey_description',
+      { id: value },
+    ],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number[]) => !!value.length,
     isTransferrable: () => false,
@@ -45,7 +56,10 @@ export const ITEM_MAPPINGS = {
   },
   factionvehiclekeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) => `A faction vehicle key. (#${value})`,
+    description: (value: number) => [
+      'item_factionvehiclekey_description',
+      { id: value },
+    ],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number[]) => !!value.length,
     isTransferrable: () => false,
@@ -53,17 +67,37 @@ export const ITEM_MAPPINGS = {
   },
   weapons: {
     type: 'Weapon',
-    description: (value: [number, Weapon]) =>
-      WEAPON_MAPPINGS[Number(value[0])].description ||
-      'Description to be added',
-    bruteAmount: (piKey: number | string, piKeyParentValue: Weapons) => {
+    description: (value: [number, Weapon]) => [
+      WEAPON_MAPPINGS[Number(value[0])]?.description || '',
+    ],
+    bruteAmount: (
+      piKey: number | string,
+      piKeyParentValue: Weapons | number | string,
+      secondaryPiKeyParentValue?: Weapons
+    ) => {
       if (typeof piKey === 'string') {
-        return piKeyParentValue[WeaponHash[piKey]]?.ammo;
+        return (
+          secondaryPiKeyParentValue &&
+          typeof secondaryPiKeyParentValue === 'object'
+            ? secondaryPiKeyParentValue
+            : piKeyParentValue
+        )[WeaponHash[piKey]]?.ammo;
       }
 
-      return piKeyParentValue[Number(piKey)]?.ammo;
+      return (
+        secondaryPiKeyParentValue &&
+        typeof secondaryPiKeyParentValue === 'object'
+          ? secondaryPiKeyParentValue
+          : piKeyParentValue
+      )[Number(piKey)]?.ammo;
     },
-    value: (value: [number, Weapon]) => value[1].ammo.toString(),
+    value: (value: [number | string, Weapon]) => {
+      if (!value[1] || typeof value[1] !== 'object') {
+        return value[1].toString();
+      }
+
+      return value[1].ammo.toString();
+    },
     topLeft: (value: [number, Weapon]) => WEAPON_NAMES[value[0]],
     image: (value: [number, Weapon]) => WEAPON_NAMES_FOR_TESTS[value[0]],
     incrementor: (
@@ -124,10 +158,10 @@ export const ITEM_MAPPINGS = {
     type: 'Electronics',
     bruteAmount: (piKey: number | string, piKeyParentValue: number) =>
       piKeyParentValue,
-    description: (value: number) =>
-      `A slick phone with numerous functionalities. SIM number: ${phoneFormatted(
-        value
-      )}.`,
+    description: (value: number) => [
+      'item_electronics_phone_description',
+      { phone: phoneFormatted(value) },
+    ],
     value: (value: number) => phoneFormatted(value),
     insertionCondition: (value: number) => Number(value) > 0,
     isTransferrable: () => false,
@@ -136,20 +170,25 @@ export const ITEM_MAPPINGS = {
     type: 'Currency',
     bruteAmount: (piKey: number | string, piKeyParentValue: number) =>
       piKeyParentValue,
-    description: (value: number) =>
-      `Your hard-earned money. You have $${numberWithCommas(
-        value
-      )} in your pockets.`,
+    description: (value: number) => [
+      'item_currency_cash_description',
+      { cash: numberWithCommas(value) },
+    ],
     value: (value: number) => toThousandsString(value),
     insertionCondition: (value: number) => Number(value) > 0,
   },
   items: {
     type: 'Miscellaneous',
-    bruteAmount: (piKey: number | string, piKeyParentValue: object) => {
-      return piKeyParentValue[piKey];
+    bruteAmount: (
+      piKey: number | string,
+      piKeyParentValue: object,
+      piSecondaryKey?: string
+    ) => {
+      return piKeyParentValue[piSecondaryKey || piKey];
     },
-    description: (value: [string, number]) =>
-      MISC_ITEM_MAPPINGS[value[0]].description || 'Description to be added',
+    description: (value: [string, number]) => [
+      `item_Miscellaneous_${value[0]}_description`,
+    ],
     value: (value: [string, number]) => value[1].toString(),
     image: (value: [string, number]) => value[0],
     incrementor: (
@@ -174,90 +213,94 @@ export const ITEM_MAPPINGS = {
     isRefridgeratable: (value: string) =>
       MISC_ITEM_MAPPINGS[value].refridgeratable ?? false,
   },
+  clothings: {
+    type: 'Clothing',
+    bruteAmount: (
+      piKey: number | string,
+      piKeyParentValue: object,
+      _piSecondaryKey?: string
+    ) => {
+      return !!piKeyParentValue[piKey];
+    },
+    description: (value: [string, number]) => [
+      `item_Clothing_${value[0].split('_')[0]}_description`,
+    ],
+    value: (value: [string, Clothing]) => '1',
+    image: (value: [string, number]) => value[0].split('_')[0],
+    incrementor: (
+      currentValue: number | Clothings,
+      incrementWhich: string,
+      incrementBy: number | Clothing,
+      otherValue?: Clothing
+    ) => {
+      console.log('currentValue:', currentValue);
+      console.log('incrementWhich:', incrementWhich);
+      console.log('incrementBy:', incrementBy);
+      console.log('otherValue:', otherValue);
+      if (incrementBy < 0 && currentValue[incrementWhich]) {
+        delete currentValue[incrementWhich];
+      } else if (typeof incrementBy === 'object') {
+        currentValue[incrementWhich] =
+          incrementBy[incrementWhich] || incrementBy || {};
+      }
+
+      return currentValue;
+    },
+    metadata: ([clothingId, value]: [string, Clothing]) => {
+      return {
+        type: clothingId,
+      };
+    },
+    isTransferrable: (_value: string) => true,
+    isRefridgeratable: (_value: string) => false,
+  },
 };
 
 export const MISC_ITEM_MAPPINGS = {
   apple: {
-    description:
-      'A fresh, delicious apple. An apple a day keeps the doctor away. (+10% hunger)',
     refridgeratable: true,
   },
   chocolate: {
-    description:
-      'An ordinary chocolate milk tablet. Dairy product. (+15% hunger)',
     refridgeratable: true,
   },
   donut: {
-    description: 'A fluffy donut glazed with vanilla cream. (+20% hunger)',
     refridgeratable: true,
   },
   sandwich: {
-    description:
-      'A nicely-packed, delicious sandwich. Contains basic ingredients. (+30% hunger)',
     refridgeratable: true,
   },
   water: {
-    description:
-      'An ordinary 500ml bottle of water. Hydrate yourself! (+50% thirst)',
     refridgeratable: true,
   },
   coke: {
-    description: 'An ordinary 330ml can of coke. (+30% thirst)',
     refridgeratable: true,
   },
   red_bull: {
-    description:
-      'A 330ml can of energy drink. Red Bull gives you wings! (+30% thirst)',
     refridgeratable: true,
   },
   cold_coffee: {
-    description: 'A 330ml can of cold coffee. (+30% thirst, +5% hunger)',
     refridgeratable: true,
   },
   beer_can: {
-    description:
-      'A 330ml can of good old Corona. Contains 4.5% alcohol. (+20% thirst, +25% drunkness)',
     refridgeratable: true,
   },
   rum: {
-    description:
-      'A 700ml bottle of rum. Contains 42% alcohol. (+5% thirst, +50% drunkness per serving)',
     refridgeratable: true,
   },
   whiskey: {
-    description:
-      'A 700ml bottle of Whisky. Contains 40% alcohol. (+5% thirst, +50% drunkness per serving)',
     refridgeratable: true,
   },
   champagne: {
-    description:
-      'A 700ml bottle of cheap champagne. Contains 12% alcohol. (+10% thirst, +20% drunkness per sip)',
     refridgeratable: true,
   },
-  bandages: {
-    description:
-      'A few strips of fabric used to bind up wounds. Use carefully on a wounded person!',
-  },
-  medkit: {
-    description:
-      'A kit containing medical utilities to bring a wounded person back on their feet.',
-  },
-  fuel_cannister: {
-    description:
-      'A plastic cannister usually used to carry large amounts of fuel for a vehicle.',
-  },
-  toolbox: {
-    description:
-      'A toolbox containing several tools you can use to repair a damaged vehicle.',
-  },
+  bandages: {},
+  medkit: {},
+  fuel_cannister: {},
+  toolbox: {},
   vehicle_documents: {
-    description:
-      'Ring binder containing several documents with information about your vehicle.',
     transferrable: false,
   },
   fridge_documents: {
-    description:
-      'Warranty and unit information about this particular fridge.',
     transferrable: false,
   },
 };

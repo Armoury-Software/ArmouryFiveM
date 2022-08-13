@@ -3,6 +3,10 @@ export interface Blip {
     color: number;
     title: string;
     pos: number[];
+    scale?: number;
+    alpha?: number;
+    entityId?: number;
+    type?: 'coords' | 'range' | 'entity';
     longRange?: boolean;
 }
 

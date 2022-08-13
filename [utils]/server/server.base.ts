@@ -27,5 +27,10 @@ export class ServerBase {
         });
     }
 
+    protected setRoutingBucket(playerId: number, routingBucket: number): void {
+        SetEntityRoutingBucket(GetPlayerPed(playerId), routingBucket);
+        TriggerClientEvent(`${GetCurrentResourceName()}:set-routing-bucket`, playerId, routingBucket);
+    }
+
     protected routingBucketCondition: (source: number, routingBucket: number) => boolean = (source: number, routingBucket: number) => true;
 }

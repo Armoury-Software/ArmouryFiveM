@@ -1,11 +1,16 @@
 import {
   Command,
   EventListener,
+  Export,
   FiveMController,
 } from '@core/decorators/armoury.decorators';
 import { ServerEntityWithEntranceController } from '@core/server/entity-controllers/server-entity-entrance.controller';
 import { UIDialog } from '@core/models/ui-dialog.model';
-import { isPlayerInRangeOfPoint, numberWithCommas } from '@core/utils';
+import {
+  isPlayerInRangeOfPoint,
+  numberWithCommas,
+  toTitleCase,
+} from '@core/utils';
 
 import { House, HouseExtended } from '@shared/models/house.interface';
 import { addTenants, getTenants } from '@shared/house.functions';
@@ -19,18 +24,32 @@ import {
 } from '@shared/models/fridge-inspection-data.interface';
 import { Item } from '../../../../inventory/src/shared/item-list.model';
 import { ITEM_MAPPINGS } from '../../../../inventory/src/shared/item-mappings';
+import { i18n } from '../i18n';
 
-@FiveMController()
+@FiveMController({ translationFile: i18n })
 export class Server extends ServerEntityWithEntranceController<House> {
   private playersInspectingFridges: Map<number, FridgeInspectionData> = new Map<
     number,
     FridgeInspectionData
   >();
+  private playersBuyingPets: Map<number, any> = new Map();
 
   public constructor(dbTableName: string) {
     super(dbTableName, true);
 
-    this.registerExports();
+    setTimeout(() => {
+      const authenticatedPlayers =
+        global.exports['authentication'].getAuthenticatedPlayers(true);
+
+      if (authenticatedPlayers) {
+        Object.keys(authenticatedPlayers).forEach((_authenticatedPlayer) => {
+          const playerId: number = Number(_authenticatedPlayer);
+          const playerData = authenticatedPlayers[_authenticatedPlayer];
+
+          this.onPlayerAuthenticate(playerId, playerData);
+        });
+      }
+    }, 1000);
   }
 
   @EventListener({
@@ -39,7 +58,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
   public onPlayerRequestSetHouseForSale() {
     let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
 
-    if (house && house.owner === GetPlayerName(source)) {
+    if (house && this.isHouseOwnedBy(house, source)) {
       if (!!house.sellingPrice) {
         house.sellingPrice = 0;
         this.saveDBEntityAsync(house.id);
@@ -50,26 +69,26 @@ export class Server extends ServerEntityWithEntranceController<House> {
       // TODO: minValue and maxValue should be validated on the server in confirm-set-for-sale as well
       const minValue: number = 1000;
       TriggerClientEvent('houses-menu:show-dialog', source, {
-        title: 'Set House for Sale',
-        content:
-          "Setting your house for sale will make your house show up as purchasable, and citizens will be able to call you directly while you're in the city.",
+        title: this.translate('house_set_for_sale'),
+        content: this.translate('house_set_for_sale_description'),
         dialogId: 'set-house-for-sale',
         dialogComponents: [
           {
             formControlName: 'housesellprice',
             type: 'slider',
             defaultValue: minValue,
-            heading: 'Selling price',
+            heading: this.translate('house_selling_price'),
             metadata: {
               min: minValue,
               max: house.firstPurchasePrice * 10,
               prefix: '$',
+              step: 1000,
             },
           },
         ],
         buttons: [
           {
-            title: 'Confirm',
+            title: this.translate('confirm'),
           },
         ],
       });
@@ -83,7 +102,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
     let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
 
     if (house) {
-      house.sellingPrice = Number(sellPrice);
+      house.sellingPrice = Math.floor(sellPrice);
       this.saveDBEntityAsync(house.id);
       this.showHouseMenu(source);
     }
@@ -93,17 +112,16 @@ export class Server extends ServerEntityWithEntranceController<House> {
   public onPlayerRequestSellToBank(): void {
     let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
 
-    if (house && house.owner === GetPlayerName(source)) {
+    if (house && this.isHouseOwnedBy(house, source)) {
       TriggerClientEvent('houses-menu:show-dialog', source, {
-        title: `Sell To Bank (+$${numberWithCommas(
-          house.firstPurchasePrice / 2
-        )})`,
-        content:
-          'Are you sure you want to sell this house immediately? Selling your house to the bank gives you 50% of its original value. You will not own it anymore, and any pets will be lost. This action is irreversible.',
+        title: this.translate('house_sell_to_bank_sum', {
+          price: numberWithCommas(house.firstPurchasePrice / 2),
+        }),
+        content: this.translate('house_sell_to_bank_confirmation'),
         dialogId: 'sell-house-to-bank',
         buttons: [
           {
-            title: 'Confirm',
+            title: this.translate('confirm'),
           },
         ],
       });
@@ -112,10 +130,13 @@ export class Server extends ServerEntityWithEntranceController<House> {
 
   @EventListener({ eventName: 'houses:confirm-sell-to-bank' })
   public onPlayerConfirmSellToBank(): void {
-    let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
+    let house: HouseExtended =
+      this.getClosestEntityOfSameTypeExitToPlayer(source);
 
-    if (house && house.owner === GetPlayerName(source)) {
+    if (house && this.isHouseOwnedBy(house, source)) {
       house.owner = '';
+      house.ownerId = 0;
+      house.ownerInstance = null;
       house.tenantIds = [];
       house.pet = {}; // Pretty hacky
       house.sellingPrice = 0;
@@ -135,7 +156,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
   public onPlayerRequestChangeRentOptions(): void {
     let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
 
-    if (house && house.owner === GetPlayerName(source)) {
+    if (house && this.isHouseOwnedBy(house, source)) {
       if (!!house.rentPrice) {
         house.rentPrice = 0;
         this.saveDBEntityAsync(house.id);
@@ -148,68 +169,75 @@ export class Server extends ServerEntityWithEntranceController<House> {
       const maxValue: number = Math.max(1000, house.firstPurchasePrice / 750);
 
       TriggerClientEvent('houses-menu:show-dialog', source, {
-        title: 'Enable rent',
-        content:
-          'When rent is enabled, your house can hold tenants who pay rent for every hour spent in the city. You can evict tenants at any time.',
+        title: this.translate('house_enable_rent'),
+        content: this.translate('house_enable_rent_description'),
         dialogId: 'adjust-rent-price',
         dialogComponents: [
           {
             formControlName: 'houserentprice',
             type: 'slider',
             defaultValue: minValue,
-            heading: 'Rent price ($/hr spent in city)',
+            heading: this.translate('house_rent_price_slider'),
             metadata: {
               min: minValue,
               max: maxValue,
               prefix: '$',
+              step: 100,
             },
           },
         ],
         buttons: [
           {
-            title: 'Confirm',
+            title: this.translate('confirm'),
           },
         ],
       });
     }
   }
 
-  @EventListener({ eventName: 'houses:confirm-adjust-rent' })
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:confirm-adjust-rent`,
+  })
   public onPlayerConfirmAdjustRent(rentPrice: number): void {
     // TODO: Do minValue and maxValue validations here! (also at house sell)
     let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
 
     if (house) {
-      house.rentPrice = Number(rentPrice);
+      house.rentPrice = Math.floor(rentPrice);
       this.saveDBEntityAsync(house.id);
       this.showHouseMenu(source);
     }
   }
 
-  @EventListener({ eventName: 'houses:request-evict-tenants' })
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:request-evict-tenants`,
+  })
   public onPlayerRequestEvictTenants(): void {
     let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
 
-    if (house && house.owner === GetPlayerName(source)) {
+    if (house && this.isHouseOwnedBy(house, source)) {
       TriggerClientEvent('houses-menu:show-dialog', source, {
-        title: `Evict All Tenants (${house.tenantIds.length} tenants)`,
-        content:
-          'Are you sure you want to evict all tenants? This will kick them out of your house, and if you do this wrongfully, they can press charges!',
+        title: this.translate('house_tenants_evict_all_sum', {
+          number: (house.tenantIds?.length || 0).toString(),
+        }),
+        content: this.translate('house_tenants_evict_all_confirmation'),
         dialogId: 'evict-all-tenants',
         buttons: [
           {
-            title: 'Confirm',
+            title: this.translate('confirm'),
           },
         ],
       });
     }
   }
 
-  @EventListener({ eventName: 'houses:confirm-evict-tenants' })
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:confirm-evict-tenants`,
+  })
   public onPlayerConfirmEvictTenants(): void {
     let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
 
-    if (house && house.owner === GetPlayerName(source)) {
+    if (house && this.isHouseOwnedBy(house, source)) {
       house.tenantIds = [];
       // TODO: Also kick them out of the house here
       this.saveDBEntityAsync(house.id);
@@ -221,7 +249,8 @@ export class Server extends ServerEntityWithEntranceController<House> {
     eventName: `${GetCurrentResourceName()}:request-purchase-house`,
   })
   public onPlayerRequestPurchaseHouse(): void {
-    const house: House = this.getClosestEntityOfSameTypeToPlayer(source);
+    const house: HouseExtended =
+      this.getClosestEntityOfSameTypeToPlayer(source);
 
     if (
       (house.owner && house.sellingPrice > 0) ||
@@ -235,28 +264,20 @@ export class Server extends ServerEntityWithEntranceController<House> {
         ? house.firstPurchasePrice
         : house.sellingPrice;
 
-      if (!!house.owner) {
-        const houseOwner: number = global.exports['authentication']
-          .getAuthenticatedPlayers()
-          .find(
-            (authenticatedPlayer: number) =>
-              GetPlayerName(authenticatedPlayer) === house.owner
-          );
-
-        if (houseOwner) {
-          global.exports['phone'].executeCall(
-            source,
-            global.exports['authentication'].getPlayerInfo(houseOwner, 'phone')
-          );
-        }
+      if (house.ownerInstance) {
+        global.exports['phone'].executeCall(
+          source,
+          global.exports['authentication'].getPlayerInfo(
+            house.ownerInstance,
+            'phone'
+          )
+        );
       } else {
         // prettier-ignore
         TriggerClientEvent(`${GetCurrentResourceName()}:show-dialog`, source, <UIDialog>{
-          title: 'Purchase this house?',
-          content: `Are you sure you want to purchase this house for $${numberWithCommas(
-            housePrice
-          )}?`,
-          buttons: [{ title: 'Confirm' }],
+          title: this.translate('house_purchase_ask'),
+          content: this.translate('house_purchase_ask_description', { price: numberWithCommas(housePrice) }),
+          buttons: [{ title: this.translate('confirm') }],
           dialogId: 'purchase_unowned_house',
         });
       }
@@ -268,7 +289,8 @@ export class Server extends ServerEntityWithEntranceController<House> {
   })
   public onPlayerConfirmPurchaseHouse(): void {
     (async (_source: number) => {
-      const house: House = this.getClosestEntityOfSameTypeToPlayer(_source);
+      const house: HouseExtended =
+        this.getClosestEntityOfSameTypeToPlayer(_source);
 
       if (
         (house.owner && house.sellingPrice > 0) ||
@@ -281,12 +303,16 @@ export class Server extends ServerEntityWithEntranceController<House> {
         const housePrice: number = !house.owner
           ? house.firstPurchasePrice
           : house.sellingPrice;
-        const housePreviousOwner: string = house.owner;
 
         house.owner = global.exports['authentication'].getPlayerInfo(
           _source,
           'name'
         );
+        house.ownerId = global.exports['authentication'].getPlayerInfo(
+          _source,
+          'id'
+        );
+        house.ownerInstance = _source;
 
         house.sellingPrice = 0;
         const result: boolean = await this.saveDBEntityAsync(house.id);
@@ -316,11 +342,319 @@ export class Server extends ServerEntityWithEntranceController<House> {
             _source,
             house
           );
-        } else {
-          house.owner = housePreviousOwner;
         }
       }
     })(source);
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:request-buy-alarm` })
+  public onPlayerRequestBuyAlarm(): void {
+    let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
+
+    if (house && this.isHouseOwnedBy(house, source)) {
+      if (house.alarm) {
+        TriggerClientEvent('houses-menu:show-dialog', source, {
+          title: this.translate('burglar_alarm_disable'),
+          content: this.translate('burglar_alarm_disable_confirmation'),
+          dialogId: 'confirm-disable-alarm',
+          buttons: [
+            {
+              title: this.translate('confirm'),
+            },
+          ],
+        });
+        return;
+      }
+
+      TriggerClientEvent('houses-menu:show-dialog', source, {
+        title: this.translate('burglar_alarm'),
+        content: this.translate('burglar_alarm_description', {
+          price: numberWithCommas(
+            this.computePriceByRate(OPTIONS.ALARM_PRICE_RATE)
+          ),
+          hr: this.translate('hour_shortened'),
+        }),
+        dialogId: 'buy-alarm',
+        dialogComponents: [
+          {
+            formControlName: 'selectedalarm',
+            type: 'stats',
+            metadata: {
+              items: [
+                {
+                  title: this.translate('burglar_alarm'),
+                  image: 'burglar_alarm',
+                  [this.translate('security')]: '100%',
+                  [this.translate('price')]: `$${numberWithCommas(
+                    this.computePriceByRate(OPTIONS.ALARM_PRICE_RATE)
+                  )}/${this.translate('hour_shortened')}`,
+                },
+              ],
+            },
+          },
+        ],
+        buttons: [
+          {
+            title: this.translate('confirm'),
+          },
+        ],
+      });
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:select-alarm`,
+  })
+  public onPlayerSelectAlarm(eventData: any): void {
+    const house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
+
+    if (
+      house &&
+      Number(global.exports['authentication'].getPlayerInfo(source, 'cash')) >=
+        this.computePriceByRate(OPTIONS.ALARM_PRICE_RATE)
+    ) {
+      TriggerClientEvent('houses-menu:show-dialog', source, {
+        title: this.translate('burglar_alarm'),
+        content: this.translate('burglar_alarm_confirmation', {
+          price: numberWithCommas(
+            this.computePriceByRate(OPTIONS.ALARM_PRICE_RATE)
+          ),
+          hr: this.translate('hour_shortened'),
+        }),
+        dialogId: 'confirm-buy-alarm',
+        buttons: [{ title: this.translate('confirm') }],
+      });
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:confirm-buy-alarm`,
+  })
+  public onPlayerConfirmBuyAlarm(): void {
+    const playerId: number = source;
+    const house: House = this.getClosestEntityOfSameTypeExitToPlayer(playerId);
+    const cash = Number(
+      global.exports['authentication'].getPlayerInfo(playerId, 'cash')
+    );
+
+    if (
+      house &&
+      this.isHouseOwnedBy(house, playerId) &&
+      cash >= this.computePriceByRate(OPTIONS.ALARM_PRICE_RATE)
+    ) {
+      global.exports['authentication'].setPlayerInfo(
+        playerId,
+        'cash',
+        cash - this.computePriceByRate(OPTIONS.ALARM_PRICE_RATE)
+      );
+
+      house.alarm = 1;
+
+      this.showHouseMenu(playerId);
+      this.saveDBEntityAsync(house.id);
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:confirm-disable-alarm`,
+  })
+  public onPlayerConfirmDisableAlarm(): void {
+    const playerId: number = source;
+    const house: House = this.getClosestEntityOfSameTypeExitToPlayer(playerId);
+
+    if (house && this.isHouseOwnedBy(house, playerId)) {
+      house.alarm = 0;
+
+      this.showHouseMenu(playerId);
+      this.saveDBEntityAsync(house.id);
+    }
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:request-buy-pet` })
+  public onPlayerRequestBuyPet(): void {
+    let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
+
+    if (house && this.isHouseOwnedBy(house, source)) {
+      TriggerClientEvent('houses-menu:show-dialog', source, {
+        title: this.translate('pet_shop'),
+        content: this.translate('pet_shop_description'),
+        dialogId: 'buy-pet',
+        dialogComponents: [
+          {
+            formControlName: 'selectedpet',
+            type: 'stats',
+            metadata: {
+              items: global.exports['pets'].getPetsForUI().map((pet) => ({
+                ...pet,
+                [this.translate('price')]: `$${numberWithCommas(
+                  pet[this.translate('price')]
+                )}`,
+              })),
+            },
+          },
+        ],
+        buttons: [
+          {
+            title: this.translate('close'),
+          },
+        ],
+      });
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:select-pet`,
+  })
+  public onPlayerSelectPet(eventData: any): void {
+    if (!eventData || !eventData.key) {
+      return;
+    }
+
+    const house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
+    const pet = global.exports['pets'].getPetById(eventData.key);
+
+    if (
+      house &&
+      pet &&
+      Number(global.exports['authentication'].getPlayerInfo(source, 'cash')) >=
+        Number(pet.price)
+    ) {
+      this.playersBuyingPets.set(source, pet);
+      TriggerClientEvent('houses-menu:show-dialog', source, {
+        title: this.translate('pet_shop'),
+        content: this.translate('pet_shop_select_pet_description', {
+          price: numberWithCommas(Number(pet.price)),
+        }),
+        dialogId: 'confirm-buy-pet',
+        dialogComponents: [
+          {
+            formControlName: 'petname',
+            type: 'input',
+            metadata: {
+              label: this.translate('pet_name'),
+              minLength: OPTIONS.PET_MIN_NAME_LENGTH,
+              maxLength: OPTIONS.PET_MAX_NAME_LENGTH,
+              requiredErrorMessage: this.translate('field_required'),
+              requiredMinLengthMessage: this.translate('field_min_length', {
+                length: OPTIONS.PET_MIN_NAME_LENGTH.toString(),
+              }),
+              requiredMaxLengthMessage: this.translate('field_max_length', {
+                length: OPTIONS.PET_MAX_NAME_LENGTH.toString(),
+              }),
+            },
+            required: true,
+          },
+        ],
+        buttons: [{ title: this.translate('confirm') }],
+      });
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:confirm-buy-pet`,
+  })
+  public onPlayerConfirmBuyPet({ form: { petname } }): void {
+    const playerId: number = source;
+    const house: House = this.getClosestEntityOfSameTypeExitToPlayer(playerId);
+    const pet = this.playersBuyingPets.get(playerId);
+    const cash = Number(
+      global.exports['authentication'].getPlayerInfo(playerId, 'cash')
+    );
+
+    if (
+      petname.length < OPTIONS.PET_MIN_NAME_LENGTH ||
+      petname.length > OPTIONS.PET_MAX_NAME_LENGTH
+    ) {
+      return;
+    }
+
+    if (
+      house &&
+      this.isHouseOwnedBy(house, playerId) &&
+      pet &&
+      cash >= Number(pet.price)
+    ) {
+      global.exports['authentication'].setPlayerInfo(
+        playerId,
+        'cash',
+        cash - Number(pet.price)
+      );
+
+      house.pet = {
+        name: toTitleCase(petname),
+        pedId: this.playersBuyingPets.get(playerId).key,
+      };
+
+      this.playersBuyingPets.delete(playerId);
+      this.showHouseMenu(playerId);
+      this.saveDBEntityAsync(house.id);
+
+      global.exports['pets'].createPet(house.pet, house.id);
+
+      const playersInThisVirtualWorld = this.virtualWorldsWithPlayers.get(
+        house.id
+      );
+      if (playersInThisVirtualWorld?.length) {
+        const defaultHouseInteriorIndex: number =
+          this.getHouseInteriorIndex(house);
+
+        global.exports['pets'].spawnPetForPlayerInVirtualWorld(
+          playerId,
+          house.id,
+          HOUSE_PETS_DEFAULTS[defaultHouseInteriorIndex].spawnPos,
+          this.isHouseOwnedBy(house, playerId),
+          NetworkGetNetworkIdFromEntity(GetPlayerPed(playerId))
+        );
+      }
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:request-rehome-pet`,
+  })
+  public onPlayerRequestRehomePet(): void {
+    let house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
+    const pet = <any>house.pet;
+
+    if (
+      house &&
+      this.isHouseOwnedBy(house, source) &&
+      Object.keys(house.pet).length > 0
+    ) {
+      TriggerClientEvent('houses-menu:show-dialog', source, {
+        title: this.translate('pet_set_for_adoption'),
+        content: this.translate('pet_set_for_adoption_confirmation', {
+          name: pet.name,
+        }),
+        dialogId: 'confirm-rehome-pet',
+        buttons: [{ title: this.translate('confirm') }],
+      });
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:confirm-rehome-pet`,
+  })
+  public onPlayerConfirmRehomePet(): void {
+    const house: House = this.getClosestEntityOfSameTypeExitToPlayer(source);
+
+    if (
+      house &&
+      this.isHouseOwnedBy(house, source) &&
+      Object.keys(house.pet).length > 0
+    ) {
+      house.pet = {};
+      this.showHouseMenu(source);
+      this.saveDBEntityAsync(house.id);
+
+      global.exports['pets'].removePet(house.id);
+
+      const playersInThisVirtualWorld: number[] =
+        this.virtualWorldsWithPlayers.get(house.id);
+      if (playersInThisVirtualWorld) {
+        global.exports['pets'].despawnPetForPlayers(playersInThisVirtualWorld);
+      }
+    }
   }
 
   @EventListener({
@@ -379,7 +713,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
 
     if (this.playersInspectingFridges.has(source)) {
       /*
-      TODO: if (trunk has sufficient space to add an item) (should work when incrementing item)
+      TODO: if (fridge has sufficient space to add an item) (should work when incrementing item)
       */
       const existingItemFromPlayerInventoryData: any = global.exports[
         'authentication'
@@ -432,7 +766,12 @@ export class Server extends ServerEntityWithEntranceController<House> {
       TODO: if (player has sufficient space for this)
       */
       const currentFridgeItems: Item[] = ItemConstructor.bundle(
-        new ItemConstructor(() => house.fridge, 'items').get()
+        new ItemConstructor(
+          () => house.fridge,
+          'items',
+          undefined,
+          this.translationLanguage
+        ).get()
       );
 
       const existingItemOfSameType: Item = currentFridgeItems.find(
@@ -494,7 +833,12 @@ export class Server extends ServerEntityWithEntranceController<House> {
         } 
         */
         let currentFridgeItems: Item[] = ItemConstructor.bundle(
-          new ItemConstructor(() => house.fridge, 'items').get()
+          new ItemConstructor(
+            () => house.fridge,
+            'items',
+            undefined,
+            this.translationLanguage
+          ).get()
         );
 
         currentFridgeItems = currentFridgeItems.filter(
@@ -503,7 +847,9 @@ export class Server extends ServerEntityWithEntranceController<House> {
 
         house.fridge = new ItemConstructor(
           () => house.fridge,
-          data.item._piKey
+          data.item._piKey,
+          undefined,
+          this.translationLanguage
         ).incrementFromSource(
           global.exports['authentication'].getPlayerInfo(
             source,
@@ -513,7 +859,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
           data.item.image
         );
 
-        // It is IMPORTANT for this to be executed AFTER the trunk incremention/decremention above
+        // It is IMPORTANT for this to be executed AFTER the fridge incremention/decremention above
         global.exports['inventory'].consumePlayerItem(
           _target,
           data.item,
@@ -527,7 +873,9 @@ export class Server extends ServerEntityWithEntranceController<House> {
       ) {
         house.fridge = new ItemConstructor(
           () => house.fridge,
-          data.item._piKey
+          data.item._piKey,
+          undefined,
+          this.translationLanguage
         ).incrementFromSource(
           global.exports['authentication'].getPlayerInfo(
             source,
@@ -568,7 +916,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
     return entitiesLoaded;
   }
 
-  @Command(6)
+  @Command({ adminLevelRequired: 6 })
   public createHouse(source: number, args: any[]): void {
     if (args.length < 3) {
       console.log('Syntax: /createhouse <interior> <price> <level>!');
@@ -596,7 +944,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
     } as House);
   }
 
-  @Command(6)
+  @Command({ adminLevelRequired: 6 })
   public removeHouse(source: number, args: any[]): void {
     let house: House = this.getClosestEntityOfSameTypeToPlayer(source);
     if (args && args[0]) {
@@ -626,9 +974,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
       return;
     }
 
-    const isOwnedByMe: boolean =
-      house.owner ===
-      global.exports['authentication'].getPlayerInfo(source, 'name');
+    const isOwnedByMe: boolean = house.ownerInstance === source;
 
     if (
       !(
@@ -638,18 +984,6 @@ export class Server extends ServerEntityWithEntranceController<House> {
         )
       )
     ) {
-      house.ownerInstance = -1;
-
-      if (!isOwnedByMe && !!house.owner) {
-        const authenticatedPlayers: number[] =
-          global.exports['authentication'].getAuthenticatedPlayers();
-        house.ownerInstance =
-          authenticatedPlayers.find(
-            (authenticatedPlayer: number) =>
-              GetPlayerName(authenticatedPlayer) === house.owner
-          ) || -1;
-      }
-
       TriggerClientEvent(
         `${GetCurrentResourceName()}:force-showui`,
         source,
@@ -660,7 +994,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
     }
   }
 
-  @Command(3)
+  @Command({ adminLevelRequired: 3 })
   public ramHouse(source: number, args: any[]): void {
     let house: House = this.getClosestEntityOfSameTypeToPlayer(source);
     if (args && args[0]) {
@@ -712,10 +1046,20 @@ export class Server extends ServerEntityWithEntranceController<House> {
       source,
       ItemConstructor.withCustomizations(
         {
-          title: 'Fridge',
+          title: this.translate('fridge'),
           items: ItemConstructor.bundle(
-            new ItemConstructor(() => ({ fridge_documents: 1 }), 'items').get(),
-            new ItemConstructor((() => house.fridge).bind(this), 'items').get()
+            new ItemConstructor(
+              () => ({ fridge_documents: 1 }),
+              'items',
+              undefined,
+              this.translationLanguage
+            ).get(),
+            new ItemConstructor(
+              (() => house.fridge).bind(this),
+              'items',
+              undefined,
+              this.translationLanguage
+            ).get()
           ),
         },
         {
@@ -776,39 +1120,60 @@ export class Server extends ServerEntityWithEntranceController<House> {
         100
     );
 
+    // TODO: When a house owner changes the rent price, all the tenants should keep the previous rent price unless new rent price is accepted
+
     TriggerClientEvent(
       `${GetCurrentResourceName()}-menu:force-showui`,
       playerId,
       {
         stats: [
-          { key: 'Level', value: house.level },
-          { key: 'Tenants', value: house.tenantIds?.length },
+          { key: this.translate('level'), value: house.level },
+          { key: this.translate('tenants'), value: house.tenantIds?.length },
           {
-            key: 'Max Income',
+            key: this.translate('max_income'),
             value:
               '$' + numberWithCommas(house.tenantIds?.length * house.rentPrice),
           },
-          { key: 'Security(%)', value: '0%' },
-          { key: 'Pet', value: 'German Shepherd' },
-          { key: 'Pet Status', value: 'Happy' },
+          { key: `${this.translate('security')}(%)`, value: '0%' },
           {
-            key: 'Price',
+            key: this.translate('pet_shortened'),
+            value: (<any>house.pet).name
+              ? (<any>house.pet).name
+              : Object.keys(house.pet).length > 0
+              ? global.exports['pets'].getPetNiceNameById(
+                  (<any>house.pet).pedId
+                )
+              : this.translate('none'),
+          },
+          { key: this.translate('pet_status'), value: 'Happy' },
+          {
+            key: this.translate('price'),
             value:
               house.sellingPrice > 0
                 ? `$${numberWithCommas(house.sellingPrice)}`
-                : 'Not for Sale',
+                : this.translate('house_not_for_sale'),
           },
           {
-            key: 'Value',
+            key: this.translate('value'),
             value: '$' + numberWithCommas(house.firstPurchasePrice),
           },
           {
-            key: 'Rent Price',
-            value: `$${numberWithCommas(house.rentPrice)}/hr`,
+            key: this.translate('rent_price'),
+            value: `$${numberWithCommas(house.rentPrice)}/${this.translate(
+              'hour_shortened'
+            )}`,
           },
-          { key: 'Upgrades', value: '0/3' },
-          { key: 'Taxes', value: `$${numberWithCommas(taxes)}/hr` },
-          { key: 'Pet Expenses', value: '$50/hr' },
+          { key: this.translate('upgrades'), value: '0/3' },
+          {
+            key: this.translate('taxes'),
+            value: `$${numberWithCommas(taxes)}/${this.translate(
+              'hour_shortened'
+            )}`,
+          },
+          {
+            key: this.translate('pet_expenses'),
+            value: `$50/${this.translate('hour_shortened')}`,
+          },
         ],
         items: house.tenantIds.map((_tenant: number) => ({
           outline: '#404158',
@@ -818,69 +1183,94 @@ export class Server extends ServerEntityWithEntranceController<House> {
           image: '1',
         })),
         leftMenu: {
-          description: 'House Management',
+          description: this.translate('house_management'),
           buttons: [
             {
-              title: !house.sellingPrice ? 'Set for Sale' : 'Stop Selling',
+              title: !house.sellingPrice
+                ? this.translate('house_set_for_sale_shortened')
+                : this.translate('house_set_for_sale_stop'),
               subtitle: !house.sellingPrice
-                ? 'Enable players to buy your house'
-                : 'Set as no longer for sale',
+                ? this.translate('house_set_for_sale_short_description')
+                : this.translate('house_set_for_sale_stop_short_description'),
               icon: 'sell',
               unlocked: !!house.sellingPrice,
               disabled: false,
             },
             {
-              title: 'Sell to Bank',
-              subtitle: 'Sell immediately for 50% value',
+              title: this.translate('house_sell_to_bank'),
+              subtitle: this.translate('house_sell_to_bank_short_description'),
               icon: 'account_balance',
             },
             {
-              title: !house.rentPrice ? 'Enable rent' : 'Disable rent',
+              title: !house.rentPrice
+                ? this.translate('house_enable_rent')
+                : this.translate('house_disable_rent'),
               subtitle: !house.rentPrice
-                ? 'Manage rent options'
-                : 'Stop charging for rent',
+                ? this.translate('house_enable_rent_short_description')
+                : this.translate('house_disable_rent_short_description'),
               icon: 'supervisor_account',
               unlocked: !!house.rentPrice,
               disabled: false,
             },
             {
-              title: 'Evict All Tenants',
-              subtitle: 'Evict all tenants immediately',
+              title: this.translate('house_tenants_evict_all'),
+              subtitle: this.translate(
+                'house_tenants_evict_all_short_description'
+              ),
               icon: 'logout',
               disabled: !house.tenantIds.length,
-              tooltip: 'No tenants to evict',
+              tooltip: this.translate('house_tenants_evict_no_tenants'),
             },
           ],
         },
         rightMenu: {
-          description: 'House Upgrades',
+          description: this.translate('house_upgrades'),
           buttons: [
             {
-              title: 'Alarm Upgrade',
-              subtitle: 'Burglar protection for $1,000/hr',
+              title: !house.alarm
+                ? this.translate('house_upgrade_alarm')
+                : this.translate('burglar_alarm_disable'),
+              subtitle: !house.alarm
+                ? this.translate('house_upgrade_alarm_short_description', {
+                    price: numberWithCommas(
+                      this.computePriceByRate(OPTIONS.ALARM_PRICE_RATE)
+                    ),
+                  })
+                : this.translate('burglar_alarm_disable_short_description'),
+              unlocked: house.alarm === 1,
               icon: 'access_alarms',
+              disabled: false,
             },
             {
-              title: 'Pet',
-              subtitle: 'Buy a pet for your house',
+              title: this.translate('pet'),
+              subtitle: this.translate('pet_short_description'),
               icon: 'pets',
+              disabled: Object.keys(house.pet).length > 0,
+              tooltip: this.translate(
+                'pet_already_have_pet_shortened_description'
+              ),
+            },
+            {
+              title: this.translate('pet_set_for_adoption'),
+              subtitle: this.translate(
+                'pet_set_for_adoption_short_description'
+              ),
+              icon: 'heart_broken',
+              disabled: !Object.keys(house.pet).length,
+              tooltip: this.translate('pet_no_pets'),
             },
           ],
         },
-        title: `House Menu - ${house.owner}'s House (#${house.id})`,
+        title: this.translate('house_headline', {
+          owner: house.owner,
+          id: house.id.toString(),
+        }),
       }
     );
   }
 
   private isPlayerAtFridge(source: number, house: House): boolean {
-    const defaultHouseInteriorIndex: number = HOUSE_INTERIORS.indexOf(
-      HOUSE_INTERIORS.find(
-        (_dhi) =>
-          Math.floor(_dhi.pos[0]) === Math.floor(house.exitX) &&
-          Math.floor(_dhi.pos[1]) === Math.floor(house.exitY) &&
-          Math.floor(_dhi.pos[2]) === Math.floor(house.exitZ)
-      )
-    );
+    const defaultHouseInteriorIndex: number = this.getHouseInteriorIndex(house);
 
     const playerPosition: number[] = GetEntityCoords(
       GetPlayerPed(source),
@@ -904,7 +1294,7 @@ export class Server extends ServerEntityWithEntranceController<House> {
     return false;
   }
 
-  private teleportIntoHouse(source: number, house: House): void {
+  private teleportIntoHouse(source: number, house: HouseExtended): void {
     SetEntityCoords(
       GetPlayerPed(source),
       house.exitX,
@@ -918,26 +1308,22 @@ export class Server extends ServerEntityWithEntranceController<House> {
     this.setPlayerVirtualWorld(source, house.id);
 
     if (Object.keys(house.pet)?.length) {
-      const defaultHouseInteriorIndex: number = HOUSE_INTERIORS.indexOf(
-        HOUSE_INTERIORS.find(
-          (_dhi) =>
-            Math.floor(_dhi.pos[0]) === Math.floor(house.exitX) &&
-            Math.floor(_dhi.pos[1]) === Math.floor(house.exitY) &&
-            Math.floor(_dhi.pos[2]) === Math.floor(house.exitZ)
-        )
-      );
+      const defaultHouseInteriorIndex: number =
+        this.getHouseInteriorIndex(house);
 
-      const ownerIdInHouse: number = this.virtualWorldsWithPlayers
-        .get(house.id)
-        .find((playerId: number) => GetPlayerName(playerId) === house.owner);
+      const ownerInHouse: boolean =
+        !house.ownerInstance ||
+        this.virtualWorldsWithPlayers
+          .get(house.id)
+          .includes(house.ownerInstance);
 
       global.exports['pets'].spawnPetForPlayerInVirtualWorld(
         source,
         house.id,
         HOUSE_PETS_DEFAULTS[defaultHouseInteriorIndex].spawnPos,
-        house.owner === GetPlayerName(source),
-        ownerIdInHouse
-          ? NetworkGetNetworkIdFromEntity(GetPlayerPed(ownerIdInHouse))
+        this.isHouseOwnedBy(house, source),
+        ownerInHouse
+          ? NetworkGetNetworkIdFromEntity(GetPlayerPed(house.ownerInstance))
           : -1
       );
     }
@@ -958,15 +1344,14 @@ export class Server extends ServerEntityWithEntranceController<House> {
     global.exports['pets'].despawnPetsForPlayer(source);
   }
 
-  private registerExports(): void {
-    exports(
-      'getClosestHouse',
-      this.getClosestEntityOfSameTypeToPlayer.bind(this)
-    );
-    exports(
-      'getClosestHouseExit',
-      this.getClosestEntityOfSameTypeExitToPlayer.bind(this)
-    );
+  @Export()
+  public getClosestHouse(playerId: number): House {
+    return this.getClosestEntityOfSameTypeToPlayer(playerId);
+  }
+
+  @Export()
+  public getClosestHouseExit(playerId: number): House {
+    return this.getClosestEntityOfSameTypeExitToPlayer(playerId);
   }
 
   @EventListener({ eventName: 'inventory:on-force-hidden' })
@@ -977,10 +1362,61 @@ export class Server extends ServerEntityWithEntranceController<House> {
   }
 
   @EventListener()
+  public onPlayerAuthenticate(playerAuthenticated: number, player): void {
+    super.onPlayerAuthenticate(playerAuthenticated, player);
+
+    this.getEntities().forEach((house) => {
+      if (house.ownerId === player.id) {
+        (<HouseExtended>house).ownerInstance = playerAuthenticated;
+      }
+    });
+  }
+
+  @EventListener()
   public onPlayerDisconnect(): void {
     super.onPlayerDisconnect();
+
     if (this.playersInspectingFridges.has(source)) {
       this.playersInspectingFridges.delete(source);
     }
+
+    if (this.playersBuyingPets.has(source)) {
+      this.playersBuyingPets.delete(source);
+    }
+
+    this.getEntities().forEach((house) => {
+      if ((<HouseExtended>house).ownerInstance === source) {
+        (<HouseExtended>house).ownerInstance = null;
+      }
+    });
+  }
+
+  private isHouseOwnedBy(house: HouseExtended, playerId: number): boolean {
+    return house.ownerInstance === playerId;
+  }
+
+  private getHouseInteriorIndex(house: House): number | null {
+    return (
+      HOUSE_INTERIORS.indexOf(
+        HOUSE_INTERIORS.find(
+          (_dhi) =>
+            Math.floor(_dhi.pos[0]) === Math.floor(house.exitX) &&
+            Math.floor(_dhi.pos[1]) === Math.floor(house.exitY) &&
+            Math.floor(_dhi.pos[2]) === Math.floor(house.exitZ)
+        )
+      ) ?? null
+    );
+  }
+
+  private computePriceByRate(priceRate: number): number {
+    return Math.floor(
+      priceRate * /*TODO: Replace with price of most expensive car*/ 10000000
+    );
   }
 }
+
+export const OPTIONS = {
+  PET_MAX_NAME_LENGTH: 24,
+  PET_MIN_NAME_LENGTH: 3,
+  ALARM_PRICE_RATE: 0.00001,
+};

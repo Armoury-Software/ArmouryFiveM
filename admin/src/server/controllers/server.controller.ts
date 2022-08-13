@@ -17,30 +17,6 @@ export class Server extends ServerController {
     this.registerCommands();
   }
 
-  private findTargetPlayer(name: string): number {
-    const players: number[] = global.exports['armoury'].getPlayers();
-    let targetPlayer: number;
-
-    players.forEach((player: number) => {
-      if (
-        global.exports['authentication']
-          .getPlayerInfo(player, 'name')
-          .toLowerCase() === name.toLowerCase()
-      ) {
-        targetPlayer = player;
-      }
-    });
-    return targetPlayer;
-  }
-
-  private checkTargetAvailability(targetPlayer: number): boolean {
-    if (!targetPlayer) {
-      console.log(`No player found with specified name.`);
-      return false;
-    }
-    return true;
-  }
-
   private registerCommands(): void {
     this.RegisterAdminCommand(
       'tp',
@@ -187,10 +163,10 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
         const routingBucket: number = Number(args[1]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -221,9 +197,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -265,9 +241,9 @@ export class Server extends ServerController {
           true
         );
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -307,9 +283,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -357,9 +333,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -388,9 +364,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -426,9 +402,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -465,9 +441,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -486,9 +462,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -524,9 +500,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPlayer: number = this.findTargetPlayer(args[0]);
+        const targetPlayer: number = Number(args[0]);
 
-        if (!this.checkTargetAvailability(targetPlayer)) {
+        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 

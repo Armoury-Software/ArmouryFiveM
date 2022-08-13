@@ -77,7 +77,10 @@ export class Client extends ClientController {
   @EventListener({
     eventName: `${GetCurrentResourceName()}:destroy-pets-for-player`,
   })
-  public onPetsShouldBeDestroyed(): void {
+  public onPetsShouldBeDestroyed(
+    pet?: PetExtended,
+    virtualWorld?: number
+  ): void {
     this._spawnedPetsInVirtualWorlds.forEach((pedId: number) => {
       DeleteEntity(pedId);
     });

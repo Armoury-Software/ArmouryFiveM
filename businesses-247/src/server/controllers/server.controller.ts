@@ -6,7 +6,7 @@ import { BASE_ITEM_PRICES } from '@shared/item.prices';
 
 import { Business } from '../../../../businesses/src/shared/models/business.interface';
 import { EXTERNAL_INVENTORY_MAPPINGS } from '../../../../inventory/src/shared/external-inventory.mappings';
-import { ItemConstructor } from '../../../../inventory/src/client/helpers/inventory-item.constructor';
+import { ItemConstructor } from '../../../../inventory/src/shared/helpers/inventory-item.constructor';
 import { Item } from '../../../../inventory/src/shared/item-list.model';
 
 @FiveMController()
@@ -40,7 +40,7 @@ export class Server extends ServerController {
             'inventory:client-inventory-request',
             source,
             ItemConstructor.withCustomizations(
-              EXTERNAL_INVENTORY_MAPPINGS[this._businessUsableName],
+              EXTERNAL_INVENTORY_MAPPINGS(this.translationLanguage)[this._businessUsableName],
               {
                 topLeft: () => '',
                 bottomRight: (value: Item) =>

@@ -3,3 +3,7 @@
 *.yarn
 yarn.installed
 *workspace.*
+uc-hud
+uc-jobs
+uc-roleplay-test
+uc-optimized-checks

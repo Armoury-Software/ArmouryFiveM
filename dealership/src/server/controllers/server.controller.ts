@@ -48,7 +48,7 @@ export class Server extends ServerEntityWithEntranceController<Dealership> {
     }
   }
 
-  @Command(6)
+  @Command({ adminLevelRequired: 6 })
   public dealershipAddModel(source: number, args: any[]): void {
     const dealership: Dealership =
       this.getClosestEntityOfSameTypeEntranceToPlayer(source);
@@ -84,7 +84,7 @@ export class Server extends ServerEntityWithEntranceController<Dealership> {
     this.saveDBEntityAsync(dealership.id);
   }
 
-  @Command(6)
+  @Command({ adminLevelRequired: 6 })
   public dealershipRemoveModel(source: number, args: any[]): void {
     const dealership: Dealership =
       this.getClosestEntityOfSameTypeEntranceToPlayer(source);
@@ -120,7 +120,7 @@ export class Server extends ServerEntityWithEntranceController<Dealership> {
     this.saveDBEntityAsync(dealership.id);
   }
 
-  @Command(6)
+  @Command({ adminLevelRequired: 6 })
   public dealershipEditModelPrice(source: number, args: any[]): void {
     const dealership: Dealership =
       this.getClosestEntityOfSameTypeEntranceToPlayer(source);

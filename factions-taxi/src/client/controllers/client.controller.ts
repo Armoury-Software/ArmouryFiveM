@@ -7,7 +7,9 @@ import { EVENT_DIRECTIONS } from '@core/decorators/event.directions';
 import { isPlayerInRangeOfPoint } from '@core/utils';
 import { TAXI_DEFAULTS } from '@shared/models/defaults';
 
-@FiveMController()
+import { i18n } from '../i18n';
+
+@FiveMController({ translationFile: i18n })
 export class Client extends ClientFactionController {
   private relationshipGroup: number;
   private driverCurrentTripInterval: NodeJS.Timer;

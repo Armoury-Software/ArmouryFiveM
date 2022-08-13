@@ -1,61 +1,113 @@
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import { EventListener, Export, FiveMController } from '@core/decorators/armoury.decorators';
 import { ServerController } from '@core/server/server.controller';
 
 import { Weapons } from '@shared/models/weapon.model';
+import { WeaponHash } from 'fivem-js';
 
 @FiveMController()
 export class Server extends ServerController {
-    public constructor(){
-        super();
+  @EventListener({
+    eventName: `inventory:player-accepted-trade`
+  })
+  public onPlayerAcceptedTrade(
+    offeredPlayerId: number,
+    _offererPlayerId: number
+  ): void {
+    const itemsToBeReceived =
+      global.exports['inventory'].getPendingItemsToBeReceivedByPlayer(offeredPlayerId);
 
-        this.assignExports();
-        this.assignListeners();
+    const piKeysToConsider: string[] = ['weapons'];
+
+    itemsToBeReceived.forEach((item) => {
+      if (piKeysToConsider.includes(item._piKey)) {
+        global.exports['inventory'].givePlayerItem(offeredPlayerId, item, item._svAmount);
+        this.givePlayerWeapon(offeredPlayerId, item.image, item._svAmount);
+      }
+    });
+
+    global.exports['inventory'].removePendingItemToBeReceivedByPlayer(
+      offeredPlayerId,
+      ...piKeysToConsider
+    );
+  }
+
+  @EventListener({
+    eventName: `inventory:player-trade-item-given`
+  })
+  public onPlayerBeganTrade(offererPlayerId: number, offeredPlayerId: number, item: any): void {
+    const itemsBeingTransfered = global.exports['inventory'].getTradeRequestsItemsBetweenPlayers(offererPlayerId, offeredPlayerId);
+    
+    if (!WeaponHash[item.image]) {
+      return;
     }
 
-    public givePlayerWeapon(playerId: number, weapon: string, ammo: number): void {
-        const currentPlayerWeapons: Weapons = this.getPlayerWeapons(playerId);
-
-        if (!currentPlayerWeapons[weapon]) {
-            currentPlayerWeapons[weapon] = { ammo };
-        } else {
-            currentPlayerWeapons[weapon] = { ...currentPlayerWeapons[weapon], ammo: ammo + currentPlayerWeapons[weapon].ammo }
-        }
-
-        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons);
-
-        GiveWeaponToPed(GetPlayerPed(playerId), Number(weapon), ammo, false, false);
+    if (!itemsBeingTransfered.find((_item) => _item._svAmount === item._svAmount)) {
+      console.error(`Rejected acknowledgement of trade with ${GetPlayerName(offeredPlayerId)} (#${offeredPlayerId}) as receiver. (Weapons)`);
+      return;
     }
 
-    public removePlayerWeapons(playerId: number): void {
-        global.exports['authentication'].setPlayerInfo(playerId, 'weapons', {});
-        RemoveAllPedWeapons(GetPlayerPed(playerId), true);
+    console.log(
+      global.exports['authentication'].getPlayerInfo(
+        offererPlayerId,
+        'weapons'
+      )[WeaponHash[item.image]].ammo - item._svAmount
+    );
+
+    SetPedAmmo(
+      GetPlayerPed(offererPlayerId),
+      WeaponHash[item.image],
+      global.exports['authentication'].getPlayerInfo(
+        offererPlayerId,
+        'weapons'
+      )[WeaponHash[item.image]].ammo - item._svAmount
+    );
+  }
+
+  @EventListener()
+  public onPlayerAuthenticate(playerId: number): void {
+    setTimeout(() => { this.loadPlayerWeapons(playerId) }, 1000);
+  }
+
+  @EventListener()
+  public onPlayerDeath(): void {
+    this.removePlayerWeapons(source);
+  }
+
+  @Export()
+  public givePlayerWeapon(playerId: number, weapon: string | number, ammo: number): void {
+    const currentPlayerWeapons: Weapons = this.getPlayerWeapons(playerId);
+
+    if (typeof weapon === 'string') {
+      weapon = WeaponHash[weapon];
     }
 
-    public getPlayerWeapons(playerId: number): Weapons {
-        return typeof(global.exports['authentication'].getPlayerInfo(playerId, 'weapons')) === 'object' ? <Weapons>global.exports['authentication'].getPlayerInfo(playerId, 'weapons') : {};
+    if (!currentPlayerWeapons[weapon]) {
+      currentPlayerWeapons[weapon] = { ammo };
+    } else {
+      currentPlayerWeapons[weapon] = { ...currentPlayerWeapons[weapon], ammo: ammo + currentPlayerWeapons[weapon].ammo }
     }
 
-    public loadPlayerWeapons(playerId: number): void {
-        const playerWeapons: Weapons = this.getPlayerWeapons(playerId);
-        for (let weapon in playerWeapons) {
-            GiveWeaponToPed(GetPlayerPed(playerId), Number(weapon), playerWeapons[weapon].ammo, false, false);
-        }
-    }
+    global.exports['authentication'].setPlayerInfo(playerId, 'weapons', currentPlayerWeapons, false);
 
-    private assignExports(): void {
-        exports('givePlayerWeapon', this.givePlayerWeapon.bind(this));
-        exports('removePlayerWeapons', this.removePlayerWeapons.bind(this));
-        exports('getPlayerWeapons', this.getPlayerWeapons.bind(this));
-        exports('loadPlayerWeapons', this.loadPlayerWeapons.bind(this));
-    }
+    GiveWeaponToPed(GetPlayerPed(playerId), Number(weapon), ammo, false, false);
+  }
 
-    public assignListeners(): void {
-        onNet("authentication:player-authenticated", (source: number) => {
-            setTimeout(() => { this.loadPlayerWeapons(source) }, 1000);
-        });
+  @Export()
+  public removePlayerWeapons(playerId: number): void {
+    global.exports['authentication'].setPlayerInfo(playerId, 'weapons', {}, false);
+    RemoveAllPedWeapons(GetPlayerPed(playerId), true);
+  }
 
-        onNet("armoury:onPlayerDeath", () => {
-            this.removePlayerWeapons(source);
-        });
+  @Export()
+  public getPlayerWeapons(playerId: number): Weapons {
+    return typeof (global.exports['authentication'].getPlayerInfo(playerId, 'weapons')) === 'object' ? <Weapons>global.exports['authentication'].getPlayerInfo(playerId, 'weapons') : {};
+  }
+
+  @Export()
+  public loadPlayerWeapons(playerId: number): void {
+    const playerWeapons: Weapons = this.getPlayerWeapons(playerId);
+    for (let weapon in playerWeapons) {
+      GiveWeaponToPed(GetPlayerPed(playerId), Number(weapon), playerWeapons[weapon].ammo, false, false);
     }
+  }
 }

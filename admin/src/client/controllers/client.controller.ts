@@ -1,5 +1,6 @@
 import { ClientController } from '@core/client/client.controller';
 import {
+  Command,
   EventListener,
   FiveMController,
 } from '@core/decorators/armoury.decorators';
@@ -44,7 +45,6 @@ export class Client extends ClientController {
             `${GetCurrentResourceName()}:open-admin-menu`,
             ADMIN_MENU_MAIN
           );
-          console.log('opening admin menu');
           this.menuToggles.set('admin-menu', true);
         }
       },
@@ -220,7 +220,6 @@ export class Client extends ClientController {
       Number(args[1]),
       Number(args[2])
     );
-    console.log(zCoord + ' ' + source + ' ' + args.join(', '));
     if (GetEntityCoords(GetPlayerPed(source))[2] < zCoord[1]) {
       SetEntityCoords(
         GetPlayerPed(source),
@@ -233,5 +232,16 @@ export class Client extends ClientController {
         false
       );
     }
+  }
+
+  @Command()
+  public pos(): void {
+    console.log(
+      JSON.stringify([
+        ...GetEntityCoords(PlayerPedId(), true),
+        ...GetEntityRotation(PlayerPedId()),
+        GetEntityHeading(PlayerPedId()),
+      ])
+    );
   }
 }

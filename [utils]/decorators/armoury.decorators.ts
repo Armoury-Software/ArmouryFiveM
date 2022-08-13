@@ -3,11 +3,12 @@ import { EVENT_DIRECTIONS } from './event.directions';
 
 const eventListeners: Map<{ new (...args: any[]): any }, [string, string, EVENT_DIRECTIONS][]> = new Map<{ new (...args: any[]): any }, [string, string, EVENT_DIRECTIONS][]>();
 const exportRegisterers: Map<{ new (...args: any[]): any }, string[]> = new Map<{ new (...args: any[]): any }, string[]>();
-const commandRegisterers: Map<{ new (...args: any[]): any }, [string, number][]> = new Map<{ new (...args: any[]): any }, [string, number][]>();
+const commandRegisterers: Map<{ new (...args: any[]): any }, [string, any][]> = new Map<{ new (...args: any[]): any }, [string, any][]>();
 
-export function FiveMController() {
+export function FiveMController(options?: FiveMControllerOptions) {
   return function _FiveMController<T extends {new(...args: any[]): {}}>(constr: T){
     return class extends constr {
+      translationFile = options?.translationFile;
       constructor(...args: any[]) {
         super(...args);
 
@@ -33,20 +34,29 @@ export function FiveMController() {
         }
 
         if (commandRegisterers.has(constr)) {
-          commandRegisterers.get(constr).forEach(([func, adminLevelRequired]: [string, number]) => {
-            // exports(func, super[func].bind(this));
-            RegisterCommand(
-              func.toLowerCase(),
-              (source: number, args: any[], _raw: boolean) => {
-                  if (Number(global.exports['authentication'].getPlayerInfo(source, 'adminLevel')) < adminLevelRequired) {
-                      // TODO: Add error chat message OR some kind of visual notice here
-                      return;
-                  }
-  
-                  super[func].call(this, source, args, _raw);
-              },
-              false
-          );
+          commandRegisterers.get(constr).forEach(([func, data]: [string, any]) => {
+            if (IsDuplicityVersion()) {
+              RegisterCommand(
+                `${data?.isKeyBinding ? '+' : ''}` + func.toLowerCase() + (data?.suffix || ''),
+                (source: number, args: any[], _raw: boolean) => {
+                    if (data?.adminLevelRequired && Number(global.exports['authentication'].getPlayerInfo(source, 'adminLevel')) < data?.adminLevelRequired) {
+                        // TODO: Add error chat message OR some kind of visual notice here
+                        return;
+                    }
+    
+                    super[func].call(this, source, args, _raw);
+                },
+                false
+              );
+            } else {
+              RegisterCommand(
+                `${data?.isKeyBinding ? '+' : ''}` + func.toLowerCase() + (data?.suffix || ''),
+                (source: number, args: any[], _raw: boolean) => {
+                    super[func].call(this, args, _raw);
+                },
+                false
+              );
+            }
           });
         }
       }
@@ -93,7 +103,7 @@ export function Export() {
   }
 }
 
-export function Command(adminLevelRequired: number = 0) {
+export function Command(data?: { isKeyBinding?: boolean, adminLevelRequired?: number, suffix?: string }) {
   return function (
     _target: any,
     propertyKey: string,
@@ -103,8 +113,12 @@ export function Command(adminLevelRequired: number = 0) {
       commandRegisterers.set(_target.constructor, []);
     }
 
-    if (!commandRegisterers.get(_target.constructor).some(([_propertyKey, _adminLevelRequired]: [string, number]) => _propertyKey === propertyKey)) {
-      commandRegisterers.get(_target.constructor)!.push([propertyKey, adminLevelRequired]);
+    if (!commandRegisterers.get(_target.constructor).some(([_propertyKey, _data]: [string, number]) => _propertyKey === propertyKey)) {
+      commandRegisterers.get(_target.constructor)!.push([propertyKey, data || {}]);
     }
   }
+}
+
+export interface FiveMControllerOptions {
+  translationFile: { [key: string]: { [key: string]: string } };
 }

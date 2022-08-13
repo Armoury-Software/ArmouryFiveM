@@ -2,7 +2,7 @@ import { ItemConstructor } from './helpers/inventory-item.constructor';
 import { Item } from './item-list.model';
 
 // prettier-ignore
-export const EXTERNAL_INVENTORY_MAPPINGS: { [key: string]: ExternalInventoryMapping } = {
+export const EXTERNAL_INVENTORY_MAPPINGS = (language: string): { [key: string]: ExternalInventoryMapping } => ({
   247: {
     title: '24/7',
     items: ItemConstructor.bundle(
@@ -24,7 +24,9 @@ export const EXTERNAL_INVENTORY_MAPPINGS: { [key: string]: ExternalInventoryMapp
           fuel_cannister: 1000,
           toolbox: 1000
         }),
-        'items'
+        'items',
+        undefined,
+        language
       ).get()
     ),
   },
@@ -34,7 +36,9 @@ export const EXTERNAL_INVENTORY_MAPPINGS: { [key: string]: ExternalInventoryMapp
         new ItemConstructor(() => ({
             vehicle_documents: 1
           }),
-          'items'
+          'items',
+          undefined,
+          language
         ).get()
     ),
   },
@@ -44,11 +48,13 @@ export const EXTERNAL_INVENTORY_MAPPINGS: { [key: string]: ExternalInventoryMapp
       new ItemConstructor(() => ({
           vehicle_documents: 1
         }),
-        'items'
+        'items',
+        undefined,
+        language
       ).get()
     ),
   },
-};
+});
 
 export interface ExternalInventoryMapping {
   title: string;

@@ -61,7 +61,7 @@ export class ClientFactionController extends ClientWithUIController {
             DisableControlAction(0, 29, true);
 
             BeginTextCommandDisplayHelp('STRING');
-            AddTextComponentSubstringPlayerName('Press ~INPUT_PICKUP~ to open up the key locker.');
+            AddTextComponentSubstringPlayerName(this.translate('tooltip_open_key_locker'));
             EndTextCommandDisplayHelp(0, false, true, 1);
 
             if (IsDisabledControlJustPressed(0, 38)) {
@@ -73,6 +73,42 @@ export class ClientFactionController extends ClientWithUIController {
 
       this.createMarkers([...actionPointsPositions.map((position: number[]) => ({
         marker: 36,
+        pos: position,
+        scale: 0.75,
+        rgba: [255, 255, 255, 255],
+        renderDistance: 10.0,
+        underlyingCircle: {
+          marker: 25,
+          scale: 1.3,
+          rgba: [255, 255, 255, 255]
+        }
+      }))]);
+    }
+
+    @EventListener({ eventName: `${GetCurrentResourceName()}:add-clothing-locker-action-points` })
+    public onShouldAddClothingLockerActionPoints(actionPointsPositions: number[][]): void {
+      this.createActionPoints(
+        ...actionPointsPositions.map((position: number[], index: number) => ({
+          pos: position,
+          action: () => {
+            DisableControlAction(0, 38, true);
+            DisableControlAction(0, 68, true);
+            DisableControlAction(0, 86, true);
+            DisableControlAction(0, 29, true);
+
+            BeginTextCommandDisplayHelp('STRING');
+            AddTextComponentSubstringPlayerName(this.translate('tooltip_open_clothing_locker'));
+            EndTextCommandDisplayHelp(0, false, true, 1);
+
+            if (IsDisabledControlJustPressed(0, 38)) {
+              ExecuteCommand(`openclothinglocker ${index}`);
+            }
+          }
+        }))
+      );
+
+      this.createMarkers([...actionPointsPositions.map((position: number[]) => ({
+        marker: 20,
         pos: position,
         scale: 0.75,
         rgba: [255, 255, 255, 255],

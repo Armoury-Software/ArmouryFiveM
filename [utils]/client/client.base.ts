@@ -45,7 +45,7 @@ export class ClientBase {
         }
 
         if (this.tickFunctions.length > 0) {
-            this.tickInstance = setTick(async () => {
+            this.tickInstance = setTick(() => {
                 if (!this.tickFunctions.length) {
                     clearTick(this.tickInstance);
                     this.tickInstance = null;

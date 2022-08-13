@@ -18,6 +18,7 @@ export interface Item {
   description: string;
   _piKey?: string;
   value?: number;
+  metadata?: { [key: string]: any };
 }
 
 export interface ExternalItem {

@@ -4,9 +4,15 @@ import {
   FiveMController,
 } from '@core/decorators/armoury.decorators';
 import { calculateDistance } from '@core/utils';
+import { i18n } from '../i18n';
 
-@FiveMController()
+@FiveMController({ translationFile: i18n })
 export class Client extends ClientController {
+  private cachedVehicleNetworkIdsWithInformations: Map<
+    number,
+    { pos: [number, number, number]; name: string; blipId: number }
+  > = new Map();
+
   public constructor() {
     super();
 
@@ -20,6 +26,48 @@ export class Client extends ClientController {
     this.bleepLightsForVehicle(vehicleNetworkId);
   }
 
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:remove-owned-vehicle-cached-position`,
+  })
+  public onShouldRemoveOwnedVehicleCachedPosition(_vehicleNetworkId): void {
+    if (this.cachedVehicleNetworkIdsWithInformations.has(_vehicleNetworkId)) {
+      this.clearBlip(
+        this.cachedVehicleNetworkIdsWithInformations.get(_vehicleNetworkId)
+          .blipId
+      );
+      this.cachedVehicleNetworkIdsWithInformations.delete(_vehicleNetworkId);
+    }
+  }
+
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:update-owned-vehicle-cached-position`,
+  })
+  public onShouldCacheOwnedVehicleCachedPosition(
+    _vehicleNetworkId: number,
+    [vehicleX, vehicleY, vehicleZ]: [number, number, number],
+    model: number
+  ): void {
+    if (this.cachedVehicleNetworkIdsWithInformations.has(_vehicleNetworkId)) {
+      this.clearBlip(
+        this.cachedVehicleNetworkIdsWithInformations.get(_vehicleNetworkId)
+          .blipId
+      );
+    }
+
+    const name = GetDisplayNameFromVehicleModel(model);
+
+    this.cachedVehicleNetworkIdsWithInformations.set(_vehicleNetworkId, {
+      pos: [vehicleX, vehicleY, vehicleZ],
+      name,
+      blipId: this.createBlip({
+        id: 225,
+        color: 0,
+        title: this.translate('your_vehicle', { name }),
+        pos: [vehicleX, vehicleY, vehicleZ],
+      }),
+    });
+  }
+
   private registerKeyBindings(): void {
     RegisterCommand(
       '+togglevehiclelock',
@@ -27,11 +75,13 @@ export class Client extends ClientController {
         const currentFactionVehicleKeysNetworkIds: number[] = <number[]>(
           this.getPlayerInfo('factionnetworkvehiclekeys')
         );
+
+        const playerPosition: number[] = GetEntityCoords(PlayerPedId(), true);
+
         if (
           Array.isArray(currentFactionVehicleKeysNetworkIds) &&
           currentFactionVehicleKeysNetworkIds?.length
         ) {
-          const playerPosition: number[] = GetEntityCoords(PlayerPedId(), true);
           const nearestFactionVehicleNetworkId: number =
             currentFactionVehicleKeysNetworkIds.find((fvn: number) => {
               const vehiclePosition: number[] = GetEntityCoords(
@@ -57,7 +107,37 @@ export class Client extends ClientController {
               )}:unlock-this-vehicle`,
               nearestFactionVehicleNetworkId
             );
+
+            return;
           }
+        }
+
+        const closestPersonalVehicleNetworkId: number[] = Array.from(
+          this.cachedVehicleNetworkIdsWithInformations.keys()
+        )
+          .map((vehicleNetworkId) => {
+            const [vehicleX, vehicleY, vehicleZ] = GetEntityCoords(
+              NetworkGetEntityFromNetworkId(vehicleNetworkId)
+            );
+
+            return [
+              calculateDistance([
+                playerPosition[0],
+                playerPosition[1],
+                playerPosition[2],
+                vehicleX,
+                vehicleY,
+                vehicleZ,
+              ]),
+              vehicleNetworkId,
+            ];
+          })
+          .sort((a, b) => (a[0] < b[0] ? -1 : 1))?.[0];
+
+        if (closestPersonalVehicleNetworkId) {
+          // prettier-ignore
+          TriggerServerEvent(`${GetCurrentResourceName()}:unlock-this-vehicle`, closestPersonalVehicleNetworkId[1]);
+          return;
         }
       },
       false
@@ -125,38 +205,5 @@ export class Client extends ClientController {
         }, 75);
       }, 200);
     }, 500);
-  }
-
-  private getClosestPeds(): number[] {
-    let [handle, _entity]: [number, number] = FindFirstPed(0);
-
-    const closestPeds: number[] = [];
-    const currentPlayerPosition: number[] = GetEntityCoords(PlayerPedId());
-
-    let found: boolean = true;
-    while (found) {
-      let [f, entity]: [boolean, number] = FindNextObject(handle);
-      found = f;
-
-      if (entity !== PlayerPedId()) {
-        let coords = GetEntityCoords(entity, true);
-        if (
-          calculateDistance([
-            currentPlayerPosition[0],
-            currentPlayerPosition[1],
-            currentPlayerPosition[2],
-            coords[0],
-            coords[1],
-            coords[2],
-          ]) < 20.0
-        ) {
-          closestPeds.push(entity);
-        }
-      }
-    }
-
-    EndFindObject(handle);
-
-    return closestPeds;
   }
 }

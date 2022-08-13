@@ -1,4 +1,6 @@
 export const DEFAULT_DECORATORS = {
+    onAccountAuthenticate: 'authentication:account-success',
+    onPlayerConnect: 'playerJoining',
     onPlayerDeath: 'armoury:onPlayerDeath',
     onPlayerAuthenticate: 'authentication:player-authenticated',
     onPlayerDisconnect: 'playerDropped',
@@ -6,5 +8,7 @@ export const DEFAULT_DECORATORS = {
     onContextMenuItemPressed: 'armoury-overlay:context-menu-item-pressed',
     onPlayerEnterVehicle: 'armoury:onPlayerEnterVehicle',
     onPlayerExitVehicle: 'armoury:onPlayerExitVehicle',
-    onPlayerClientsidedCacheLoaded: 'armoury:player-resource-cache-loaded'
+    onPlayerClientsidedCacheLoaded: 'armoury:player-resource-cache-loaded',
+    onPlayerStartTowVehicle: 'armoury:onPlayerStartTowVehicle',
+    onPlayerStopTowVehicle: 'armoury:onPlayerStopTowVehicle',
 }

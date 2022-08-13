@@ -4,6 +4,7 @@ import { Pet } from '../../../../pets/src/shared/models/pet.interface';
 export interface House {
   id: number;
   owner: string;
+  ownerId: number;
   level: number;
   entranceX: number;
   entranceY: number;
@@ -14,11 +15,12 @@ export interface House {
   firstPurchasePrice: number;
   sellingPrice: number;
   rentPrice: number;
+  alarm: number;
   tenantIds: number[];
   pet: Pet | object;
   fridge: PlayerInfoType;
 }
 
 export interface HouseExtended extends House {
-  ownerInstance?: number;
+  ownerInstance?: number | null;
 }

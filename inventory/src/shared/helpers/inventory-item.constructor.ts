@@ -2,12 +2,14 @@ import { ITEM_MAPPINGS } from '../item-mappings';
 import { CATEGORY_MAPPINGS } from '../category-mappings';
 import { AdditionalInventory, Item } from '../item-list.model';
 import { PlayerInfoType } from '../../../../authentication/src/shared/models/player-info.type';
+import { i18n } from '../i18n';
 
 export class ItemConstructor {
   public constructor(
     protected readonly func: Function,
     protected readonly playerInfoKey: string,
-    protected readonly category?: string
+    protected readonly category?: string,
+    protected readonly language: string = 'en'
   ) {}
 
   public get(): Item | Item[] {
@@ -65,13 +67,16 @@ export class ItemConstructor {
               ? computedCategory
               : 'item'),
           description: ITEM_MAPPINGS[this.playerInfoKey].description
-            ? ITEM_MAPPINGS[this.playerInfoKey].description(_value)
+            ? this.translate(ITEM_MAPPINGS[this.playerInfoKey].description(_value)[0], ITEM_MAPPINGS[this.playerInfoKey].description(_value)[1] || {})
             : 'Just an inventory item.',
           topLeft:
             CATEGORY_MAPPINGS[computedCategory].topLeft ||
             (ITEM_MAPPINGS[this.playerInfoKey].topLeft ? ITEM_MAPPINGS[this.playerInfoKey].topLeft(_value) : undefined) ||
             '1',
-          _piKey: this.playerInfoKey
+          _piKey: this.playerInfoKey,
+          ...(ITEM_MAPPINGS[this.playerInfoKey].metadata ? {
+            metadata: ITEM_MAPPINGS[this.playerInfoKey].metadata(_value)
+          } : {})
         })));
   }
 
@@ -142,11 +147,6 @@ export class ItemConstructor {
       );
     }
 
-    if (this.playerInfoKey === 'factionvehiclekeys') {
-      console.log('key:', key);
-      console.log('amount:', amount);
-    }
-
     // prettier-ignore
     switch (typeof (sourceValue || _newPastValue)) {
       case 'number': {
@@ -192,5 +192,17 @@ export class ItemConstructor {
     }
 
     return _newPastValue;
+  }
+
+  private translate(key: string, params?: { [key: string]: string }): string {
+    let content: string = i18n[this.language][key] || '';
+
+    if (params) {
+      Object.keys(params).forEach((param) => {
+        content = content.replace(`{${param}}`, params[param]);
+      });
+    }
+
+    return content;
   }
 }

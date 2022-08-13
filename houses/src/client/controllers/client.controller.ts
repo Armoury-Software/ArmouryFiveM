@@ -6,8 +6,9 @@ import { numberWithCommas } from '@core/utils';
 
 import { House, HouseExtended } from '@shared/models/house.interface';
 import { HOUSE_INTERIORS } from '@shared/house-interiors';
+import { i18n } from '../i18n';
 
-@FiveMController()
+@FiveMController({ translationFile: i18n })
 export class Client extends ClientWithUIController {
   public constructor() {
     super();
@@ -35,65 +36,70 @@ export class Client extends ClientWithUIController {
 
     let title: string = '';
     if (isUnowned) {
-      title = `House For Sale! (Price: $${numberWithCommas(
-        house.firstPurchasePrice
-      )}) (#${house.id})`;
+      title = this.translate('house_for_sale', {
+        price: numberWithCommas(house.firstPurchasePrice),
+        id: house.id.toString(),
+      });
     } else {
-      title = `${house.owner}'s house (#${house.id})${
-        house.sellingPrice ? ' - For sale!' : ''
-      }`;
+      title = this.translate('house_owned_by_player', {
+        addition: house.sellingPrice ? ` - ${this.translate('for_sale')}!` : '',
+        name: house.owner,
+        id: house.id.toString(),
+      });
     }
 
     SendNuiMessage(
       JSON.stringify({
         type: 'update',
         title,
-        description:
-          'Houses offer you storage, security, a place to sleep, rent opportunities and more. Houses are automatically sold as a result of prolonged inactivity.',
+        description: this.translate('house_purpose'),
         resource: GetCurrentResourceName(),
         buttons: [
           {
-            title: 'Purchase',
+            title: this.translate('purchase'),
             subtitle: !house.owner
-              ? `Purchase this house for $${numberWithCommas(housePrice)}.`
-              : 'Contact owner to purchase',
+              ? this.translate('house_purchase_for', {
+                  price: numberWithCommas(housePrice),
+                })
+              : this.translate('house_contact_owner'),
             icon: 'attach_money',
             ...(isUnowned || house.sellingPrice > 0
               ? Number(this.getPlayerInfo('cash')) < housePrice
                 ? {
                     disabled: true,
-                    tooltip: 'You do not have enough money',
+                    tooltip: this.translate('not_enough_money'),
                   }
                 : !isUnowned && house.ownerInstance < 0
                 ? {
                     disabled: true,
-                    tooltip: 'Owner not yet in city',
+                    tooltip: this.translate('owner_not_in_city'),
                   }
                 : {
                     disabled: false,
                   }
               : {
                   disabled: true,
-                  tooltip: 'Not for sale',
+                  tooltip: this.translate('not_for_sale'),
                 }),
           },
           {
-            title: 'Rent',
-            subtitle: `Rent a room in the house${
+            title: this.translate('rent'),
+            subtitle:
               house.rentPrice > 0
-                ? ' for $' + numberWithCommas(house.rentPrice)
-                : ''
-            }.`,
+                ? this.translate('house_rent_for', {
+                    price: numberWithCommas(house.rentPrice),
+                  })
+                : this.translate('house_rent'),
             icon: 'bed',
             ...(isUnowned
               ? {
                   disabled: true,
-                  tooltip: 'House is not owned by anybody',
+                  tooltip: this.translate('house_not_owned'),
                 }
               : !house.rentPrice
               ? {
                   disabled: true,
-                  tooltip: "Doesn't accept tenants",
+                  tooltip: this.translate('house_not_accepting_tenants'),
                 }
               : Number(this.getPlayerInfo('cash')) > house.rentPrice
               ? {
@@ -101,15 +107,15 @@ export class Client extends ClientWithUIController {
                 }
               : {
                   disabled: true,
-                  tooltip: 'Not enough money for rent',
+                  tooltip: this.translate('not_enough_money_for_rent'),
                 }),
           },
           {
-            title: 'Break in',
-            subtitle: 'Attempt to break the lock',
+            title: this.translate('break_in'),
+            subtitle: this.translate('attempt_break_lock'),
             icon: 'door_back',
             disabled: true,
-            tooltip: 'Lockpicking skill too low',
+            tooltip: this.translate('lockpicking_skill_low'),
           },
         ] as UIButton[],
       })
@@ -180,15 +186,17 @@ export class Client extends ClientWithUIController {
           },
         ]);
 
-        console.log(house.entranceX, typeof house.entranceX);
-
         this.createBlips([
           {
             id: 40,
             color: !isOwnedByMe ? (isUnowned ? 69 : 59) : 57,
             title: !isOwnedByMe
-              ? `House - ${!isUnowned ? 'Owned' : 'Unbought'}`
-              : 'House - Your house',
+              ? this.translate('blip_house_owned_unowned', {
+                  status: !isUnowned
+                    ? this.translate('owned')
+                    : this.translate('unowned'),
+                })
+              : this.translate('blip_house_yours'),
             pos: [house.entranceX, house.entranceY, house.entranceZ],
           },
         ]);
@@ -205,8 +213,8 @@ export class Client extends ClientWithUIController {
             AddTextComponentSubstringPlayerName(
               house.owner === GetPlayerName(-1) ||
                 house.tenantIds.includes(Number(this.getPlayerInfo('id')))
-                ? 'Press ~INPUT_PICKUP~ to enter the house.'
-                : 'Press ~INPUT_PICKUP~ to interact.'
+                ? this.translate('tooltip_press_to_enter')
+                : this.translate('tooltip_press_to_interact')
             );
             EndTextCommandDisplayHelp(0, false, true, 1);
 
@@ -217,13 +225,7 @@ export class Client extends ClientWithUIController {
           },
         });
 
-        if (
-          !this.actionPoints.find((actionPoint: ActionPoint) => {
-            actionPoint.pos[0] === house.exitX &&
-              actionPoint.pos[1] === house.exitY &&
-              actionPoint.pos[2] === house.exitZ;
-          })
-        ) {
+        if (!this.actionPointExistsAtPosition(house.exitX, house.exitY, house.exitZ)) {
           const defaultHouseInteriorIndex: number = HOUSE_INTERIORS.indexOf(
             HOUSE_INTERIORS.find(
               (_dhi) =>
@@ -244,7 +246,7 @@ export class Client extends ClientWithUIController {
 
                 BeginTextCommandDisplayHelp('STRING');
                 AddTextComponentSubstringPlayerName(
-                  'Press ~INPUT_PICKUP~ to exit the house.~n~Press ~INPUT_INTERACTION_MENU~ to open up the house menu.'
+                  this.translate('tooltip_press_to_exit')
                 );
                 EndTextCommandDisplayHelp(0, false, true, 1);
 
@@ -258,30 +260,34 @@ export class Client extends ClientWithUIController {
                 }
               },
             },
-            {
-              pos: [
-                HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[0],
-                HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[1],
-                HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[2],
-              ],
-              action: () => {
-                DisableControlAction(0, 38, true);
-                DisableControlAction(0, 68, true);
-                DisableControlAction(0, 86, true);
-                DisableControlAction(0, 244, true);
+            ...(HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos
+              ? [
+                  {
+                    pos: [
+                      HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[0],
+                      HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[1],
+                      HOUSE_INTERIORS[defaultHouseInteriorIndex].fridgePos[2],
+                    ],
+                    action: () => {
+                      DisableControlAction(0, 38, true);
+                      DisableControlAction(0, 68, true);
+                      DisableControlAction(0, 86, true);
+                      DisableControlAction(0, 244, true);
 
-                BeginTextCommandDisplayHelp('STRING');
-                AddTextComponentSubstringPlayerName(
-                  'Press ~INPUT_PICKUP~ to check the fridge'
-                );
-                EndTextCommandDisplayHelp(0, false, true, 1);
+                      BeginTextCommandDisplayHelp('STRING');
+                      AddTextComponentSubstringPlayerName(
+                        this.translate('tooltip_press_for_fridge')
+                      );
+                      EndTextCommandDisplayHelp(0, false, true, 1);
 
-                if (IsDisabledControlJustPressed(0, 38)) {
-                  // TODO: Currently, server-sidedly when /exithouse is used the server is looping through every house. Instead, add metadata functionality to actionPoints and send the house ID (grabbed from metadata) to the server here in the command.
-                  ExecuteCommand('checkfridge');
-                }
-              },
-            }
+                      if (IsDisabledControlJustPressed(0, 38)) {
+                        // TODO: Currently, server-sidedly when /exithouse is used the server is looping through every house. Instead, add metadata functionality to actionPoints and send the house ID (grabbed from metadata) to the server here in the command.
+                        ExecuteCommand('checkfridge');
+                      }
+                    },
+                  },
+                ]
+              : [])
           );
         }
       });

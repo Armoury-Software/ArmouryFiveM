@@ -25,7 +25,7 @@ export class ServerDBDependentController<T extends { id: number }> extends Serve
     this.computeTableProperties();
 
     if (loadAllAtStart) {
-        this.loadDBEntities();
+      this.loadDBEntities();
     }
   }
 

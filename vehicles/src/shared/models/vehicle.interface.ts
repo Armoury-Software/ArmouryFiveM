@@ -12,6 +12,7 @@ export interface Vehicle {
   posH: number;
   plate: string;
   items: ExternalItem[];
+  locked: boolean;
 }
 
 export interface VehicleExtended extends Vehicle {

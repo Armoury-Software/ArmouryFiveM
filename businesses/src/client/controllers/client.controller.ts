@@ -222,11 +222,11 @@ export class Client extends ClientWithUIController {
           });
 
           if (
-            !this.actionPoints.find((actionPoint: ActionPoint) => {
-              actionPoint.pos[0] === business.exitX &&
-                actionPoint.pos[1] === business.exitY &&
-                actionPoint.pos[2] === business.exitZ;
-            })
+            !this.actionPointExistsAtPosition(
+              business.exitX,
+              business.exitY,
+              business.exitZ
+            )
           ) {
             this.createActionPoints({
               pos: [business.exitX, business.exitY, business.exitZ],

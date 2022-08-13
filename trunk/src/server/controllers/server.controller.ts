@@ -41,9 +41,9 @@ export class Server extends ServerController {
       playerWhoRequested,
       ItemConstructor.withCustomizations(
         {
-          ...EXTERNAL_INVENTORY_MAPPINGS.trunk,
+          ...EXTERNAL_INVENTORY_MAPPINGS(this.translationLanguage).trunk,
           items: [
-            ...EXTERNAL_INVENTORY_MAPPINGS.trunk.items,
+            ...EXTERNAL_INVENTORY_MAPPINGS(this.translationLanguage).trunk.items,
             ...ItemConstructor.bundle(
               new ItemConstructor(
                 ((playerInfoKey: string) =>
@@ -51,7 +51,9 @@ export class Server extends ServerController {
                     NetworkGetEntityFromNetworkId(vehicleNetworkId),
                     playerInfoKey
                   )).bind(this),
-                'cash'
+                'cash',
+                undefined,
+                this.translationLanguage
               ).get()
             ),
             ...ItemConstructor.bundle(
@@ -61,7 +63,9 @@ export class Server extends ServerController {
                     NetworkGetEntityFromNetworkId(vehicleNetworkId),
                     playerInfoKey
                   )).bind(this),
-                'items'
+                'items',
+                undefined,
+                this.translationLanguage
               ).get()
             ),
             ...ItemConstructor.bundle(
@@ -72,7 +76,8 @@ export class Server extends ServerController {
                     playerInfoKey
                   )).bind(this),
                 'weapons',
-                'weapon'
+                'weapon',
+                this.translationLanguage
               ).get()
             ).map((item) => ({ ...item, width: 65 })),
           ],
@@ -272,7 +277,9 @@ export class Server extends ServerController {
                 piKey: data.item._piKey,
                 amount: new ItemConstructor(
                   () => existingItemOfSameType.amount,
-                  data.item._piKey
+                  data.item._piKey,
+                  undefined,
+                  this.translationLanguage
                 ).incrementFromSource(
                   global.exports['authentication'].getPlayerInfo(
                     _target,
@@ -305,7 +312,7 @@ export class Server extends ServerController {
                   } else {
                     return {};
                   }
-                }, data.item._piKey).incrementFromSource(
+                }, data.item._piKey, undefined, this.translationLanguage).incrementFromSource(
                   global.exports['authentication'].getPlayerInfo(
                     _target,
                     data.item._piKey
@@ -353,7 +360,9 @@ export class Server extends ServerController {
                 piKey: data.item._piKey,
                 amount: new ItemConstructor(
                   () => existingItemOfSameType.amount,
-                  data.item._piKey
+                  data.item._piKey,
+                  undefined,
+                  this.translationLanguage
                 ).incrementFromSource(
                   global.exports['authentication'].getPlayerInfo(
                     _target,

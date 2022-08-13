@@ -1,11 +1,11 @@
-import { Command, EventListener, FiveMController } from '@core/decorators/armoury.decorators';
+import { Command, EventListener, Export, FiveMController } from '@core/decorators/armoury.decorators';
+import { calculateDistance, isPlayerInRangeOfPoint } from '@core/utils';
 
 import { ServerController } from './server.controller';
 import { FactionVehicle } from './models/faction-vehicle.interface';
 import { ItemConstructor } from '../../inventory/src/shared/helpers/inventory-item.constructor';
 import { Faction } from '../../factions/src/shared/models/faction.interface';
 import { Item } from '../../inventory/src/shared/item-list.model';
-import { calculateDistance, isPlayerInRangeOfPoint } from '@core/utils';
 
 @FiveMController()
 export class ServerFactionController extends ServerController {
@@ -29,6 +29,16 @@ export class ServerFactionController extends ServerController {
       return this._lockerKeyPosition;
     }
 
+    private _clothingLockersPositions: number[][] = [];
+    protected get clothingLockersPositions(): number[][] {
+      return this._clothingLockersPositions;
+    }
+
+    private _clothingLockerItems: Item[] = [];
+    protected get clothingLockerItems(): Item[] {
+      return this._clothingLockerItems;
+    }
+
     private _maxLockerKeys: number = 2;
     protected get maxLockerKeys(): number {
       return this._maxLockerKeys
@@ -50,10 +60,24 @@ export class ServerFactionController extends ServerController {
       if (!GetCurrentResourceName().includes('factions-')) {
         console.error('You are using a Faction controller but its name does NOT comply with the naming \'factions-<factionInternalId>\'. The resource may not work properly.');
       }
+
+      setTimeout(() => {
+        const authenticatedPlayers =
+        global.exports['authentication'].getAuthenticatedPlayers(true);
+
+        if (authenticatedPlayers) {
+          Object.keys(authenticatedPlayers).forEach((_authenticatedPlayer) => {
+            const playerId: number = Number(_authenticatedPlayer);
+            const playerData = authenticatedPlayers[_authenticatedPlayer];
+
+            this.onPlayerAuthenticate(playerId, playerData);
+          });
+        }
+      }, 1000);
     }
 
-    protected isPlayerMemberOfThisFaction(playerId: number): boolean {
-      return global.exports['factions'].isPlayerMemberOfFaction(this.factionInternalId, playerId)
+    protected isPlayerMemberOfThisFaction(playerId: number, playerDBId?: number): boolean {
+      return global.exports['factions'].isPlayerMemberOfFaction(this.factionInternalId, playerId, playerDBId || -1);
     }
 
     protected getFactionMemberRank(playerId: number): number {
@@ -65,23 +89,65 @@ export class ServerFactionController extends ServerController {
     }
 
     protected openVehicleKeysLockerForPlayer(playerId: number): void {
-      emit(
-        'inventory:client-inventory-request',
-        playerId,
-        ItemConstructor.withCustomizations(
-          {
-            title: 'Faction Keys Locker',
-            items: ItemConstructor.bundle(
-              new ItemConstructor((
-                () => Array.from(this._lockerKeys.keys()).filter((lockerKey: number) => this._lockerKeys.get(lockerKey).filter((assignedPlayerId: number) => isNaN(assignedPlayerId))?.length)
-              ).bind(this), 'factionvehiclekeys').get()
-            )
-          },
-          {
-            topLeft: (value) => this._lockerKeys.get(Number(value.bottomRight.replace('#', ''))).filter((assignedPlayerId: number) => isNaN(assignedPlayerId))?.length,
-          }
+      if (this.isPlayerMemberOfThisFaction(playerId) && this.isPlayerAtVehicleKeysLocker(playerId)) {
+        emit(
+          'inventory:client-inventory-request',
+          playerId,
+          ItemConstructor.withCustomizations(
+            {
+              title: this.translate('faction_keys_locker'),
+              items: ItemConstructor.bundle(
+                new ItemConstructor((
+                  () => Array.from(this._lockerKeys.keys()).filter((lockerKey: number) => this._lockerKeys.get(lockerKey).filter((assignedPlayerId: number) => isNaN(assignedPlayerId))?.length)
+                ).bind(this), 'factionvehiclekeys').get()
+              )
+            },
+            {
+              topLeft: (value) => this._lockerKeys.get(Number(value.bottomRight.replace('#', ''))).filter((assignedPlayerId: number) => isNaN(assignedPlayerId))?.length,
+            }
+          )
+        );
+      }
+    }
+
+    protected isPlayerAtClothingLocker(playerId: number): boolean {
+      const playerPosition: number[] = GetEntityCoords(GetPlayerPed(playerId), true);
+
+      return (
+        !!this.clothingLockersPositions.find(
+          ([x, y, z]: [number, number, number]) => isPlayerInRangeOfPoint(playerPosition[0], playerPosition[1], playerPosition[2], x, y, z, 1.5)
         )
       );
+    }
+
+    protected registerClothingLockerPositions(...positions: number[][]): void {
+      this._clothingLockersPositions = [...this._clothingLockersPositions, ...positions];
+    }
+
+    protected openClothingLockerForPlayer(playerId: number): void {
+      if (this._clothingLockerItems.length && this.isPlayerMemberOfThisFaction(playerId) && this.isPlayerAtClothingLocker(playerId)) {
+        emit(
+          'inventory:client-inventory-request',
+          playerId,
+          ItemConstructor.withCustomizations(
+            {
+              title: this.translate('clothing_locker'),
+              items: this._clothingLockerItems
+            },
+            {
+              topLeft: (value) => '',
+              bottomRight: (value) =>
+                !isNaN(Number(value.image.charAt(value.image.length - 1)))
+                  ? `Rank ${Number(value.image.charAt(value.image.length - 1))}+`
+                  : '1'
+            }
+          )
+        );
+      }
+    }
+
+    protected registerClothingLockerItems(...items: Item[]): void {
+      this._clothingLockerItems = [...this.clothingLockerItems, ...items];
     }
 
     protected isPlayerAtVehicleKeysLocker(playerId: number): boolean {
@@ -156,6 +222,12 @@ export class ServerFactionController extends ServerController {
           'factionnetworkvehiclekeys',
           []
         );
+      }
+
+      if (this._clothingLockersPositions?.length) {
+        if (isPlayerMemberOfThisFaction) {
+          TriggerClientEvent(`${GetCurrentResourceName()}:add-clothing-locker-action-points`, playerId, this._clothingLockersPositions);
+        }
       }
 
       if (isPlayerMemberOfThisFaction) {
@@ -274,6 +346,21 @@ export class ServerFactionController extends ServerController {
       }
     }
 
+    @Export()
+    public getAbandonedVehiclesNetworkIds(): number[] {
+      return (
+        this.spawnedVehicles
+          // TODO: This filter should not exist. Find out why vehicles sometimes are not spawned.
+          .filter((spawnedVehicleEntity) => DoesEntityExist(spawnedVehicleEntity))
+          .map((spawnedVehicleEntity) => NetworkGetNetworkIdFromEntity(spawnedVehicleEntity))
+      );
+    }
+
+    @Command()
+    public openClothingLocker(source: number): void {
+      this.openClothingLockerForPlayer(source);
+    }
+
     @Command()
     public openKeyLocker(source: number): void {
       this.openVehicleKeysLockerForPlayer(source);
@@ -336,7 +423,7 @@ export class ServerFactionController extends ServerController {
     protected spawnVehicles(vehicles: FactionVehicle[]): void {
       this.vehicleSpawnTimeout = setTimeout(() => {
         vehicles.forEach((vehicle: FactionVehicle, index: number) => {
-          const spawnedVehicle: number = CreateVehicle(vehicle.modelHash, vehicle.pos[0], vehicle.pos[1], vehicle.pos[2], 0.0, true, true);
+          const spawnedVehicle: number = CreateVehicle(vehicle.modelHash, vehicle.pos[0], vehicle.pos[1], vehicle.pos[2], vehicle.pos[6] || 0.0, true, true);
           this._spawnedVehicles.push(spawnedVehicle);
 
           setTimeout(() => {

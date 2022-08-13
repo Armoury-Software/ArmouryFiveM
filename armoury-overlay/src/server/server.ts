@@ -22,6 +22,26 @@ const showMoneyGainOverlay = (target: number, gain: number) => {
   );
 };
 
+const playBackgroundMusic = (
+  target: number,
+  url: string,
+  volume: number = 1.0
+) => {
+  TriggerClientEvent(
+    `${GetCurrentResourceName()}:play-background-music`,
+    target,
+    url,
+    volume
+  );
+};
+
+const stopBackgroundMusic = (target: number) => {
+  TriggerClientEvent(
+    `${GetCurrentResourceName()}:stop-background-music`,
+    target
+  );
+};
+
 const showContextMenu = (target: number, data: ContextMenu) => {
   TriggerClientEvent(
     `${GetCurrentResourceName()}:show-context-menu`,
@@ -44,6 +64,8 @@ const setTaximeterValue = (target: number, value: number) => {
 
 exports('updateItem', updateItem);
 exports('showMoneyGainOverlay', showMoneyGainOverlay);
+exports('playBackgroundMusic', playBackgroundMusic);
+exports('stopBackgroundMusic', stopBackgroundMusic);
 exports('setMessage', setMessage);
 exports('deleteMessage', deleteMessage);
 exports('showContextMenu', showContextMenu);

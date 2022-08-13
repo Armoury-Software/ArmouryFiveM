@@ -14,5 +14,6 @@ files {
     'dist/ui/*.js',
     'dist/ui/*.css',
     'dist/ui/**/*.png',
-    'dist/ui/**/*.mp3'
+    'dist/ui/**/*.mp3',
+    'dist/ui/**/*.json'
 }

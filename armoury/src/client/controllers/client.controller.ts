@@ -9,6 +9,8 @@ import { calculateDistance } from '@core/utils';
 @FiveMController()
 export class Client extends ClientController {
   private playerLeftVehicleInterval: NodeJS.Timer;
+  private playerTowingVehicleInterval: NodeJS.Timer;
+  private vehicleBeingTowedEntity: number = NaN;
 
   public constructor() {
     super();
@@ -30,13 +32,9 @@ export class Client extends ClientController {
             x: spawnPosition[0],
             y: spawnPosition[1],
             z: spawnPosition[2],
-            model: 'a_m_m_skater_01',
+            model: 'mp_m_freemode_01',
           },
           () => {
-            emit('chat:addMessage', {
-              args: ['Welcome to the party!~'],
-            });
-
             SetEntityRotation(
               GetPlayerPed(-1),
               spawnPosition[3],
@@ -56,7 +54,6 @@ export class Client extends ClientController {
 
   private registerGlobalEvents(): void {
     on('gameEventTriggered', (name: string, _args: any[]) => {
-      console.log(name);
       switch (name) {
         case 'CEventNetworkEntityDamage': {
           const [
@@ -80,7 +77,7 @@ export class Client extends ClientController {
             emit(`${GetCurrentResourceName()}:onPlayerDeath`);
             emit(
               `authentication:spawn-player`,
-              [-450.3632, -341.0537, 34.50175]
+              [-450.3632, -341.0537, 34.50175, 0, 0]
             );
           }
           break;
@@ -88,22 +85,30 @@ export class Client extends ClientController {
         case 'CEventNetworkPlayerEnteredVehicle': {
           const [_playerNetId, vehicleId]: any[] = _args;
           if (_playerNetId === 128) {
-            TriggerServerEvent(
-              `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
-              NetworkGetNetworkIdFromEntity(vehicleId),
-              GetSeatPedIsTryingToEnter(PlayerPedId())
-            );
-            emit(
-              `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
-              NetworkGetNetworkIdFromEntity(vehicleId),
-              GetSeatPedIsTryingToEnter(PlayerPedId())
+            let computedVehicleSeat: number = GetSeatPedIsTryingToEnter(
+              PlayerPedId()
             );
 
-            if (!this.playerLeftVehicleInterval) {
-              this.playerLeftVehicleInterval = setInterval(
-                () => this.onSecondPassedWhileStillInVehicle(),
-                1000
-              );
+            if (
+              computedVehicleSeat !== -1 &&
+              GetPedInVehicleSeat(vehicleId, -1) === PlayerPedId()
+            ) {
+              computedVehicleSeat = -1;
+            }
+
+            if (
+              computedVehicleSeat !== -1 &&
+              IsVehicleSeatFree(vehicleId, -1)
+            ) {
+              setTimeout(() => {
+                this.beginInsideVehicleInterval(
+                  vehicleId,
+                  computedVehicleSeat,
+                  true
+                );
+              }, 500);
+            } else {
+              this.beginInsideVehicleInterval(vehicleId, computedVehicleSeat);
             }
           }
         }
@@ -151,18 +156,113 @@ export class Client extends ClientController {
     return vehiclesToReturn;
   }
 
+  private onSecondPassedWhileUsingTowTruck(forceTowedValue?: number): void {
+    if (this.playerTowingVehicleInterval) {
+      const _vehicleBeingTowedEntity =
+        forceTowedValue ??
+        GetEntityAttachedToTowTruck(GetVehiclePedIsIn(PlayerPedId(), false));
+
+      if (_vehicleBeingTowedEntity && !this.vehicleBeingTowedEntity) {
+        this.vehicleBeingTowedEntity = _vehicleBeingTowedEntity;
+
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:onPlayerStartTowVehicle`,
+          NetworkGetNetworkIdFromEntity(_vehicleBeingTowedEntity)
+        );
+        emit(
+          `${GetCurrentResourceName()}:onPlayerStartTowVehicle`,
+          NetworkGetNetworkIdFromEntity(_vehicleBeingTowedEntity)
+        );
+      }
+
+      if (!_vehicleBeingTowedEntity && this.vehicleBeingTowedEntity) {
+        TriggerServerEvent(
+          `${GetCurrentResourceName()}:onPlayerStopTowVehicle`
+        );
+        emit(`${GetCurrentResourceName()}:onPlayerStopTowVehicle`);
+
+        this.vehicleBeingTowedEntity = NaN;
+      }
+    }
+  }
+
+  private beginInsideVehicleInterval(
+    vehicleId: number,
+    _computedVehicleSeat: number,
+    forceRefreshSeat: boolean = false
+  ): void {
+    let seatPedIsTryingToEnter = _computedVehicleSeat;
+
+    if (forceRefreshSeat) {
+      seatPedIsTryingToEnter = GetSeatPedIsTryingToEnter(PlayerPedId());
+
+      if (seatPedIsTryingToEnter !== -1) {
+        seatPedIsTryingToEnter =
+          GetPedInVehicleSeat(vehicleId, -1) === PlayerPedId()
+            ? -1
+            : seatPedIsTryingToEnter;
+      }
+
+      if (seatPedIsTryingToEnter !== -1) {
+        seatPedIsTryingToEnter = _computedVehicleSeat;
+      }
+    }
+
+    TriggerServerEvent(
+      `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
+      NetworkGetNetworkIdFromEntity(vehicleId),
+      seatPedIsTryingToEnter
+    );
+    emit(
+      `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
+      NetworkGetNetworkIdFromEntity(vehicleId),
+      seatPedIsTryingToEnter
+    );
+
+    if (!this.playerLeftVehicleInterval) {
+      this.playerLeftVehicleInterval = setInterval(
+        () => this.onSecondPassedWhileStillInVehicle(),
+        1000
+      );
+    }
+
+    const towTruckHashes = [GetHashKey('towtruck'), GetHashKey('towtruck2')];
+    if (
+      !this.playerTowingVehicleInterval &&
+      towTruckHashes.includes(GetEntityModel(vehicleId))
+    ) {
+      this.playerTowingVehicleInterval = setInterval(
+        () => this.onSecondPassedWhileUsingTowTruck(),
+        100
+      );
+    }
+  }
+
   private onSecondPassedWhileStillInVehicle(): void {
     if (this.playerLeftVehicleInterval) {
+      const lastVehicle: number = GetVehiclePedIsIn(PlayerPedId(), true);
       if (!GetVehiclePedIsIn(PlayerPedId(), false)) {
         TriggerServerEvent(
           `${GetCurrentResourceName()}:onPlayerExitVehicle`,
-          NetworkGetNetworkIdFromEntity(GetVehiclePedIsIn(PlayerPedId(), true))
+          NetworkGetNetworkIdFromEntity(lastVehicle),
+          GetLastPedInVehicleSeat(lastVehicle, -1) === PlayerPedId()
         );
         emit(`${GetCurrentResourceName()}:onPlayerExitVehicle`);
 
         clearInterval(this.playerLeftVehicleInterval);
         this.playerLeftVehicleInterval = null;
+
+        if (this.playerTowingVehicleInterval) {
+          this.onSecondPassedWhileUsingTowTruck(NaN);
+          clearInterval(this.playerTowingVehicleInterval);
+          this.playerTowingVehicleInterval = null;
+        }
       }
     }
+  }
+
+  @EventListener({ eventName: `${GetCurrentResourceName()}:update-time` })
+  public onClockUpdated(hour: number, minute: number, second: number): void {
+    NetworkOverrideClockTime(hour, minute, second);
   }
 }

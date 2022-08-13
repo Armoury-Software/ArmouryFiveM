@@ -3,8 +3,9 @@ import {
   EventListener,
   FiveMController,
 } from '@core/decorators/armoury.decorators';
+import { i18n } from '../i18n';
 
-@FiveMController()
+@FiveMController({ translationFile: i18n })
 export class Client extends ClientWithUIController {
   public constructor() {
     super();
@@ -40,12 +41,12 @@ export class Client extends ClientWithUIController {
       JSON.stringify({
         type: 'update',
         resource: GetCurrentResourceName(),
-        firstSectionTitle: 'House Information',
-        secondSectionTitle: 'Tenants',
+        firstSectionTitle: this.translate('house_information'),
+        secondSectionTitle: this.translate('house_tenants'),
         slots: Array(6).fill(0),
         stats: JSON.stringify(data.stats),
         items: JSON.stringify(data.items),
-        menuCategory: 'tenants',
+        menuCategory: this.translate('house_tenants'),
         title: data.title,
         leftMenu: JSON.stringify(data.leftMenu),
         rightMenu: JSON.stringify(data.rightMenu),
@@ -81,6 +82,21 @@ export class Client extends ClientWithUIController {
               break;
             }
           }
+        } else if (eventData.menu === 1) {
+          switch (eventData.buttonId) {
+            case 0: {
+              TriggerServerEvent('houses:request-buy-alarm');
+              break;
+            }
+            case 1: {
+              TriggerServerEvent('houses:request-buy-pet');
+              break;
+            }
+            case 2: {
+              TriggerServerEvent('houses:request-rehome-pet');
+              break;
+            }
+          }
         }
         break;
       }
@@ -102,6 +118,34 @@ export class Client extends ClientWithUIController {
           }
           case 'evict-all-tenants': {
             TriggerServerEvent('houses:confirm-evict-tenants');
+            break;
+          }
+          case 'buy-pet': {
+            TriggerServerEvent('houses:select-pet', eventData.itemClicked);
+            break;
+          }
+          case 'confirm-buy-pet': {
+            TriggerServerEvent('houses:confirm-buy-pet', eventData);
+            break;
+          }
+          case 'confirm-rehome-pet': {
+            TriggerServerEvent('houses:confirm-rehome-pet');
+            break;
+          }
+          case 'buy-alarm': {
+            TriggerServerEvent('houses:select-alarm');
+            break;
+          }
+          case 'confirm-buy-alarm': {
+            if (eventData.buttonId === 0) {
+              TriggerServerEvent('houses:confirm-buy-alarm');
+            }
+            break;
+          }
+          case 'confirm-disable-alarm': {
+            if (eventData.buttonId === 0) {
+              TriggerServerEvent('houses:confirm-disable-alarm');
+            }
             break;
           }
         }

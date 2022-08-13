@@ -11,7 +11,7 @@ server_script 'dist/server/*.server.js'
 ui_page 'dist/ui/index.html'
 files {
     'dist/ui/index.html',
-    'dist/ui/*.js',
-    'dist/ui/*.css',
-    'dist/ui/assets/*.png'
+    'dist/ui/**/*.js',
+    'dist/ui/**/*.css',
+    'dist/ui/assets/**/*.png',
 }
