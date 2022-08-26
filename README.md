@@ -32,7 +32,6 @@ ensure factions
 ensure factions-police
 ensure factions-taxi
 ensure bob74_ipl
-ensure online-interiors
 ensure phone
 ensure pma-voice
 ensure payday
