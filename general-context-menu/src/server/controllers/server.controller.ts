@@ -32,6 +32,9 @@ export class Server extends ServerController {
             buttonId: 'legitimation',
           },
         },
+        {
+          label: 'Job',
+        },
         ...(nearestVehicles.length
           ? [
               {
@@ -76,6 +79,18 @@ export class Server extends ServerController {
               ),
             });
             break;
+          }
+          case 'Job': {
+            global.exports['armoury-overlay'].showContextMenu(source, {
+              title: 'General Menu: Job',
+              id: 'general-menu-job',
+              items: [
+                {
+                  label: 'Stop Job',
+                  active: true,
+                },
+              ],
+            });
           }
           case 'taxi-driver': {
             this.showTaxiDriverMenu(source, button.metadata.vehicleNetworkId);
@@ -256,6 +271,20 @@ export class Server extends ServerController {
               );
               break;
             }
+          }
+        }
+      }
+      case 'general-menu-job': {
+        switch (button.label) {
+          case 'Stop Job': {
+            TriggerEvent(
+              `job-${global.exports['authentication'].getPlayerInfo(
+                source,
+                'job'
+              )}:cancel-job`,
+              source
+            );
+            break;
           }
         }
       }

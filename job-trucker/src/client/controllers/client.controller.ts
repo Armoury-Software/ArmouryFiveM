@@ -1,5 +1,8 @@
 import { ClientWithUIController } from '@core/client/client-ui.controller';
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import {
+  EventListener,
+  FiveMController,
+} from '@core/decorators/armoury.decorators';
 import { UIButton } from '@core/models/ui-button.model';
 import { waitUntilThenDo } from '@core/utils';
 
@@ -10,6 +13,7 @@ import {
   TRUCKER_MONEY_GAIN,
 } from '@shared/positions';
 import { TRUCKER_PAGES } from '@shared/models/delivery-point.model';
+import { ActionPoint } from '@core/models/action-point.model';
 
 @FiveMController()
 export class Client extends ClientWithUIController {
@@ -34,9 +38,10 @@ export class Client extends ClientWithUIController {
       },
     });
 
-    this.addControllerListeners();
     this.addUIListener('buttonclick');
   }
+
+  private playerJobInfo: { waypoint: number; actionPoint: ActionPoint };
 
   private currentPage: TRUCKER_PAGES = TRUCKER_PAGES.MAIN;
 
@@ -165,86 +170,112 @@ export class Client extends ClientWithUIController {
     this.showUI();
   }
 
-  private addControllerListeners(): void {
-    onNet(
-      `${GetCurrentResourceName()}:begin-job`,
-      async (
-        deliveryPosition: { X: number; Y: number; Z: number },
-        type: string
-      ) => {
-        const deliveryPoint: number = this.createWaypoint(
-          [deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z],
-          'Job - Trucker - Delivery Point',
-          69,
-          652
-        );
+  @EventListener({
+    eventName: `${GetCurrentResourceName()}:cancel-waypoint-and-action`,
+  })
+  public onWaypointActionPointCancel(): void {
+    this.removeActionPoint(this.playerJobInfo.actionPoint);
+    this.clearWaypoint(this.playerJobInfo.waypoint);
+  }
 
-        this.createActionPoints({
-          pos: [deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z],
-          action: () => {
-            this.finishDelivery();
-            this.clearWaypoint(deliveryPoint);
-          },
-          once: true,
-        });
-
-        let _spawnedTruck: number;
-        if (!IsPedInAnyVehicle(GetPlayerPed(-1), false)) {
-          const quickStartPositionAndHeading: {
-            pos: number[];
-            heading: number;
-          } =
-            TRUCKER_QUICKSTART_POSITIONS[
-              Math.floor(Math.random() * TRUCKER_QUICKSTART_POSITIONS.length)
-            ];
-          _spawnedTruck = await this.createVehicleAsync(
-            1518533038,
-            quickStartPositionAndHeading.pos[0],
-            quickStartPositionAndHeading.pos[1],
-            quickStartPositionAndHeading.pos[2],
-            quickStartPositionAndHeading.heading,
-            true,
-            true
-          );
-          TaskWarpPedIntoVehicle(GetPlayerPed(-1), _spawnedTruck, -1);
-        } else {
-          _spawnedTruck = GetVehiclePedIsIn(GetPlayerPed(-1), false);
-        }
-        const trailerToSpawnArray = TRUCKER_DELIVERY_TRAILERS.get(
-          this.decideTrailerType(type)
-        );
-        const trailerToSpawn: number =
-          trailerToSpawnArray[
-            Math.floor(Math.random() * trailerToSpawnArray.length)
-          ];
-        const trailerOffsets: number[] = GetOffsetFromEntityInWorldCoords(
-          _spawnedTruck,
-          0.0,
-          8.0,
-          0.0
-        );
-        const spawnedTrailer: number = await this.createVehicleAsync(
-          trailerToSpawn,
-          trailerOffsets[0],
-          trailerOffsets[1],
-          trailerOffsets[2],
-          0,
-          true,
-          true
-        );
-        AttachVehicleToTrailer(_spawnedTruck, spawnedTrailer, 100.0);
+  @EventListener({ eventName: `${GetCurrentResourceName()}:job-assigned` })
+  public onJobAssignment(): void {
+    waitUntilThenDo(
+      () => this.getPlayerInfo('job') === 'trucker',
+      () => {
+        this.currentPage = TRUCKER_PAGES.MAIN;
+        this.updateUIData(this.getDefaultUIButtons());
       }
     );
+  }
 
-    onNet(`${GetCurrentResourceName()}:job-assigned`, () => {
-      waitUntilThenDo(
-        () => this.getPlayerInfo('job') === 'trucker',
-        () => {
-          this.currentPage = TRUCKER_PAGES.MAIN;
-          this.updateUIData(this.getDefaultUIButtons());
-        }
-      );
+  @EventListener({ eventName: `${GetCurrentResourceName()}:begin-job` })
+  public async onBeginJob(
+    deliveryPosition: { X: number; Y: number; Z: number },
+    type: string
+  ) {
+    if (this.playerJobInfo) {
+      this.onWaypointActionPointCancel();
+    }
+    this.playerJobInfo = {
+      ...this.playerJobInfo,
+      waypoint: this.createWaypoint(
+        [deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z],
+        'Job - Trucker - Delivery Point',
+        69,
+        652
+      ),
+    };
+
+    this.createActionPoints({
+      pos: [deliveryPosition.X, deliveryPosition.Y, deliveryPosition.Z],
+      action: () => {
+        this.finishDelivery();
+        this.clearWaypoint(this.playerJobInfo.waypoint);
+      },
+      once: true,
     });
+
+    this.playerJobInfo = {
+      ...this.playerJobInfo,
+      actionPoint: this.actionPoints[this.actionPoints.length - 1],
+    };
+
+    let _spawnedTruck: number;
+    if (!IsPedInAnyVehicle(GetPlayerPed(-1), false)) {
+      const quickStartPositionAndHeading: {
+        pos: number[];
+        heading: number;
+      } =
+        TRUCKER_QUICKSTART_POSITIONS[
+          Math.floor(Math.random() * TRUCKER_QUICKSTART_POSITIONS.length)
+        ];
+      _spawnedTruck = await this.createVehicleAsync(
+        1518533038,
+        quickStartPositionAndHeading.pos[0],
+        quickStartPositionAndHeading.pos[1],
+        quickStartPositionAndHeading.pos[2],
+        quickStartPositionAndHeading.heading,
+        true,
+        true
+      );
+      TaskWarpPedIntoVehicle(PlayerPedId(), _spawnedTruck, -1);
+      TriggerServerEvent(
+        `${GetCurrentResourceName()}:add-job-vehicle-to-map`,
+        GetPlayerServerId(PlayerId()),
+        NetworkGetNetworkIdFromEntity(_spawnedTruck)
+      );
+    } else {
+      _spawnedTruck = GetVehiclePedIsIn(PlayerPedId(), false);
+    }
+    const trailerToSpawnArray = TRUCKER_DELIVERY_TRAILERS.get(
+      this.decideTrailerType(type)
+    );
+    const trailerToSpawn: number =
+      trailerToSpawnArray[
+        Math.floor(Math.random() * trailerToSpawnArray.length)
+      ];
+    const trailerOffsets: number[] = GetOffsetFromEntityInWorldCoords(
+      _spawnedTruck,
+      0.0,
+      8.0,
+      0.0
+    );
+    const spawnedTrailer: number = await this.createVehicleAsync(
+      trailerToSpawn,
+      trailerOffsets[0],
+      trailerOffsets[1],
+      trailerOffsets[2],
+      0,
+      true,
+      true
+    );
+    AttachVehicleToTrailer(_spawnedTruck, spawnedTrailer, 100.0);
+    TriggerServerEvent(
+      `${GetCurrentResourceName()}:update-job-vehicle-in-map`,
+      GetPlayerServerId(PlayerId()),
+      { trailer: NetworkGetNetworkIdFromEntity(spawnedTrailer) }
+    );
   }
 
   public onForceShowUI(): void {
@@ -262,7 +293,7 @@ export class Client extends ClientWithUIController {
         title: 'Trucker Job',
         description:
           'Truckers deliver international cargo for usage in stores and other local businesses. They also help decentralize traffic outside the main area of influence.',
-        resource: 'trucker-job',
+        resource: GetCurrentResourceName(),
         buttons,
       })
     );

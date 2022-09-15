@@ -20,8 +20,8 @@ ensure admin
 ensure hardcap
 ensure oxmysql
 ensure inventory
-ensure trucker-job
-ensure carrier-job
+ensure job-trucker
+ensure job-carrier
 ensure houses
 ensure houses-menu
 ensure human-needs
