@@ -1,8 +1,0 @@
-Base vehicle references:
-
-Bullet (_hi.yft): 47k poly, 38k vertices
-Bullet (.yft):
-	- (High): 15k poly, 13k vertices
-	- (Medium): 8k poly, 9k vertices
-	- (Low): 2k poly, 3k vertices
-	- (VLow): 500 poly, 800 vertices
