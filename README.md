@@ -46,7 +46,6 @@ ensure vehicles
 ensure trunk
 ensure general-context-menu
 ensure custom-vehicles
-ensure dealership
 ensure drugs
 ensure experience
 ensure pets
