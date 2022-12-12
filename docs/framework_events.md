@@ -10,66 +10,48 @@ Events are used in order to establish communication between resources or scripts
 <br>The Armoury Framework recognizes functions annotated with the `@EventListener()` decorator and automatically marks them as event listeners.
 
 The `@EventListener()` decorator accepts a configuration object with a few properties which define the functionality of our EventListener:
-| Property   | Description | Default value     |
-| :---       |    :---   |          :---     |
-| eventName  | Name of the event to listen to  | Name of the function which the decorator has been added to |
-| direction  | Decides whether the EventListener listens to triggers from another script type (client/server) or not<br><br><strong>Values:</strong><br>SERVER_TO_SERVER - Only listens when defined inside a server script, and triggered from a server script<br>SERVER_TO_CLIENT - Only listens when defined inside a server script, and triggered from a client script<br>CLIENT_TO_SERVER - Only listens when defined inside a client script, and triggered from a server script<br>CLIENT_TO_CLIENT - Only listens when defined inside a client script, and client from a server script | By default: listens for cross-script communication (server-to-client or client-to-server)<br>\* *Can be omitted* |
+<table>
+  <tr>
+    <th>Property</th>
+    <th>Description</th>
+    <th>Default Value</th>
+  </tr>
+  <tr>
+    <td>eventName</td>
+    <td>Name of the event to listen to</td>
+    <td>Name of the function which the decorator has been added to</td>
+  </tr>
+  <tr>
+    <td>direction</td>
+    <td>
+      Decides whether the EventListener listens to triggers from another script type (client/server) or not
+      <br><br>
+      <strong>Values:</strong>
+      <br>SERVER_TO_SERVER - Only listens when defined inside a server script, and triggered from a server script
+      <br>SERVER_TO_CLIENT - Only listens when defined inside a server script, and triggered from a client script
+      <br>CLIENT_TO_SERVER - Only listens when defined inside a client script, and triggered from a server script
+      <br>CLIENT_TO_CLIENT - Only listens when defined inside a client script, and client from a server script
+    </td>
+    <td>
+      By default: listens for cross-script communication (server-to-client or client-to-server)
+      <br>* <i>Can be omitted</i>
+    </td>
+  </tr>
+</table>
 
 ### [](#listening-for-events)Listening for events: Basic example
-<table>
-  <tr>
-    <td>server.controller.ts (Typescript/Armoury)</td>
-    <td>server.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  @EventListener({ eventName: 'say-hello' })
-  public onSayHello(): void {
-    console.log('Hello!');
-  }
-  ```
-
-  </td>
-  <td>
-
-  ```lua
-  RegisterNetEvent("say-hello")
-
-  AddEventHandler("say-hello", function()
-      print("Hello!")
-  end)
-  ```
-
-  </td>
-  </tr>
-</table>
+```ts
+// server.controller.ts
+@EventListener({ eventName: 'say-hello' })
+public onSayHello(): void {
+  console.log('Hello!');
+}
+```
 
 ### [](#triggering-events)Triggering events: Basic example
-
-<table>
-  <tr>
-    <td>client.controller.ts (Typescript/Armoury)</td>
-    <td>client.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  TriggerServerEvent('say-hello');
-  ```
-
-  </td>
-  <td>
-
-  ```lua
-  TriggerServerEvent("say-hello")
-  ```
-
-  </td>
-  </tr>
-</table>
+```ts
+TriggerServerEvent('say-hello');
+```
 
 ---
 
@@ -79,223 +61,63 @@ Sometimes you need to trigger an event from a client script and listen for it in
 ### [](#server-to-client)Event Communication: Server to Client
 When establishing event communication between a server script and a client script, the `EventListener()` does not necessarily need to specify an event direction - but you **need** to trigger the event accordingly:
 
-<table>
-  <tr>
-    <td>server.controller.ts (Typescript/Armoury)</td>
-    <td>server.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  TriggerClientEvent('say-hello');
-  ```
+```ts
+// server.controller.ts
+TriggerClientEvent('say-hello');
+```
 
-  </td>
-  <td>
-
-  ```lua
-  TriggerClientEvent("say-hello")
-  ```
-
-  </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td>client.controller.ts (Typescript/Armoury)</td>
-    <td>client.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  @EventListener({ eventName: 'say-hello' })
-  public onSayHello(): void {
-    console.log('Hello!');
-  }
-  ```
-
-  </td>
-  <td>
-
-  ```lua
-  RegisterNetEvent("say-hello")
-
-  AddEventHandler("say-hello", function()
-      print("Hello!")
-  end)
-  ```
-
-  </td>
-  </tr>
-</table>
+```ts
+// client.controller.ts
+@EventListener({ eventName: 'say-hello' })
+public onSayHello(): void {
+  console.log('Hello!');
+}
+```
 
 ### [](#client-to-server)Event Communication: Client to Server
 When establishing event communication between a client script and a server script, the `EventListener()` does not necessarily need to specify an event direction - but you **need** to trigger the event accordingly:
 
-<table>
-  <tr>
-    <td>client.controller.ts (Typescript/Armoury)</td>
-    <td>client.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  TriggerServerEvent('say-hello');
-  ```
+```ts
+// client.controller.ts
+TriggerServerEvent('say-hello');
+```
 
-  </td>
-  <td>
-
-  ```lua
-  TriggerServerEvent("say-hello")
-  ```
-
-  </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td>server.controller.ts (Typescript/Armoury)</td>
-    <td>server.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  @EventListener({ eventName: 'say-hello' })
-  public onSayHello(): void {
-    console.log('Hello!');
-  }
-  ```
-
-  </td>
-  <td>
-
-  ```lua
-  RegisterNetEvent("say-hello")
-
-  AddEventHandler("say-hello", function()
-      print("Hello!")
-  end)
-  ```
-
-  </td>
-  </tr>
-</table>
+```ts
+// server.controller.ts
+@EventListener({ eventName: 'say-hello' })
+public onSayHello(): void {
+  console.log('Hello!');
+}
+```
 
 ### [](#server-to-server)Event Communication: Server to Server
 When establishing event communication between a server script and another server script, the `EventListener()` **needs** to specify an event direction and you **need** to trigger the event accordingly:
 
-<table>
-  <tr>
-    <td>server_1.controller.ts (Typescript/Armoury)</td>
-    <td>server_1.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  emit('say-hello');
-  ```
+```ts
+// server_1.controller.ts
+emit('say-hello');
+```
 
-  </td>
-  <td>
-
-  ```lua
-  emit("say-hello")
-  ```
-
-  </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td>server_2.controller.ts (Typescript/Armoury)</td>
-    <td>server_2.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  @EventListener({ eventName: 'say-hello', direction: EVENT_DIRECTIONS.SERVER_TO_SERVER })
-  public onSayHello(): void {
-    console.log('Hello!');
-  }
-  ```
-
-  </td>
-  <td>
-
-  ```lua
-  RegisterNetEvent("say-hello")
-
-  AddEventHandler("say-hello", function()
-      print("Hello!")
-  end)
-  ```
-
-  </td>
-  </tr>
-</table>
+```ts
+// server_2.controller.ts
+@EventListener({ eventName: 'say-hello', direction: EVENT_DIRECTIONS.SERVER_TO_SERVER })
+public onSayHello(): void {
+  console.log('Hello!');
+}
+```
 
 ### [](#client-to-client)Event Communication: Client to Client
 When establishing event communication between a client script and another client script, the `EventListener()` **needs** to specify an event direction and you **need** to trigger the event accordingly:
 
-<table>
-  <tr>
-    <td>client_1.controller.ts (Typescript/Armoury)</td>
-    <td>client_1.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  emit('say-hello');
-  ```
+```ts
+// client_1.controller.ts
+emit('say-hello');
+```
 
-  </td>
-  <td>
-
-  ```lua
-  emit("say-hello")
-  ```
-
-  </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td>client_2.controller.ts (Typescript/Armoury)</td>
-    <td>client_2.lua (Lua/Default)</td>
-  </tr>
-  <tr>
-  <td>
-    
-  ```ts
-  @EventListener({ eventName: 'say-hello', direction: EVENT_DIRECTIONS.CLIENT_TO_CLIENT })
-  public onSayHello(): void {
-    console.log('Hello!');
-  }
-  ```
-
-  </td>
-  <td>
-
-  ```lua
-  RegisterNetEvent("say-hello")
-
-  AddEventHandler("say-hello", function()
-      print("Hello!")
-  end)
-  ```
-
-  </td>
-  </tr>
-</table>
+```ts
+// client_2.controller.ts
+@EventListener({ eventName: 'say-hello', direction: EVENT_DIRECTIONS.CLIENT_TO_CLIENT })
+public onSayHello(): void {
+  console.log('Hello!');
+}
+```
