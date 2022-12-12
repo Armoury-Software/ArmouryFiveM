@@ -1,0 +1,8 @@
+Citizen.CreateThread(function()
+AddTextEntry("CHEVY", "Chevrolet")
+AddTextEntry("18camaro", "Camaro ZL1 '18")
+AddTextEntry("PAINTED", "Painted Hood")
+AddTextEntry("ALPHASIX", "Alpha Six")
+AddTextEntry("WIDEBODY", "Widebody")
+AddTextEntry("NONE", "No Spoiler")
+end)

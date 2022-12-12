@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<CHandlingDataMgr>
+  <HandlingData>
+    <Item type="CHandlingData">
+      <handlingName>BMWM5E60</handlingName>
+      <fMass value="2300" />
+      <fInitialDragCoeff value="2.26" />
+      <fDownforceModifier value="1.35" />
+      <fPercentSubmerged value="78" />
+      <vecCentreOfMassOffset x="0" y="0.11" z="0.43" />
+      <vecInertiaMultiplier x="1.5" y="1.75" z="2.25" />
+      <fDriveBiasFront value="0" />
+      <nInitialDriveGears value="6" />
+      <fInitialDriveForce value="0.275" />
+      <fDriveInertia value="1.01" />
+      <fClutchChangeRateScaleUpShift value="13.8" />
+      <fClutchChangeRateScaleDownShift value="3.6" />
+      <fInitialDriveMaxFlatVel value="205" />
+      <fBrakeForce value="0.279" />
+      <fBrakeBiasFront value="0.53206" />
+      <fHandBrakeForce value="0.8" />
+      <fSteeringLock value="34.2" />
+      <fTractionCurveMax value="1.41" />
+      <fTractionCurveMin value="1.15" />
+      <fTractionCurveLateral value="16.5" />
+      <fTractionSpringDeltaMax value="0.132" />
+      <fLowSpeedTractionLossMult value="0" />
+      <fCamberStiffnesss value="0.1" />
+      <fTractionBiasFront value="0.4843" />
+      <fTractionLossMult value="1.26" />
+      <fSuspensionForce value="2.64" />
+      <fSuspensionCompDamp value="1.32" />
+      <fSuspensionReboundDamp value="0.88" />
+      <fSuspensionUpperLimit value="0.123" />
+      <fSuspensionLowerLimit value="-0.136" />
+      <fSuspensionRaise value="0.003" />
+      <fSuspensionBiasFront value="0.52" />
+      <fAntiRollBarForce value="0.5" />
+      <fAntiRollBarBiasFront value="0.52" />
+      <fRollCentreHeightFront value="0.24" />
+      <fRollCentreHeightRear value="0.24" />
+      <fCollisionDamageMult value="1" />
+      <fWeaponDamageMult value="1" />
+      <fDeformationDamageMult value="0.5" />
+      <fEngineDamageMult value="3.4" />
+      <fPetrolTankVolume value="70" />
+      <fOilVolume value="9.3" />
+      <fSeatOffsetDistX value="0" />
+      <fSeatOffsetDistY value="0" />
+      <fSeatOffsetDistZ value="0" />
+      <nMonetaryValue value="35000" />
+      <strModelFlags>440040</strModelFlags>
+      <strHandlingFlags>40020103</strHandlingFlags>
+      <strDamageFlags>0</strDamageFlags>
+      <AIHandling>SPORTS_CAR</AIHandling>
+      <SubHandlingData>
+        <Item type="CCarHandlingData">         
+          <fEngineResistance value ="0.25" />
+          <fCamberFront value="-0.012" />
+          <fCastor value="-0.175" />
+          <fToeFront value="-0.007" />
+          <fCamberRear value="0.008" />
+          <fToeRear value="0.002" />
+          <strAdvancedFlags>18040000</strAdvancedFlags>
+        </Item>
+        <Item type="NULL" />
+        <Item type="NULL" />
+      </SubHandlingData>
+    </Item>
+  </HandlingData>
+</CHandlingDataMgr>

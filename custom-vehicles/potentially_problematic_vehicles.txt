@@ -1,0 +1,2 @@
+Porsche(por911) (L0 & L1) have around 80k polys
+Chrysler(chrxfire) L0 has around 80k polys
