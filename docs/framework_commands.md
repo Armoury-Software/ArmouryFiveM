@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Exports
+title: Commands
 parent: Framework
 nav_order: 4
 ---
