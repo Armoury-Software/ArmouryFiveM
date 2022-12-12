@@ -1,4 +1,4 @@
-## Documentation: https://github.com/Armoury-Software/ArmouryFiveM/wiki/Armoury-Framework-Documentation
+## Documentation: https://armoury-software.github.io/ArmouryFiveM/framework.html
 
 ## Quick start:
 
