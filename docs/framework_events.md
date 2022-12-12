@@ -50,6 +50,7 @@ public onSayHello(): void {
 
 ### [](#triggering-events)Triggering events: Basic example
 ```ts
+// client.controller.ts
 TriggerServerEvent('say-hello');
 ```
 
