@@ -64,7 +64,7 @@ When establishing event communication between a server script and a client scrip
 
 ```ts
 // server.controller.ts
-TriggerClientEvent('say-hello');
+TriggerClientEvent('say-hello', 0);
 ```
 
 ```ts
@@ -120,5 +120,37 @@ emit('say-hello');
 @EventListener({ eventName: 'say-hello', direction: EVENT_DIRECTIONS.CLIENT_TO_CLIENT })
 public onSayHello(): void {
   console.log('Hello!');
+}
+```
+
+## [](#event-parameters)Event parameters
+Sometimes you might need to send some specific data through the event. This goes very similarly to the original way you would it in plain Lua. Here's an example:
+
+```ts
+// client.controller.ts
+TriggerServerEvent('say-something', 'Hello!');
+```
+
+```ts
+// server.controller.ts
+@EventListener({ eventName: 'say-something' })
+public onSaySomething(text: string): void {
+  console.log(text); // Prints 'Hello!' inside the server console
+}
+```
+
+## [](#event-source)Event source triggerer (How can I find the ID of the player who triggered this event?)
+The 'source' is accessible just like in the original, plain Lua way. For example, in order to grab the ID of the player who has just triggered an event, you could do the following:
+
+```ts
+// client.controller.ts
+TriggerServerEvent('say-hello');
+```
+
+```ts
+// server.controller.ts
+@EventListener({ eventName: 'say-hello' })
+public onSaySomething(): void {
+  console.log(`${GetPlayerName(source)} has just said Hello!`); // Prints 'Playername has just said Hello!' inside the server console
 }
 ```
