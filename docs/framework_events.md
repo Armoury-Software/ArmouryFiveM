@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Events
-nav_order: 3
+parent: Framework
+nav_order: 1
 ---
 
 ## Events
