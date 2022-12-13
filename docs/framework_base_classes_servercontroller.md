@@ -2,6 +2,7 @@
 layout: default
 title: ServerController
 parent: Base Classes
+grand_parent: Framework
 ---
 
 ## ServerController
