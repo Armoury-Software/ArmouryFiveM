@@ -38,7 +38,7 @@ export interface Vehicle {
 
 ```ts
 // server.ts
-const server = new Server('vehicles', false);
+const server = new Server('vehicles', true);
 ```
 
 ### [](#constructor)The ServerDBDependentController constructor
