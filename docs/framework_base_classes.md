@@ -31,12 +31,12 @@ The table below summarizes the role of each base class, and how you can make use
   <tr>
     <td align="center">Server</td>
     <td align="center">ServerDBDependentController</td>
-    <td>The ServerDBDependentController directly extends ServerController and contains functionality for CRUD operations on a MySQL database (this one depends on oxmysql!)./td>
+    <td>The ServerDBDependentController directly extends ServerController and contains functionality for CRUD operations on a MySQL database (this one depends on oxmysql!).</td>
   </tr>
   <tr>
     <td align="center">Server</td>
     <td align="center">ServerEntityWithEntranceController</td>
-    <td>The ServerEntityWithEntranceController directly extends ServerDBDependentController and contains basic implementations for entrances and exits. An example resource extending this type of controller might be a 'houses' resource, or a 'businesses' one./td>
+    <td>The ServerEntityWithEntranceController directly extends ServerDBDependentController and contains basic implementations for entrances and exits. An example resource extending this type of controller might be a 'houses' resource, or a 'businesses' one.</td>
   </tr>
 </table>
   
