@@ -1,10 +1,4 @@
-import { ClientController } from '@core/client/client.controller';
-import {
-  Command,
-  EventListener,
-  FiveMController,
-} from '@core/decorators/armoury.decorators';
-import { EVENT_DIRECTIONS } from '@core/decorators/event.directions';
+import { ClientController, Command, EVENT_DIRECTIONS, EventListener, FiveMController } from '@armoury/fivem-framework';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
 import {
@@ -31,27 +25,24 @@ export class Client extends ClientController {
   }
 
   private registerKeyBindings(): void {
-    RegisterCommand(
+    Cfx.Client.RegisterCommand(
       '+openadminmenu',
       () => {
-        if (this.getPlayerInfo('adminLevel') > 0) {
+        if (<number>this.getPlayerInfo('adminLevel') > 0) {
           if (this.menuToggles.get('admin-menu') === true) {
             this.menuToggles.set('admin-menu', false);
-            emit('armoury-overlay:hide-context-menu');
+            Cfx.Client.emit('armoury-overlay:hide-context-menu');
             return;
           }
 
-          TriggerServerEvent(
-            `${GetCurrentResourceName()}:open-admin-menu`,
-            ADMIN_MENU_MAIN
-          );
+          Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, ADMIN_MENU_MAIN);
           this.menuToggles.set('admin-menu', true);
         }
       },
       false
     );
 
-    RegisterKeyMapping('+openadminmenu', 'Open Admin Menu', 'keyboard', 'f1');
+    Cfx.Client.RegisterKeyMapping('+openadminmenu', 'Open Admin Menu', 'keyboard', 'f1');
   }
 
   @EventListener({
@@ -63,12 +54,10 @@ export class Client extends ClientController {
       case 'admin-menu':
         switch (data.buttonSelected.label.toLowerCase()) {
           case 'give self':
-            TriggerServerEvent(`${GetCurrentResourceName()}:open-admin-menu`, {
+            Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, {
               ...ADMIN_GIVE_SELF,
               items: ADMIN_GIVE_SELF.items.filter((item) => {
-                return (
-                  Number(item.adminLevel) <= this.getPlayerInfo('adminLevel')
-                );
+                return Number(item.adminLevel) <= <number>this.getPlayerInfo('adminLevel');
               }),
             });
             break;
@@ -77,7 +66,7 @@ export class Client extends ClientController {
             for (let teleportPoint in TELEPORT_POINTS) {
               teleportPoints.push(teleportPoint);
             }
-            TriggerServerEvent(`${GetCurrentResourceName()}:open-admin-menu`, {
+            Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, {
               ...ADMIN_TELEPORT,
               items: teleportPoints
                 .map((teleport, index) => ({
@@ -86,9 +75,7 @@ export class Client extends ClientController {
                   adminLevel: 1,
                 }))
                 .filter((item) => {
-                  return (
-                    Number(item.adminLevel) <= this.getPlayerInfo('adminLevel')
-                  );
+                  return Number(item.adminLevel) <= <number>this.getPlayerInfo('adminLevel');
                 }),
             });
 
@@ -97,17 +84,11 @@ export class Client extends ClientController {
             // TODO
             break;
           case 'remove entities':
-            TriggerServerEvent(`${GetCurrentResourceName()}:open-admin-menu`, {
+            Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, {
               ...ADMIN_ENTITIES,
               items: ADMIN_ENTITIES.items
-                .filter(
-                  (item) =>
-                    Number(item.adminLevel) <=
-                    Number(this.getPlayerInfo('adminLevel'))
-                )
-                .map((item, _index, thisArray) =>
-                  thisArray.length === 1 ? { ...item, active: true } : item
-                ),
+                .filter((item) => Number(item.adminLevel) <= Number(this.getPlayerInfo('adminLevel')))
+                .map((item, _index, thisArray) => (thisArray.length === 1 ? { ...item, active: true } : item)),
             });
             break;
         }
@@ -119,7 +100,7 @@ export class Client extends ClientController {
             for (let weapon in WEAPON_NAMES) {
               weaponNames.push(WEAPON_NAMES[weapon]);
             }
-            TriggerServerEvent(`${GetCurrentResourceName()}:open-admin-menu`, {
+            Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, {
               ...ADMIN_GIVE_WEAPON,
               items: weaponNames.map((weapon, index) => ({
                 label: weapon,
@@ -128,22 +109,13 @@ export class Client extends ClientController {
             });
             break;
           case 'give drugs':
-            TriggerServerEvent(
-              `${GetCurrentResourceName()}:open-admin-menu`,
-              ADMIN_GIVE_DRUGS
-            );
+            Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, ADMIN_GIVE_DRUGS);
             break;
           case 'give money':
-            TriggerServerEvent(
-              `${GetCurrentResourceName()}:open-admin-menu`,
-              ADMIN_GIVE_MONEY
-            );
+            Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, ADMIN_GIVE_MONEY);
             break;
           case 'give vehicle':
-            TriggerServerEvent(
-              `${GetCurrentResourceName()}:open-admin-menu`,
-              ADMIN_VEHICLES
-            );
+            Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, ADMIN_VEHICLES);
             break;
         }
       case 'give-weapon':
@@ -153,58 +125,50 @@ export class Client extends ClientController {
           data.buttonSelected.label.toLowerCase() !== 'give money' &&
           data.buttonSelected.label.toLowerCase() !== 'give vehicle'
         ) {
-          ExecuteCommand(
-            `giveweapon ${<string>(
-              this.getPlayerInfo('name')
-            )} ${data.buttonSelected.label.replaceAll(' ', '')} 150`
+          Cfx.Client.ExecuteCommand(
+            `giveweapon ${<string>this.getPlayerInfo('name')} ${data.buttonSelected.label.replaceAll(' ', '')} 150`
           );
         }
         break;
       case 'give-drugs':
-        ExecuteCommand(
-          `agivedrugs ${<string>this.getPlayerInfo('name')} ${
-            data.buttonSelected.label
-          } 10`
-        );
+        Cfx.Client.ExecuteCommand(`agivedrugs ${<string>this.getPlayerInfo('name')} ${data.buttonSelected.label} 10`);
         break;
       case 'give-money':
         if (data.buttonSelected.label.toLowerCase !== 'give money') {
-          ExecuteCommand(
-            `givecash ${<string>(
-              this.getPlayerInfo('name')
-            )} ${data.buttonSelected.label.replaceAll('$', '')}`
+          Cfx.Client.ExecuteCommand(
+            `givecash ${<string>this.getPlayerInfo('name')} ${data.buttonSelected.label.replaceAll('$', '')}`
           );
         }
         break;
       case 'teleportation':
         if (data.buttonSelected.label.toLowerCase() !== 'teleportation') {
           if (data.buttonSelected.label.toLowerCase() === 'waypoint') {
-            const blip: number = GetFirstBlipInfoId(8);
+            const blip: number = Cfx.Client.GetFirstBlipInfoId(8);
 
             if (blip != 0) {
-              const coord = GetBlipCoords(blip);
+              const coord = Cfx.Client.GetBlipCoords(blip);
               if (coord) {
-                ExecuteCommand(`tp ${coord[0]} ${coord[1]} ${coord[2]}`);
+                Cfx.Client.ExecuteCommand(`tp ${coord[0]} ${coord[1]} ${coord[2]}`);
               } else {
                 console.log('Please put a waypoint before using the command.');
               }
             }
           } else {
-            ExecuteCommand(`tp ${data.buttonSelected.label.toLowerCase()}`);
+            Cfx.Client.ExecuteCommand(`tp ${data.buttonSelected.label.toLowerCase()}`);
           }
         }
         break;
       case 'veh-spawn':
         if (data.buttonSelected.label.toLowerCase() !== 'give vehicle') {
-          ExecuteCommand(`veh ${data.buttonSelected.label}`);
+          Cfx.Client.ExecuteCommand(`veh ${data.buttonSelected.label}`);
         }
         break;
       case 'remove-entities':
         if (data.buttonSelected.label.toLowerCase() !== 'remove entities') {
           if (data.buttonSelected.label === 'Vehicles') {
-            ExecuteCommand(`destroy${data.buttonSelected.label.toLowerCase()}`);
+            Cfx.Client.ExecuteCommand(`destroy${data.buttonSelected.label.toLowerCase()}`);
           } else {
-            ExecuteCommand(`remove${data.buttonSelected.label.toLowerCase()}`);
+            Cfx.Client.ExecuteCommand(`remove${data.buttonSelected.label.toLowerCase()}`);
           }
         }
         break;
@@ -212,17 +176,17 @@ export class Client extends ClientController {
   }
 
   @EventListener({
-    eventName: `${GetCurrentResourceName()}:send-updated-position`,
+    eventName: `${Cfx.Client.GetCurrentResourceName()}:send-updated-position`,
   })
   public onAfterTeleport(args: string[]) {
-    let zCoord: [boolean, number, number[]] = GetGroundZAndNormalFor_3dCoord(
+    let zCoord: [boolean, number, number[]] = Cfx.Client.GetGroundZAndNormalFor_3dCoord(
       Number(args[0]),
       Number(args[1]),
       Number(args[2])
     );
-    if (GetEntityCoords(GetPlayerPed(source))[2] < zCoord[1]) {
-      SetEntityCoords(
-        GetPlayerPed(source),
+    if (Cfx.Client.GetEntityCoords(Cfx.Client.GetPlayerPed(Cfx.source), true)[2] < zCoord[1]) {
+      Cfx.Client.SetEntityCoords(
+        Cfx.Client.GetPlayerPed(Cfx.source),
         Number(args[0]),
         Number(args[1]),
         Number(zCoord),
@@ -238,9 +202,9 @@ export class Client extends ClientController {
   public pos(): void {
     console.log(
       JSON.stringify([
-        ...GetEntityCoords(PlayerPedId(), true),
-        ...GetEntityRotation(PlayerPedId()),
-        GetEntityHeading(PlayerPedId()),
+        ...Cfx.Client.GetEntityCoords(Cfx.Client.PlayerPedId(), true),
+        ...Cfx.Client.GetEntityRotation(Cfx.Client.PlayerPedId(), 2),
+        Cfx.Client.GetEntityHeading(Cfx.Client.PlayerPedId()),
       ])
     );
   }

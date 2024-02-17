@@ -36,7 +36,6 @@ const server = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
     alias: {
-      '@core': path.resolve(__dirname, './../[utils]'),
       '@shared': path.resolve(__dirname, './src/shared'),
     },
   },
@@ -76,7 +75,6 @@ const client = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
     alias: {
-      '@core': path.resolve(__dirname, './../[utils]'),
       '@shared': path.resolve(__dirname, './src/shared'),
     },
   },

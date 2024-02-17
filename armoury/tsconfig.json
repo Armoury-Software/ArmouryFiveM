@@ -3,7 +3,6 @@
     "baseUrl": ".",
     "paths": {
       "*": ["types/*"],
-      "@core/*": ["../[utils]/*"],
       "@shared/*": ["src/shared/*"]
     },
     "outDir": "./dist/",

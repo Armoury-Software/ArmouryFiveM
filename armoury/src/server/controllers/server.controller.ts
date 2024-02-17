@@ -1,12 +1,3 @@
-import { ServerController } from '@core/server/server.controller';
-import {
-  Command,
-  EventListener,
-  Export,
-  FiveMController,
-} from '@core/decorators/armoury.decorators';
-import { calculateDistance } from '@core/utils';
-
 @FiveMController()
 export class Server extends ServerController {
   protected _players: number[] = [];

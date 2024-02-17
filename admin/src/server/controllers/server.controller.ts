@@ -1,18 +1,20 @@
-import { ServerController } from '@core/server/server.controller';
-import {
-  EventListener,
-  FiveMController,
-} from '@core/decorators/armoury.decorators';
-import { WeaponHash } from 'fivem-js';
+import { ClientActionPointsService, EventListener, FiveMController, ServerController } from '@armoury/fivem-framework';
+import { Inject, Injectable } from 'injection-js';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
+import { Test } from '../server';
 
+@Injectable()
 @FiveMController()
 export class Server extends ServerController {
   private createdVehicles: number[] = [];
 
-  public constructor() {
+  public constructor(@Inject(Test) _actionPointsHelpers: Test) {
     super();
+
+    console.log('I should call some function from ClientActionPointsService here');
+
+    setTimeout(() => _actionPointsHelpers.doSomething(), 1000);
 
     this.registerCommands();
   }
@@ -28,8 +30,8 @@ export class Server extends ServerController {
         }
 
         if (TELEPORT_POINTS[args[0]]) {
-          SetEntityCoords(
-            GetPlayerPed(source),
+          Cfx.Server.SetEntityCoords(
+            Cfx.Server.GetPlayerPed(source.toString()),
             TELEPORT_POINTS[args[0]].pos[0],
             TELEPORT_POINTS[args[0]].pos[1],
             TELEPORT_POINTS[args[0]].pos[2],
@@ -39,8 +41,8 @@ export class Server extends ServerController {
             false
           );
         } else if (Number(args[0]) && Number(args[1]) && Number(args[2])) {
-          SetEntityCoords(
-            GetPlayerPed(source),
+          Cfx.Server.SetEntityCoords(
+            Cfx.Server.GetPlayerPed(source.toString()),
             Number(args[0]),
             Number(args[1]),
             Number(args[2]),
@@ -50,11 +52,7 @@ export class Server extends ServerController {
             false
           );
           setTimeout(() => {}, 800);
-          TriggerClientEvent(
-            `${GetCurrentResourceName()}:send-updated-position`,
-            source,
-            args
-          );
+          Cfx.Server.TriggerClientEvent(`${Cfx.Server.GetCurrentResourceName()}:send-updated-position`, source, args);
         } else {
           console.log(`No teleport with name ${args[0]}`);
         }
@@ -72,9 +70,9 @@ export class Server extends ServerController {
         }
 
         const model: string = args[0].toString();
-        const playerPosition: number[] = GetEntityCoords(GetPlayerPed(source));
+        const playerPosition: number[] = Cfx.Server.GetEntityCoords(Cfx.Server.GetPlayerPed(source.toString()));
 
-        const createdVehicle: number = CreateVehicle(
+        const createdVehicle: number = Cfx.Server.CreateVehicle(
           model,
           playerPosition[0],
           playerPosition[1],
@@ -83,9 +81,9 @@ export class Server extends ServerController {
           true,
           true
         );
-        TaskWarpPedIntoVehicle(GetPlayerPed(source), createdVehicle, -1);
-        SetVehicleCustomPrimaryColour(createdVehicle, 0, 0, 0);
-        SetVehicleCustomSecondaryColour(createdVehicle, 0, 0, 0);
+        Cfx.Server.TaskWarpPedIntoVehicle(Cfx.Server.GetPlayerPed(source.toString()), createdVehicle, -1);
+        Cfx.Server.SetVehicleCustomPrimaryColour(createdVehicle, 0, 0, 0);
+        Cfx.Server.SetVehicleCustomSecondaryColour(createdVehicle, 0, 0, 0);
         this.createdVehicles.push(createdVehicle);
       },
       false
@@ -96,8 +94,8 @@ export class Server extends ServerController {
       3,
       (_source: number, _args: string[], _raw: boolean) => {
         this.createdVehicles.forEach((createdVehicle: number) => {
-          if (DoesEntityExist(createdVehicle)) {
-            DeleteEntity(createdVehicle);
+          if (Cfx.Server.DoesEntityExist(createdVehicle)) {
+            Cfx.Server.DeleteEntity(createdVehicle);
           }
         });
 
@@ -114,9 +112,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const vehiclePosition: number[] = GetEntityCoords(Number(args[0]));
-        SetEntityCoords(
-          GetPlayerPed(source),
+        const vehiclePosition: number[] = Cfx.Server.GetEntityCoords(Number(args[0]));
+        Cfx.Server.SetEntityCoords(
+          Cfx.Server.GetPlayerPed(source.toString()),
           vehiclePosition[0],
           vehiclePosition[1],
           vehiclePosition[2],
@@ -137,8 +135,8 @@ export class Server extends ServerController {
           return;
         }
 
-        const playerPosition: number[] = GetEntityCoords(GetPlayerPed(source));
-        SetEntityCoords(
+        const playerPosition: number[] = Cfx.Server.GetEntityCoords(Cfx.Server.GetPlayerPed(source.toString()));
+        Cfx.Server.SetEntityCoords(
           Number(args[0]),
           playerPosition[0],
           playerPosition[1] + 1.0,
@@ -157,33 +155,28 @@ export class Server extends ServerController {
       1,
       (source: number, args: string[]) => {
         if (!args.length) {
-          console.log(
-            'ERROR! You should use /setroutingbucket <player-name> <routingBucket>'
-          );
+          console.log('ERROR! You should use /setroutingbucket <player-name> <routingBucket>');
           return;
         }
 
         const targetPlayer: number = Number(args[0]);
         const routingBucket: number = Number(args[1]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
-        SetEntityRoutingBucket(GetPlayerPed(targetPlayer), routingBucket);
+        Cfx.Server.SetEntityRoutingBucket(Cfx.Server.GetPlayerPed(targetPlayer.toString()), routingBucket);
 
         console.log(`Teleported to ${args[0]}.`);
       },
       false
     );
 
-    RegisterCommand(
+    Cfx.Server.RegisterCommand(
       'stats',
       (source: number) => {
-        console.log(
-          'Routing bucket:',
-          GetEntityRoutingBucket(GetPlayerPed(source))
-        );
+        console.log('Routing bucket:', Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(source.toString())));
       },
       false
     );
@@ -199,16 +192,16 @@ export class Server extends ServerController {
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
-        const targetPosition: number[] = GetEntityCoords(
-          GetPlayerPed(targetPlayer),
-          true
+        const targetPosition: number[] = Cfx.Server.GetEntityCoords(
+          Cfx.Server.GetPlayerPed(targetPlayer.toString()) /*,
+          true*/
         );
-        SetEntityCoords(
-          GetPlayerPed(source),
+        Cfx.Server.SetEntityCoords(
+          Cfx.Server.GetPlayerPed(source.toString()),
           targetPosition[0] + 1,
           targetPosition[1],
           targetPosition[2],
@@ -217,9 +210,9 @@ export class Server extends ServerController {
           false,
           true
         );
-        SetEntityRoutingBucket(
-          GetPlayerPed(source),
-          GetEntityRoutingBucket(GetPlayerPed(targetPlayer))
+        Cfx.Server.SetEntityRoutingBucket(
+          Cfx.Server.GetPlayerPed(source.toString()),
+          Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(targetPlayer.toString()))
         );
 
         console.log(`Teleported to ${args[0]}.`);
@@ -236,19 +229,19 @@ export class Server extends ServerController {
           return;
         }
 
-        const targetPosition: number[] = GetEntityCoords(
-          GetPlayerPed(source),
-          true
+        const targetPosition: number[] = Cfx.Server.GetEntityCoords(
+          Cfx.Server.GetPlayerPed(source.toString()) /*,
+          true*/
         );
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
-        SetEntityCoords(
-          GetPlayerPed(targetPlayer),
+        Cfx.Server.SetEntityCoords(
+          Cfx.Server.GetPlayerPed(targetPlayer.toString()),
           targetPosition[0] + 1,
           targetPosition[1],
           targetPosition[2],
@@ -258,9 +251,9 @@ export class Server extends ServerController {
           true
         );
 
-        SetEntityRoutingBucket(
-          GetPlayerPed(targetPlayer),
-          GetEntityRoutingBucket(GetPlayerPed(source))
+        Cfx.Server.SetEntityRoutingBucket(
+          Cfx.Server.GetPlayerPed(targetPlayer.toString()),
+          Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(source.toString()))
         );
 
         console.log(`Teleported ${args[0]} to you.`);
@@ -275,9 +268,7 @@ export class Server extends ServerController {
         const availableStats: string[] = ['skills'];
 
         if (args.length < 3) {
-          console.log(
-            'ERROR! You should use /setstat <player-name> <stat> <value>'
-          );
+          console.log('ERROR! You should use /setstat <player-name> <stat> <value>');
 
           console.log(`Stats you can set: ${availableStats.join(', ')}`);
           return;
@@ -285,16 +276,14 @@ export class Server extends ServerController {
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
         switch (args[1]) {
           case 'skills': {
             if (!args[3]) {
-              console.log(
-                `Give a value to said skill, using /setstat <player-name> skills <skill> <value>`
-              );
+              console.log(`Give a value to said skill, using /setstat <player-name> skills <skill> <value>`);
               return;
             }
 
@@ -303,14 +292,8 @@ export class Server extends ServerController {
               return;
             }
 
-            global.exports['skills'].updatePlayerSkill(
-              targetPlayer,
-              args[2],
-              args[3]
-            );
-            console.log(
-              `Skill ${args[2]} updated successfuly for player ${args[0]} `
-            );
+            Cfx.exports['skills'].updatePlayerSkill(targetPlayer, args[2], args[3]);
+            console.log(`Skill ${args[2]} updated successfuly for player ${args[0]} `);
 
             return;
           }
@@ -335,7 +318,7 @@ export class Server extends ServerController {
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -344,12 +327,7 @@ export class Server extends ServerController {
           return;
         }
 
-        exports['authentication'].setPlayerInfo(
-          targetPlayer,
-          'cash',
-          Number(args[1]),
-          false
-        );
+        exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[1]), false);
         console.log(`${args[0]}'s cash was set to ${args[1]}$.`);
       },
       false
@@ -366,7 +344,7 @@ export class Server extends ServerController {
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -375,17 +353,9 @@ export class Server extends ServerController {
           return;
         }
 
-        const playerCash: number = exports['authentication'].getPlayerInfo(
-          targetPlayer,
-          'cash'
-        );
+        const playerCash: number = exports['authentication'].getPlayerInfo(targetPlayer, 'cash');
 
-        exports['authentication'].setPlayerInfo(
-          targetPlayer,
-          'cash',
-          Number(args[1]) + playerCash,
-          false
-        );
+        exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[1]) + playerCash, false);
         console.log(`${args[0]} received ${args[1]}$.`);
       },
       false
@@ -396,15 +366,13 @@ export class Server extends ServerController {
       4,
       (source: number, args: string[]) => {
         if (args.length < 3) {
-          console.log(
-            'ERROR! You should use /giveweapons <player-name> <weapon-name> <no-of-bullets>'
-          );
+          console.log('ERROR! You should use /giveweapons <player-name> <weapon-name> <no-of-bullets>');
           return;
         }
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -413,21 +381,23 @@ export class Server extends ServerController {
           return;
         }
 
-        const weapon: string = WeaponHash[args[1]] ? WeaponHash[args[1]] : '';
+        throw new Error('Not implemented');
+
+        /*const weapon: string = WeaponHash[args[1]] ? WeaponHash[args[1]] : '';
 
         if (!weapon) {
           console.log(`Weapon ${args[1]} not found.`);
           return;
         }
 
-        global.exports['weapons'].givePlayerWeapon(
+        Cfx.exports['weapons'].givePlayerWeapon(
           targetPlayer,
           WeaponHash[args[1]],
           Number(args[2])
         );
         console.log(
           `Succesfuly gave ${args[0]} the following weapon: ${args[1]}.`
-        );
+        );*/
       },
       false
     );
@@ -443,11 +413,11 @@ export class Server extends ServerController {
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
-        global.exports['weapons'].removePlayerWeapons(targetPlayer);
+        Cfx.exports['weapons'].removePlayerWeapons(targetPlayer);
         console.log(`Succesfully removed ${args[0]}'s weapons.`);
       },
       false
@@ -464,7 +434,7 @@ export class Server extends ServerController {
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
@@ -473,17 +443,11 @@ export class Server extends ServerController {
           return;
         }
 
-        if (global.exports['drugs'].verifyDrugType(args[1])) {
-          global.exports['drugs'].givePlayerDrugs(
-            targetPlayer,
-            args[1],
-            Number(args[2])
-          );
+        if (Cfx.exports['drugs'].verifyDrugType(args[1])) {
+          Cfx.exports['drugs'].givePlayerDrugs(targetPlayer, args[1], Number(args[2]));
           console.log(`Succesfully gave ${args[0]} ${args[2]}g of ${args[1]}.`);
         } else {
-          console.log(
-            `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
-          );
+          console.log(`Invalid drug type (${args[1]}). Types: cocaine/marijuana`);
         }
       },
       false
@@ -494,36 +458,30 @@ export class Server extends ServerController {
       5,
       (source: number, args: string[]) => {
         if (args.length < 2) {
-          console.log(
-            'Error! Use /aremovedrugs <target> <drug-type> <amount?>'
-          );
+          console.log('Error! Use /aremovedrugs <target> <drug-type> <amount?>');
           return;
         }
 
         const targetPlayer: number = Number(args[0]);
 
-        if (!global.exports['armoury'].isPlayerOnline(targetPlayer)) {
+        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
           return;
         }
 
-        if (global.exports['drugs'].verifyDrugType(args[1])) {
-          global.exports['drugs'].removePlayerDrugs(
-            targetPlayer,
-            args[1],
-            Number(args[2])
-          );
+        if (Cfx.exports['drugs'].verifyDrugType(args[1])) {
+          Cfx.exports['drugs'].removePlayerDrugs(targetPlayer, args[1], Number(args[2]));
         } else {
-          console.log(
-            `Invalid drug type (${args[1]}). Types: cocaine/marijuana`
-          );
+          console.log(`Invalid drug type (${args[1]}). Types: cocaine/marijuana`);
         }
       },
       false
     );
   }
 
-  @EventListener({ eventName: `${GetCurrentResourceName()}:open-admin-menu` })
+  @EventListener({
+    eventName: `${Cfx.Server.GetCurrentResourceName()}:open-admin-menu`,
+  })
   public onAdminMenuOpen(data: any) {
-    global.exports['armoury-overlay'].showContextMenu(source, data);
+    Cfx.exports['armoury-overlay'].showContextMenu(Cfx.source, data);
   }
 }

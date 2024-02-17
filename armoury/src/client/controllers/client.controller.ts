@@ -1,11 +1,3 @@
-import { ClientController } from '@core/client/client.controller';
-import {
-  EventListener,
-  Export,
-  FiveMController,
-} from '@core/decorators/armoury.decorators';
-import { calculateDistance } from '@core/utils';
-
 @FiveMController()
 export class Client extends ClientController {
   private playerLeftVehicleInterval: NodeJS.Timer;
