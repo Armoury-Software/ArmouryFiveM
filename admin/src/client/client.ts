@@ -1,4 +1,4 @@
+import { Client_Init } from '@armoury/fivem-framework';
 import { Client } from './controllers/client.controller';
 
-// eslint-disable-next-line no-unused-vars
-const client = new Client();
+Client_Init(Client);

@@ -102,7 +102,7 @@
     "fastq" "^1.6.0"
 
 "@sindresorhus/df@^1.0.1":
-  "integrity" "sha1-xptm9S9vzdKHyAffIQMF2694UA0="
+  "integrity" "sha512-1Hyp7NQnD/u4DSxR2DGW78TF9k7R0wZ8ev0BpMAIzA6yTQSHqNb5wTuvtcPYf4FWbVse2rW7RgDsyL8ua2vXHw=="
   "resolved" "https://registry.npmjs.org/@sindresorhus/df/-/df-1.0.1.tgz"
   "version" "1.0.1"
 
@@ -157,10 +157,12 @@
   "resolved" "https://registry.npmjs.org/@types/json5/-/json5-0.0.29.tgz"
   "version" "0.0.29"
 
-"@types/node@*", "@types/node@^17.0.10":
-  "integrity" "sha512-S/3xB4KzyFxYGCppyDt68yzBU9ysL88lSdIah4D6cptdcltc4NCPCAMc0+PCpg/lLIyC7IPvj2Z52OJWeIUkog=="
-  "resolved" "https://registry.npmjs.org/@types/node/-/node-17.0.10.tgz"
-  "version" "17.0.10"
+"@types/node@*", "@types/node@^20.11.19":
+  "integrity" "sha512-7xMnVEcZFu0DikYjWOlRq7NTPETrm7teqUT2WkQjrTIkEgUyyGdWsj/Zg8bEJt5TNklzbPD1X3fqfsHw3SpapQ=="
+  "resolved" "https://registry.npmjs.org/@types/node/-/node-20.11.19.tgz"
+  "version" "20.11.19"
+  dependencies:
+    "undici-types" "~5.26.4"
 
 "@types/webpack@5.28.0":
   "integrity" "sha512-8cP0CzcxUiFuA9xGJkfeVpqmWTk9nx6CWwamRGCj95ph1SmlRRk9KlCZ6avhCbZd4L68LvYT6l1kpdEnQXrF8w=="
@@ -464,7 +466,7 @@
     "is-string" "^1.0.7"
 
 "array-union@^1.0.1":
-  "integrity" "sha1-mjRBDk9OPaI96jdb5b5w8kd47Dk="
+  "integrity" "sha512-Dxr6QJj/RdU/hCaBjOfxW+q6lyuVE6JFWIrAUpuOOhoJJoQ99cUn3igRaHVB5P9WrgFVN0FfArM3x0cueOU8ng=="
   "resolved" "https://registry.npmjs.org/array-union/-/array-union-1.0.2.tgz"
   "version" "1.0.2"
   dependencies:
@@ -476,7 +478,7 @@
   "version" "2.1.0"
 
 "array-uniq@^1.0.1":
-  "integrity" "sha1-r2rId6Jcx/dOBYiUdThY39sk/bY="
+  "integrity" "sha512-MNha4BWQ6JbwhFhj03YK552f7cb3AzoE8SzeljgChvL1dl3IcvggXVz1DilzySZkCja+CXuZbdW7yATchWn8/Q=="
   "resolved" "https://registry.npmjs.org/array-uniq/-/array-uniq-1.0.3.tgz"
   "version" "1.0.3"
 
@@ -1092,19 +1094,7 @@
   "resolved" "https://registry.npmjs.org/glob-to-regexp/-/glob-to-regexp-0.4.1.tgz"
   "version" "0.4.1"
 
-"glob@^7.1.2":
-  "integrity" "sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q=="
-  "resolved" "https://registry.npmjs.org/glob/-/glob-7.2.3.tgz"
-  "version" "7.2.3"
-  dependencies:
-    "fs.realpath" "^1.0.0"
-    "inflight" "^1.0.4"
-    "inherits" "2"
-    "minimatch" "^3.1.1"
-    "once" "^1.3.0"
-    "path-is-absolute" "^1.0.0"
-
-"glob@^7.1.3":
+"glob@^7.1.2", "glob@^7.1.3":
   "integrity" "sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q=="
   "resolved" "https://registry.npmjs.org/glob/-/glob-7.2.3.tgz"
   "version" "7.2.3"
@@ -1136,7 +1126,7 @@
     "slash" "^3.0.0"
 
 "globby@^7.1.1":
-  "integrity" "sha1-+yzP+UAfhgCUXfral0QMypcrhoA="
+  "integrity" "sha512-yANWAN2DUcBtuus5Cpd+SKROzXHs2iVXFZt/Ykrfz6SAXqacLX25NZpltE+39ceMexYF4TtEadjuSTw8+3wX4g=="
   "resolved" "https://registry.npmjs.org/globby/-/globby-7.1.1.tgz"
   "version" "7.1.1"
   dependencies:
@@ -1532,7 +1522,7 @@
   "version" "1.2.5"
 
 "mount-point@^3.0.0":
-  "integrity" "sha1-Zly57evoDREOZY21bDHQrvUaj5c="
+  "integrity" "sha512-jAhfD7ZCG+dbESZjcY1SdFVFqSJkh/yGbdsifHcPkvuLRO5ugK0Ssmd9jdATu29BTd4JiN+vkpMzVvsUgP3SZA=="
   "resolved" "https://registry.npmjs.org/mount-point/-/mount-point-3.0.0.tgz"
   "version" "3.0.0"
   dependencies:
@@ -1649,7 +1639,7 @@
     "word-wrap" "^1.2.3"
 
 "os-homedir@^1.0.0":
-  "integrity" "sha1-/7xJiDNuDoM94MFox+8VISGqf7M="
+  "integrity" "sha512-B5JU3cabzk8c67mRRd3ECmROafjYMXbuzlwtqdM8IbS8ktlTix8aFGb2bAGKrSRIlnfKwovGUUr72JUPyOb6kQ=="
   "resolved" "https://registry.npmjs.org/os-homedir/-/os-homedir-1.0.2.tgz"
   "version" "1.0.2"
 
@@ -1758,24 +1748,24 @@
   "version" "2.3.1"
 
 "pify@^2.3.0":
-  "integrity" "sha1-7RQaasBDqEnqWISY59yosVMw6Qw="
+  "integrity" "sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog=="
   "resolved" "https://registry.npmjs.org/pify/-/pify-2.3.0.tgz"
   "version" "2.3.0"
 
 "pify@^3.0.0":
-  "integrity" "sha1-5aSs0sEB/fPZpNB/DbxNtJ3SgXY="
+  "integrity" "sha512-C3FsVNH1udSEX48gGX1xfvwTWfsYWj5U+8/uK15BGzIGrKoUpghX8hWZwa/OFnakBiiVNmBvemTJR5mcy7iPcg=="
   "resolved" "https://registry.npmjs.org/pify/-/pify-3.0.0.tgz"
   "version" "3.0.0"
 
 "pinkie-promise@^2.0.1":
-  "integrity" "sha1-ITXW36ejWMBprJsXh3YogihFD/o="
+  "integrity" "sha512-0Gni6D4UcLTbv9c57DfxDGdr41XfgUjqWZu492f0cIGr16zDU06BWP/RAEvOuo7CQ0CNjHaLlM59YJJFm3NWlw=="
   "resolved" "https://registry.npmjs.org/pinkie-promise/-/pinkie-promise-2.0.1.tgz"
   "version" "2.0.1"
   dependencies:
     "pinkie" "^2.0.0"
 
 "pinkie@^2.0.0":
-  "integrity" "sha1-clVrgM+g1IqXToDnckjoDtT3+HA="
+  "integrity" "sha512-MnUuEycAemtSaeFSjXKW/aroV7akBbY+Sv+RkyqFjgAe73F+MR0TBWKBRDkmfWq/HiFmdavfZ1G7h4SPZXaCSg=="
   "resolved" "https://registry.npmjs.org/pinkie/-/pinkie-2.0.4.tgz"
   "version" "2.0.4"
 
@@ -1960,12 +1950,12 @@
     "object-inspect" "^1.9.0"
 
 "signal-exit@^3.0.2":
-  "integrity" "sha512-sDl4qMFpijcGw22U5w63KmD3cZJfBuFlVNbVMKje2keoKML7X2UzWbc4XrmEbDwg0NXJc3yv4/ox7b+JWb57kQ=="
-  "resolved" "https://registry.npmjs.org/signal-exit/-/signal-exit-3.0.6.tgz"
-  "version" "3.0.6"
+  "integrity" "sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ=="
+  "resolved" "https://registry.npmjs.org/signal-exit/-/signal-exit-3.0.7.tgz"
+  "version" "3.0.7"
 
 "slash@^1.0.0":
-  "integrity" "sha1-xB8vbDn8FtHNF61LXYlhFK5HDVU="
+  "integrity" "sha512-3TYDR7xWt4dIqV2JauJr+EJeW356RXijHeUlO+8djJ+uBXPn8/2dpzBc8yQhh583sVvc9CvFAeQVgijsH+PNNg=="
   "resolved" "https://registry.npmjs.org/slash/-/slash-1.0.0.tgz"
   "version" "1.0.0"
 
@@ -2174,6 +2164,11 @@
     "has-symbols" "^1.0.2"
     "which-boxed-primitive" "^1.0.2"
 
+"undici-types@~5.26.4":
+  "integrity" "sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA=="
+  "resolved" "https://registry.npmjs.org/undici-types/-/undici-types-5.26.5.tgz"
+  "version" "5.26.5"
+
 "update-browserslist-db@^1.0.13":
   "integrity" "sha512-xebP81SNcPuNpPP3uzeW1NYXxI3rxyJzF3pD6sH4jE7o/IX+WtSpwnVU+qIsDPyk0d3hmFQ7mjqc6AtV604hbg=="
   "resolved" "https://registry.npmjs.org/update-browserslist-db/-/update-browserslist-db-1.0.13.tgz"
@@ -2190,7 +2185,7 @@
     "punycode" "^2.1.0"
 
 "user-home@^2.0.0":
-  "integrity" "sha1-nHC/2Babwdy/SGBODwS4tJzenp8="
+  "integrity" "sha512-KMWqdlOcjCYdtIJpicDSFBQ8nFwS2i9sslAd6f4+CBGcU4gist2REnr2fxj2YocvJFxSF3ZOHLYLVZnUxv4BZQ=="
   "resolved" "https://registry.npmjs.org/user-home/-/user-home-2.0.0.tgz"
   "version" "2.0.0"
   dependencies:

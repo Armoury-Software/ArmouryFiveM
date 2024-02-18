@@ -1,20 +1,12 @@
-import { ClientActionPointsService, EventListener, FiveMController, ServerController } from '@armoury/fivem-framework';
-import { Inject, Injectable } from 'injection-js';
+import { EventListener, ServerController } from '@armoury/fivem-framework';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
-import { Test } from '../server';
 
-@Injectable()
-@FiveMController()
 export class Server extends ServerController {
   private createdVehicles: number[] = [];
 
-  public constructor(@Inject(Test) _actionPointsHelpers: Test) {
+  public constructor() {
     super();
-
-    console.log('I should call some function from ClientActionPointsService here');
-
-    setTimeout(() => _actionPointsHelpers.doSomething(), 1000);
 
     this.registerCommands();
   }
@@ -384,20 +376,20 @@ export class Server extends ServerController {
         throw new Error('Not implemented');
 
         /*const weapon: string = WeaponHash[args[1]] ? WeaponHash[args[1]] : '';
-
-        if (!weapon) {
-          console.log(`Weapon ${args[1]} not found.`);
-          return;
-        }
-
-        Cfx.exports['weapons'].givePlayerWeapon(
-          targetPlayer,
-          WeaponHash[args[1]],
-          Number(args[2])
-        );
-        console.log(
-          `Succesfuly gave ${args[0]} the following weapon: ${args[1]}.`
-        );*/
+        
+                if (!weapon) {
+                  console.log(`Weapon ${args[1]} not found.`);
+                  return;
+                }
+        
+                Cfx.exports['weapons'].givePlayerWeapon(
+                  targetPlayer,
+                  WeaponHash[args[1]],
+                  Number(args[2])
+                );
+                console.log(
+                  `Succesfuly gave ${args[0]} the following weapon: ${args[1]}.`
+                );*/
       },
       false
     );

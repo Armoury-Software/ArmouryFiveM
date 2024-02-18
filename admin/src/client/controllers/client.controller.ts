@@ -1,4 +1,11 @@
-import { ClientController, Command, EVENT_DIRECTIONS, EventListener, FiveMController } from '@armoury/fivem-framework';
+import { Inject } from 'injection-js';
+import {
+  ClientSessionService,
+  Command,
+  EVENT_DIRECTIONS,
+  EventListener,
+  FiveMController,
+} from '@armoury/fivem-framework';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
 import {
@@ -14,21 +21,21 @@ import {
 
 import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
 
-@FiveMController()
-export class Client extends ClientController {
+// @FiveMController()
+export class Client {
   private menuToggles: Map<string, boolean> = new Map<string, boolean>();
 
-  public constructor() {
-    super();
-
-    this.registerKeyBindings();
+  public constructor(@Inject(ClientSessionService) private _session: ClientSessionService) {
+    console.log('test');
+    console.log(this._session.getPlayerInfo('adminLevel'));
+    // this.registerKeyBindings();
   }
 
   private registerKeyBindings(): void {
     Cfx.Client.RegisterCommand(
       '+openadminmenu',
       () => {
-        if (<number>this.getPlayerInfo('adminLevel') > 0) {
+        if (<number>this._session.getPlayerInfo('adminLevel') > 0) {
           if (this.menuToggles.get('admin-menu') === true) {
             this.menuToggles.set('admin-menu', false);
             Cfx.Client.emit('armoury-overlay:hide-context-menu');
@@ -57,7 +64,7 @@ export class Client extends ClientController {
             Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, {
               ...ADMIN_GIVE_SELF,
               items: ADMIN_GIVE_SELF.items.filter((item) => {
-                return Number(item.adminLevel) <= <number>this.getPlayerInfo('adminLevel');
+                return Number(item.adminLevel) <= <number>this._session.getPlayerInfo('adminLevel');
               }),
             });
             break;
@@ -75,7 +82,7 @@ export class Client extends ClientController {
                   adminLevel: 1,
                 }))
                 .filter((item) => {
-                  return Number(item.adminLevel) <= <number>this.getPlayerInfo('adminLevel');
+                  return Number(item.adminLevel) <= <number>this._session.getPlayerInfo('adminLevel');
                 }),
             });
 
@@ -87,7 +94,7 @@ export class Client extends ClientController {
             Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, {
               ...ADMIN_ENTITIES,
               items: ADMIN_ENTITIES.items
-                .filter((item) => Number(item.adminLevel) <= Number(this.getPlayerInfo('adminLevel')))
+                .filter((item) => Number(item.adminLevel) <= Number(this._session.getPlayerInfo('adminLevel')))
                 .map((item, _index, thisArray) => (thisArray.length === 1 ? { ...item, active: true } : item)),
             });
             break;
@@ -126,17 +133,22 @@ export class Client extends ClientController {
           data.buttonSelected.label.toLowerCase() !== 'give vehicle'
         ) {
           Cfx.Client.ExecuteCommand(
-            `giveweapon ${<string>this.getPlayerInfo('name')} ${data.buttonSelected.label.replaceAll(' ', '')} 150`
+            `giveweapon ${<string>this._session.getPlayerInfo('name')} ${data.buttonSelected.label.replaceAll(
+              ' ',
+              ''
+            )} 150`
           );
         }
         break;
       case 'give-drugs':
-        Cfx.Client.ExecuteCommand(`agivedrugs ${<string>this.getPlayerInfo('name')} ${data.buttonSelected.label} 10`);
+        Cfx.Client.ExecuteCommand(
+          `agivedrugs ${<string>this._session.getPlayerInfo('name')} ${data.buttonSelected.label} 10`
+        );
         break;
       case 'give-money':
         if (data.buttonSelected.label.toLowerCase !== 'give money') {
           Cfx.Client.ExecuteCommand(
-            `givecash ${<string>this.getPlayerInfo('name')} ${data.buttonSelected.label.replaceAll('$', '')}`
+            `givecash ${<string>this._session.getPlayerInfo('name')} ${data.buttonSelected.label.replaceAll('$', '')}`
           );
         }
         break;
