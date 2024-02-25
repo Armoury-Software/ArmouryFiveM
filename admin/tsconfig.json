@@ -1,22 +1,22 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "*": ["types/*"],
-            "@shared/*": ["src/shared/*"]
-        },
-        "outDir": "./dist/",
-        "noImplicitAny": false,
-        "module": "es6",
-        "target": "es5",
-        "lib": ["ES2017"],
-        "allowJs": true,
-        "types": ["@types/node"],
-        "moduleResolution": "node",
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "esModuleInterop": true
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": ["types/*"],
+      "@shared/*": ["src/shared/*"]
     },
-    "include": ["./src/**/*"],
-    "exclude": []
+    "outDir": "./dist/",
+    "noImplicitAny": false,
+    "module": "es6",
+    "target": "es5",
+    "lib": ["ES2017"],
+    "allowJs": true,
+    "types": ["@types/node"],
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true
+  },
+  "include": ["./src/**/*"],
+  "exclude": []
 }
