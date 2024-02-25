@@ -1,5 +1,6 @@
-import { ClientController } from '@core/client/client.controller';
-import { FiveMController } from '@core/decorators/armoury.decorators';
+import { Controller } from '@armoury/fivem-framework';
 
-@FiveMController()
-export class Client extends ClientController {}
+@Controller()
+export class Client {
+  // TODO: Implement stuff here
+}
