@@ -3,10 +3,10 @@ game 'gta5'
 
 author 'Armoury Development Team'
 description 'Armoury FiveM Overlay'
-version '1.0.0'
+version '1.0.1'
 
-client_script 'dist/client/*.client.js'
 server_script 'dist/server/*.server.js'
+client_script 'dist/client/*.client.js'
 
 ui_page 'dist/ui/index.html'
 files {
