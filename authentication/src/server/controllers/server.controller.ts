@@ -1,23 +1,19 @@
-import { toThousandsString, numberWithCommas, isJSON } from '@core/utils';
 import {
+  Controller,
+  ServerController,
   EventListener,
   Export,
-  FiveMController,
-} from '@core/decorators/armoury.decorators';
-import { ServerController } from '@core/server/server.controller';
+  numberWithCommas,
+  toThousandsString,
+  isJSON,
+} from '@armoury/fivem-framework';
+import { Account } from '@shared/models/account.model';
+import { AuthenticationDTO } from '@shared/models/authentication.model';
+import { PlayerInfoType } from '@shared/models/player-info.type';
+import { Player, PlayerBase, PlayerMonitored } from '@shared/models/player.model';
 import { whirlpool } from 'hash-wasm';
 
-import { authenticationDTO } from '@shared/models/authentication.model';
-import {
-  Player,
-  PlayerBase,
-  PlayerMonitored,
-} from '@shared/models/player.model';
-import { PlayerInfoType } from '@shared/models/player-info.type';
-import { Account } from '@shared/models/account.model';
-import { i18n } from '../i18n';
-
-@FiveMController({ translationFile: i18n })
+@Controller()
 export class Server extends ServerController {
   private cachedPlayerProperties: string[] = [];
   private authenticatedPlayers: Map<number, PlayerMonitored> = new Map();
@@ -25,23 +21,18 @@ export class Server extends ServerController {
 
   private maxIdOnServer: number = 0;
 
-  @EventListener({ eventName: `${GetCurrentResourceName()}:authenticate` })
-  public async onAuthenticateBegin(
-    data: authenticationDTO,
-    _source?: number
-  ): Promise<void> {
-    const playerId: number = _source ?? source;
+  @EventListener({ eventName: `${Cfx.Server.GetCurrentResourceName()}:authenticate` })
+  public async onAuthenticateBegin(data: AuthenticationDTO, _source?: number): Promise<void> {
+    const playerId: number = _source ?? Cfx.source;
 
     // prettier-ignore
     const hashedPassword: string = await whirlpool(this.getHashPasswordWithSalt(data.password, data.email));
 
     if (!data.isAuthenticating) {
       try {
-        const createdAccountId: number = await global.exports[
-          'oxmysql'
-        ].insert_async(
+        const createdAccountId: number = await global.exports['oxmysql'].insert_async(
           'INSERT INTO `accounts`(`name`, `password`, `email`) VALUES (?, ?, ?)',
-          [GetPlayerName(playerId), hashedPassword, data.email]
+          [Cfx.Server.GetPlayerName(playerId.toString()), hashedPassword, data.email]
         );
 
         if (createdAccountId) {
@@ -57,8 +48,8 @@ export class Server extends ServerController {
           throw new Error();
         }
       } catch (error) {
-        TriggerClientEvent(
-          `${GetCurrentResourceName()}:register-error`,
+        Cfx.TriggerClientEvent(
+          `${Cfx.Server.GetCurrentResourceName()}:register-error`,
           playerId,
           'Registration failed - that email already exists.'
         );
@@ -73,7 +64,7 @@ export class Server extends ServerController {
         this.authenticatePlayer(playerId, result);
       } else {
         // prettier-ignore
-        TriggerClientEvent('authentication:login-error', playerId, 'Authentication failed - incorrect email and password combination.');
+        Cfx.TriggerClientEvent('authentication:login-error', playerId, 'Authentication failed - incorrect email and password combination.');
       }
     }
   }
@@ -98,18 +89,13 @@ export class Server extends ServerController {
         icon: 'attach_money',
         value:
           '$' +
-          (Math.abs(<number>value) < 999999
-            ? numberWithCommas(<number>value)
-            : toThousandsString(<number>value, 2)),
+          (Math.abs(<number>value) < 999999 ? numberWithCommas(<number>value) : toThousandsString(<number>value, 2)),
       });
 
       const previousValue: number = this.getPlayerInfo(source, 'cash');
       const difference: number = Number(value) - Number(previousValue || 0);
       if (difference !== 0 && previousValue !== 0) {
-        global.exports['armoury-overlay'].showMoneyGainOverlay(
-          source,
-          difference
-        );
+        global.exports['armoury-overlay'].showMoneyGainOverlay(source, difference);
       }
     }
 
@@ -121,13 +107,11 @@ export class Server extends ServerController {
       global.exports['armoury-overlay'].updateItem(source, {
         id: stat,
         icon: 'person',
-        value: value
-          .toString()
-          .padStart(Math.max(6, this.maxIdOnServer.toString().length), '0'),
+        value: value.toString().padStart(Math.max(6, this.maxIdOnServer.toString().length), '0'),
       });
     }
 
-    SetConvarReplicated(`${source}_PI_${stat}`, value.toString());
+    Cfx.Server.SetConvarReplicated(`${source}_PI_${stat}`, value.toString());
 
     if (!ignoreSQLCommand && this.cachedPlayerProperties.includes(stat)) {
       let statsString: string = `${stat} = ?`;
@@ -135,19 +119,15 @@ export class Server extends ServerController {
         statsString += `, ${additionalValue.stat} = ?`;
       });
 
-      global.exports['oxmysql'].update_async(
-        `UPDATE \`players\` SET ${statsString} WHERE id = ?`,
-        [
-          value,
-          ...additionalValues.map((additionalValue) =>
-            Array.isArray(additionalValue._value) ||
-            typeof additionalValue._value === 'object'
-              ? JSON.stringify(additionalValue._value)
-              : additionalValue._value
-          ),
-          this.getPlayerInfo(source, 'id'),
-        ]
-      );
+      global.exports['oxmysql'].update_async(`UPDATE \`players\` SET ${statsString} WHERE id = ?`, [
+        value,
+        ...additionalValues.map((additionalValue) =>
+          Array.isArray(additionalValue._value) || typeof additionalValue._value === 'object'
+            ? JSON.stringify(additionalValue._value)
+            : additionalValue._value
+        ),
+        this.getPlayerInfo(source, 'id'),
+      ]);
     }
   }
 
@@ -165,11 +145,8 @@ export class Server extends ServerController {
   }
 
   @Export()
-  public getPlayerInfo<T extends PlayerInfoType>(
-    source: number,
-    stat: string
-  ): T {
-    let value: PlayerInfoType = GetConvar(`${source}_PI_${stat}`, '-1');
+  public getPlayerInfo<T extends PlayerInfoType>(source: number, stat: string): T {
+    let value: PlayerInfoType = Cfx.Server.GetConvar(`${source}_PI_${stat}`, '-1');
 
     if (isJSON(value.toString())) {
       value = JSON.parse(value, function (_k, v) {
@@ -178,8 +155,7 @@ export class Server extends ServerController {
     }
 
     if (stat === 'hoursPlayed') {
-      const computedHoursPlayed: number =
-        Number(value) + this.computeHoursPlayed(source);
+      const computedHoursPlayed: number = Number(value) + this.computeHoursPlayed(source);
       this.setPlayerInfo(source, stat, computedHoursPlayed);
 
       return <T>computedHoursPlayed;
@@ -208,11 +184,7 @@ export class Server extends ServerController {
     if (this.authenticatedPlayers.has(source)) {
       computedHoursPlayed =
         Math.floor(
-          (Math.abs(
-            this.authenticatedPlayers
-              .get(source)
-              .lastHoursPlayedCheck.getTime() - new Date().getTime()
-          ) /
+          (Math.abs(this.authenticatedPlayers.get(source).lastHoursPlayedCheck.getTime() - new Date().getTime()) /
             (1000 * 60)) %
             60
         ) * 0.017;
@@ -226,10 +198,7 @@ export class Server extends ServerController {
     return computedHoursPlayed;
   }
 
-  private async authenticatePlayer(
-    target: number,
-    account: Account
-  ): Promise<void> {
+  private async authenticatePlayer(target: number, account: Account): Promise<void> {
     const characters: Player[] = await global.exports['oxmysql'].query_async(
       `SELECT * FROM players WHERE accountId = ?`,
       [account.id]
@@ -238,14 +207,11 @@ export class Server extends ServerController {
     if (characters) {
       this.playersAuthenticatedWithAccountIds.set(target, account.id);
 
-      TriggerClientEvent(
-        `${GetCurrentResourceName()}:account-success-client`,
-        target
-      );
-      emit(`${GetCurrentResourceName()}:account-success`, target, characters);
+      Cfx.TriggerClientEvent(`${Cfx.Server.GetCurrentResourceName()}:account-success-client`, target);
+      Cfx.emit(`${Cfx.Server.GetCurrentResourceName()}:account-success`, target, characters);
     } else {
       // prettier-ignore
-      TriggerClientEvent(`${GetCurrentResourceName()}:account-login-error`, target, 'Authentication failed - unknown error occured.');
+      Cfx.TriggerClientEvent(`${Cfx.Server.GetCurrentResourceName()}:account-login-error`, target, 'Authentication failed - unknown error occured.');
     }
   }
 
@@ -267,23 +233,17 @@ export class Server extends ServerController {
       lastHoursPlayedCheck: new Date(),
     });
 
-    this.spawnPlayer(
-      target,
-      !(<number[]>this.getPlayerInfo(target, 'lastLocation'))?.length
-    );
+    this.spawnPlayer(target, !(<number[]>this.getPlayerInfo(target, 'lastLocation'))?.length);
 
-    TriggerClientEvent('authentication:success', target);
-    emit('authentication:player-authenticated', target, stats);
+    Cfx.TriggerClientEvent('authentication:success', target);
+    Cfx.emit('authentication:player-authenticated', target, stats);
 
     this.playersAuthenticatedWithAccountIds.delete(target);
   }
 
   @EventListener({ eventName: 'character-creation:character-selected' })
-  public async onCharacterSelected(
-    character: any,
-    _source?: number
-  ): Promise<void> {
-    const playerId: number = _source ?? source;
+  public async onCharacterSelected(character: any, _source?: number): Promise<void> {
+    const playerId: number = _source ?? Cfx.source;
     if (Number(character.age) > 0) {
       const player: Player = await global.exports['oxmysql'].single_async(
         'SELECT * FROM `players` WHERE id=? AND accountId=?',
@@ -294,21 +254,16 @@ export class Server extends ServerController {
         this.loadPlayerCharacter(playerId, player);
       } else {
         // prettier-ignore
-        TriggerClientEvent(`${GetCurrentResourceName()}:login-error`, playerId, 'Authentication failed - unknown error.');
+        Cfx.TriggerClientEvent(`${Cfx.Server.GetCurrentResourceName()}:login-error`, playerId, 'Authentication failed - unknown error.');
       }
     }
   }
 
   @EventListener({ eventName: 'character-creation:character-created' })
-  public async onCharacterCreated(
-    character: any,
-    _source?: number
-  ): Promise<void> {
-    const playerId: number = _source ?? source;
+  public async onCharacterCreated(character: any, _source?: number): Promise<void> {
+    const playerId: number = _source ?? Cfx.source;
     try {
-      const createdCharacterId: Player = await global.exports[
-        'oxmysql'
-      ].insert_async(
+      const createdCharacterId: Player = await global.exports['oxmysql'].insert_async(
         'INSERT INTO `players`(`accountId`, `name`, `cash`, `bank`, `outfit`) VALUES (?, ?, ?, ?, ?)',
         [
           this.playersAuthenticatedWithAccountIds.get(playerId),
@@ -330,17 +285,9 @@ export class Server extends ServerController {
               }),
               {
                 components: {
-                  clothingId: [
-                    'clothing',
-                    playerId,
-                    Date.now().toString().substring(-8),
-                  ].join('_'),
+                  clothingId: ['clothing', playerId, Date.now().toString().substring(-8)].join('_'),
                 },
-                title: [
-                  'clothing',
-                  playerId,
-                  Date.now().toString().substring(-8),
-                ].join('_'),
+                title: ['clothing', playerId, Date.now().toString().substring(-8)].join('_'),
               }
             )
           ),
@@ -348,22 +295,19 @@ export class Server extends ServerController {
       );
 
       if (createdCharacterId) {
-        this.onCharacterSelected(
-          { ...character, id: createdCharacterId },
-          playerId
-        );
+        this.onCharacterSelected({ ...character, id: createdCharacterId }, playerId);
       } else {
         throw new Error();
       }
     } catch (error) {
       // prettier-ignore
-      console.log(`An error has occured when creating the character for ${character.name} ([${playerId}] ${GetPlayerName(playerId)})`);
+      console.log(`An error has occured when creating the character for ${character.name} ([${playerId}] ${Cfx.Server.GetPlayerName(playerId.toString())})`);
     }
   }
 
   @EventListener()
   public onPlayerConnect(): void {
-    global.exports['armoury'].blockPlayerTime(source, 0, 0, 0);
+    global.exports['armoury'].blockPlayerTime(Cfx.source, 0, 0, 0);
   }
 
   private spawnPlayer(target: number, spawnAtDefault?: boolean): void {
@@ -373,15 +317,15 @@ export class Server extends ServerController {
       : [248.3087615966797, -342.34698486328127, 44.46502304077148];
 
     if (lastLocation && lastLocation[4]) {
-      SetEntityRoutingBucket(GetPlayerPed(target), lastLocation[4]);
+      Cfx.Server.SetEntityRoutingBucket(Cfx.Server.GetPlayerPed(target.toString()), lastLocation[4]);
     }
 
-    TriggerClientEvent('authentication:spawn-player', target, position);
+    Cfx.TriggerClientEvent('authentication:spawn-player', target, position);
   }
 
   @EventListener()
   public onResourceStop(resourceName: string): void {
-    if (resourceName === GetCurrentResourceName()) {
+    if (resourceName === Cfx.Server.GetCurrentResourceName()) {
       Array.from(this.authenticatedPlayers.keys()).forEach((player: number) => {
         this.savePlayerCriticalStats(player);
       });
@@ -394,15 +338,15 @@ export class Server extends ServerController {
   public onPlayerDisconnect(): void {
     super.onPlayerDisconnect();
 
-    this.savePlayerCriticalStats(source);
-    emit(`${GetCurrentResourceName()}:player-logout`, source);
-    this.clearPlayerInfo(source);
+    this.savePlayerCriticalStats(Cfx.source);
+    Cfx.emit(`${Cfx.Server.GetCurrentResourceName()}:player-logout`, Cfx.source);
+    this.clearPlayerInfo(Cfx.source);
   }
 
   // Saves critical and/or frequently-updated data into MySQL Database
   private savePlayerCriticalStats(player: number): void {
     if (this.authenticatedPlayers.has(player)) {
-      const playerPed = GetPlayerPed(player);
+      const playerPed = Cfx.Server.GetPlayerPed(player.toString());
 
       this.setPlayerInfo(
         player,
@@ -425,11 +369,11 @@ export class Server extends ServerController {
         {
           stat: 'lastLocation',
           _value: [
-            GetEntityCoords(playerPed)[0],
-            GetEntityCoords(playerPed)[1],
-            GetEntityCoords(playerPed)[2],
-            GetEntityHeading(playerPed),
-            GetEntityRoutingBucket(playerPed),
+            Cfx.Server.GetEntityCoords(playerPed)[0],
+            Cfx.Server.GetEntityCoords(playerPed)[1],
+            Cfx.Server.GetEntityCoords(playerPed)[2],
+            Cfx.Server.GetEntityHeading(playerPed),
+            Cfx.Server.GetEntityRoutingBucket(playerPed),
           ],
         }
       );
@@ -443,7 +387,7 @@ export class Server extends ServerController {
 
   private clearPlayerInfo(source: number): void {
     this.cachedPlayerProperties.forEach((property: string) => {
-      SetConvarReplicated(`${source}_PI_${property}`, '-1');
+      Cfx.Server.SetConvarReplicated(`${source}_PI_${property}`, '-1');
     });
   }
 
@@ -482,6 +426,7 @@ export class Server extends ServerController {
   }
 }
 
+// TODO: Extract this to an injection token, configurable for this resource
 const REGISTRATION_STATS = {
   defaultCash: 500,
   defaultBank: 1000,
