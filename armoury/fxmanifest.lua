@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'Armoury Development Team'
 description 'Armoury FiveM Gamemode'
-version '1.0.0'
+version '1.0.1'
 
 resource_type 'gametype' { name = 'Armoury Light Roleplay' }
 

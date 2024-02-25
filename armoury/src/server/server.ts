@@ -1,4 +1,4 @@
+import { Server_Init } from '@armoury/fivem-framework';
 import { Server } from './controllers/server.controller';
 
-// eslint-disable-next-line no-unused-vars
-const server = new Server();
+Server_Init(Server);

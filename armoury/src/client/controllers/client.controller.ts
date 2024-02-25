@@ -1,130 +1,106 @@
-@FiveMController()
-export class Client extends ClientController {
-  private playerLeftVehicleInterval: NodeJS.Timer;
-  private playerTowingVehicleInterval: NodeJS.Timer;
+import { Controller, EVENT_DIRECTIONS, EventListener, Export, calculateDistance } from '@armoury/fivem-framework';
+
+@Controller()
+export class Client {
+  private playerLeftVehicleInterval: string | number | NodeJS.Timeout;
+  private playerTowingVehicleInterval: string | number | NodeJS.Timeout;
   private vehicleBeingTowedEntity: number = NaN;
 
-  public constructor() {
-    super();
+  // TODO: Make this an Injection Token
+  private readonly spawnPosition = [247.83297729492188, -343.20001220703125, 44.4615478515625, 0, 0, 158.7401580810547];
 
-    this.assignListeners();
-    this.registerGlobalEvents();
-  }
-
-  private assignListeners(): void {
-    const spawnPosition = [
-      247.83297729492188, -343.20001220703125, 44.4615478515625, 0, 0,
-      158.7401580810547,
-    ];
-
-    on('onClientGameTypeStart', () => {
-      globalThis.exports.spawnmanager.setAutoSpawnCallback(() => {
-        globalThis.exports.spawnmanager.spawnPlayer(
-          {
-            x: spawnPosition[0],
-            y: spawnPosition[1],
-            z: spawnPosition[2],
-            model: 'mp_m_freemode_01',
-          },
-          () => {
-            SetEntityRotation(
-              GetPlayerPed(-1),
-              spawnPosition[3],
-              spawnPosition[4],
-              spawnPosition[5],
-              2,
-              true
-            );
-          }
-        );
-      });
-
-      globalThis.exports.spawnmanager.setAutoSpawn(true);
-      globalThis.exports.spawnmanager.forceRespawn();
-    });
-  }
-
-  private registerGlobalEvents(): void {
-    on('gameEventTriggered', (name: string, _args: any[]) => {
-      switch (name) {
-        case 'CEventNetworkEntityDamage': {
-          const [
-            killed,
-            killer,
-            unknown1,
-            unknown2,
-            unknown3,
-            didPedDie,
-            weaponHash,
-            unknown4,
-            unknown5,
-            unknown6,
-            unknown7,
-            didPedHitParkedCar,
-            unknown8,
-          ]: any[] = _args;
-
-          if (killed === GetPlayerPed(-1) && !!didPedDie) {
-            TriggerServerEvent(`${GetCurrentResourceName()}:onPlayerDeath`);
-            emit(`${GetCurrentResourceName()}:onPlayerDeath`);
-            emit(
-              `authentication:spawn-player`,
-              [-450.3632, -341.0537, 34.50175, 0, 0]
-            );
-          }
-          break;
+  @EventListener({ eventName: 'onClientGameTypeStart', direction: EVENT_DIRECTIONS.CLIENT_TO_CLIENT })
+  public onStart() {
+    console.log('onStart onClientGameTypeStart');
+    Cfx.exports['spawnmanager'].setAutoSpawnCallback(() => {
+      Cfx.exports['spawnmanager'].spawnPlayer(
+        {
+          x: this.spawnPosition[0],
+          y: this.spawnPosition[1],
+          z: this.spawnPosition[2],
+          model: 'mp_m_freemode_01',
+        },
+        () => {
+          Cfx.Client.SetEntityRotation(
+            Cfx.Client.GetPlayerPed(-1),
+            this.spawnPosition[3],
+            this.spawnPosition[4],
+            this.spawnPosition[5],
+            2,
+            true
+          );
         }
-        case 'CEventNetworkPlayerEnteredVehicle': {
-          const [_playerNetId, vehicleId]: any[] = _args;
-          if (_playerNetId === 128) {
-            let computedVehicleSeat: number = GetSeatPedIsTryingToEnter(
-              PlayerPedId()
-            );
+      );
+    });
 
-            if (
-              computedVehicleSeat !== -1 &&
-              GetPedInVehicleSeat(vehicleId, -1) === PlayerPedId()
-            ) {
-              computedVehicleSeat = -1;
-            }
+    Cfx.exports['spawnmanager'].setAutoSpawn(true);
+    Cfx.exports['spawnmanager'].forceRespawn();
+  }
 
-            if (
-              computedVehicleSeat !== -1 &&
-              IsVehicleSeatFree(vehicleId, -1)
-            ) {
-              setTimeout(() => {
-                this.beginInsideVehicleInterval(
-                  vehicleId,
-                  computedVehicleSeat,
-                  true
-                );
-              }, 500);
-            } else {
-              this.beginInsideVehicleInterval(vehicleId, computedVehicleSeat);
-            }
+  @EventListener({ eventName: 'gameEventTriggered', direction: EVENT_DIRECTIONS.CLIENT_TO_CLIENT })
+  public onGameEventTriggered(name: string, ..._args: any[]) {
+    switch (name) {
+      case 'CEventNetworkEntityDamage': {
+        const [
+          killed,
+          killer,
+          unknown1,
+          unknown2,
+          unknown3,
+          didPedDie,
+          weaponHash,
+          unknown4,
+          unknown5,
+          unknown6,
+          unknown7,
+          didPedHitParkedCar,
+          unknown8,
+        ]: any[] = _args;
+
+        if (killed === Cfx.Client.GetPlayerPed(-1) && !!didPedDie) {
+          Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:onPlayerDeath`);
+          Cfx.emit(`${Cfx.Client.GetCurrentResourceName()}:onPlayerDeath`);
+          Cfx.emit(`authentication:spawn-player`, [-450.3632, -341.0537, 34.50175, 0, 0]);
+        }
+        break;
+      }
+      case 'CEventNetworkPlayerEnteredVehicle': {
+        const [_playerNetId, vehicleId]: any[] = _args;
+        if (_playerNetId === 128) {
+          let computedVehicleSeat: number = Cfx.Client.GetSeatPedIsTryingToEnter(Cfx.Client.PlayerPedId());
+
+          if (
+            computedVehicleSeat !== -1 &&
+            Cfx.Client.GetPedInVehicleSeat(vehicleId, -1) === Cfx.Client.PlayerPedId()
+          ) {
+            computedVehicleSeat = -1;
+          }
+
+          if (computedVehicleSeat !== -1 && Cfx.Client.IsVehicleSeatFree(vehicleId, -1)) {
+            setTimeout(() => {
+              this.beginInsideVehicleInterval(vehicleId, computedVehicleSeat, true);
+            }, 500);
+          } else {
+            this.beginInsideVehicleInterval(vehicleId, computedVehicleSeat);
           }
         }
       }
-    });
+    }
   }
 
   @Export()
   public findNearVehicles(): [number, string][] {
     const vehiclesToReturn: [number, string][] = [];
-    const playerPosition = GetEntityCoords(GetPlayerPed(-1), true);
-    let [handle, _entity]: [number, number] = FindFirstVehicle(0);
+    const playerPosition = Cfx.Client.GetEntityCoords(Cfx.Client.GetPlayerPed(-1), true);
+    let [handle, _entity]: [number, number] = Cfx.Client.FindFirstVehicle(0);
 
     let found: boolean = true;
     while (found) {
-      let [f, entity]: [boolean, number] = FindNextVehicle(handle);
+      let [f, entity]: [boolean, number] = Cfx.Client.FindNextVehicle(handle);
       found = f;
 
-      if (
-        NetworkDoesEntityExistWithNetworkId(
-          NetworkGetNetworkIdFromEntity(entity)
-        )
-      ) {
-        const vehiclePosition: number[] = GetEntityCoords(entity, true);
+      if (Cfx.Client.NetworkDoesEntityExistWithNetworkId(Cfx.Client.NetworkGetNetworkIdFromEntity(entity))) {
+        const vehiclePosition: number[] = Cfx.Client.GetEntityCoords(entity, true);
         if (
           calculateDistance([
             playerPosition[0],
@@ -136,14 +112,14 @@ export class Client extends ClientController {
           ]) < 3.5
         ) {
           vehiclesToReturn.push([
-            VehToNet(entity),
-            GetDisplayNameFromVehicleModel(GetEntityModel(entity)),
+            Cfx.Client.VehToNet(entity),
+            Cfx.Client.GetDisplayNameFromVehicleModel(Cfx.Client.GetEntityModel(entity)),
           ]);
         }
       }
     }
 
-    EndFindObject(handle);
+    Cfx.Client.EndFindObject(handle);
 
     return vehiclesToReturn;
   }
@@ -152,26 +128,24 @@ export class Client extends ClientController {
     if (this.playerTowingVehicleInterval) {
       const _vehicleBeingTowedEntity =
         forceTowedValue ??
-        GetEntityAttachedToTowTruck(GetVehiclePedIsIn(PlayerPedId(), false));
+        Cfx.Client.GetEntityAttachedToTowTruck(Cfx.Client.GetVehiclePedIsIn(Cfx.Client.PlayerPedId(), false));
 
       if (_vehicleBeingTowedEntity && !this.vehicleBeingTowedEntity) {
         this.vehicleBeingTowedEntity = _vehicleBeingTowedEntity;
 
-        TriggerServerEvent(
-          `${GetCurrentResourceName()}:onPlayerStartTowVehicle`,
-          NetworkGetNetworkIdFromEntity(_vehicleBeingTowedEntity)
+        Cfx.TriggerServerEvent(
+          `${Cfx.Client.GetCurrentResourceName()}:onPlayerStartTowVehicle`,
+          Cfx.Client.NetworkGetNetworkIdFromEntity(_vehicleBeingTowedEntity)
         );
-        emit(
-          `${GetCurrentResourceName()}:onPlayerStartTowVehicle`,
-          NetworkGetNetworkIdFromEntity(_vehicleBeingTowedEntity)
+        Cfx.emit(
+          `${Cfx.Client.GetCurrentResourceName()}:onPlayerStartTowVehicle`,
+          Cfx.Client.NetworkGetNetworkIdFromEntity(_vehicleBeingTowedEntity)
         );
       }
 
       if (!_vehicleBeingTowedEntity && this.vehicleBeingTowedEntity) {
-        TriggerServerEvent(
-          `${GetCurrentResourceName()}:onPlayerStopTowVehicle`
-        );
-        emit(`${GetCurrentResourceName()}:onPlayerStopTowVehicle`);
+        Cfx.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:onPlayerStopTowVehicle`);
+        Cfx.emit(`${Cfx.Client.GetCurrentResourceName()}:onPlayerStopTowVehicle`);
 
         this.vehicleBeingTowedEntity = NaN;
       }
@@ -186,13 +160,11 @@ export class Client extends ClientController {
     let seatPedIsTryingToEnter = _computedVehicleSeat;
 
     if (forceRefreshSeat) {
-      seatPedIsTryingToEnter = GetSeatPedIsTryingToEnter(PlayerPedId());
+      seatPedIsTryingToEnter = Cfx.Client.GetSeatPedIsTryingToEnter(Cfx.Client.PlayerPedId());
 
       if (seatPedIsTryingToEnter !== -1) {
         seatPedIsTryingToEnter =
-          GetPedInVehicleSeat(vehicleId, -1) === PlayerPedId()
-            ? -1
-            : seatPedIsTryingToEnter;
+          Cfx.Client.GetPedInVehicleSeat(vehicleId, -1) === Cfx.Client.PlayerPedId() ? -1 : seatPedIsTryingToEnter;
       }
 
       if (seatPedIsTryingToEnter !== -1) {
@@ -200,46 +172,37 @@ export class Client extends ClientController {
       }
     }
 
-    TriggerServerEvent(
-      `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
-      NetworkGetNetworkIdFromEntity(vehicleId),
+    Cfx.TriggerServerEvent(
+      `${Cfx.Client.GetCurrentResourceName()}:onPlayerEnterVehicle`,
+      Cfx.Client.NetworkGetNetworkIdFromEntity(vehicleId),
       seatPedIsTryingToEnter
     );
-    emit(
-      `${GetCurrentResourceName()}:onPlayerEnterVehicle`,
-      NetworkGetNetworkIdFromEntity(vehicleId),
+    Cfx.emit(
+      `${Cfx.Client.GetCurrentResourceName()}:onPlayerEnterVehicle`,
+      Cfx.Client.NetworkGetNetworkIdFromEntity(vehicleId),
       seatPedIsTryingToEnter
     );
 
     if (!this.playerLeftVehicleInterval) {
-      this.playerLeftVehicleInterval = setInterval(
-        () => this.onSecondPassedWhileStillInVehicle(),
-        1000
-      );
+      this.playerLeftVehicleInterval = setInterval(() => this.onSecondPassedWhileStillInVehicle(), 1000);
     }
 
-    const towTruckHashes = [GetHashKey('towtruck'), GetHashKey('towtruck2')];
-    if (
-      !this.playerTowingVehicleInterval &&
-      towTruckHashes.includes(GetEntityModel(vehicleId))
-    ) {
-      this.playerTowingVehicleInterval = setInterval(
-        () => this.onSecondPassedWhileUsingTowTruck(),
-        100
-      );
+    const towTruckHashes = [Cfx.Client.GetHashKey('towtruck'), Cfx.Client.GetHashKey('towtruck2')];
+    if (!this.playerTowingVehicleInterval && towTruckHashes.includes(Cfx.Client.GetEntityModel(vehicleId))) {
+      this.playerTowingVehicleInterval = setInterval(() => this.onSecondPassedWhileUsingTowTruck(), 100);
     }
   }
 
   private onSecondPassedWhileStillInVehicle(): void {
     if (this.playerLeftVehicleInterval) {
-      const lastVehicle: number = GetVehiclePedIsIn(PlayerPedId(), true);
-      if (!GetVehiclePedIsIn(PlayerPedId(), false)) {
-        TriggerServerEvent(
-          `${GetCurrentResourceName()}:onPlayerExitVehicle`,
-          NetworkGetNetworkIdFromEntity(lastVehicle),
-          GetLastPedInVehicleSeat(lastVehicle, -1) === PlayerPedId()
+      const lastVehicle: number = Cfx.Client.GetVehiclePedIsIn(Cfx.Client.PlayerPedId(), true);
+      if (!Cfx.Client.GetVehiclePedIsIn(Cfx.Client.PlayerPedId(), false)) {
+        Cfx.TriggerServerEvent(
+          `${Cfx.Client.GetCurrentResourceName()}:onPlayerExitVehicle`,
+          Cfx.Client.NetworkGetNetworkIdFromEntity(lastVehicle),
+          Cfx.Client.GetLastPedInVehicleSeat(lastVehicle, -1) === Cfx.Client.PlayerPedId()
         );
-        emit(`${GetCurrentResourceName()}:onPlayerExitVehicle`);
+        Cfx.emit(`${Cfx.Client.GetCurrentResourceName()}:onPlayerExitVehicle`);
 
         clearInterval(this.playerLeftVehicleInterval);
         this.playerLeftVehicleInterval = null;
@@ -253,8 +216,8 @@ export class Client extends ClientController {
     }
   }
 
-  @EventListener({ eventName: `${GetCurrentResourceName()}:update-time` })
+  @EventListener({ eventName: `${Cfx.Client.GetCurrentResourceName()}:update-time` })
   public onClockUpdated(hour: number, minute: number, second: number): void {
-    NetworkOverrideClockTime(hour, minute, second);
+    Cfx.Client.NetworkOverrideClockTime(hour, minute, second);
   }
 }

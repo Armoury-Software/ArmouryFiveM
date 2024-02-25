@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const RemovePlugin = require('remove-files-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
-const glob = require('glob');
+const fs = require('fs');
 
 const buildPath = path.resolve(__dirname, 'dist');
 
@@ -29,6 +29,11 @@ const server = {
       },
     }),
     new ESLintPlugin(),
+    function () {
+      this.hooks.done.tap('SaveFileNamePlugin', (stats) => {
+        removeCfxOccurences(`./dist/server/${stats.toJson().assetsByChunkName.main[0]}`);
+      });
+    },
   ],
   optimization: {
     minimize: true,
@@ -68,6 +73,11 @@ const client = {
       },
     }),
     new ESLintPlugin(),
+    function () {
+      this.hooks.done.tap('SaveFileNamePlugin', (stats) => {
+        removeCfxOccurences(`./dist/client/${stats.toJson().assetsByChunkName.main[0]}`);
+      });
+    },
   ],
   optimization: {
     minimize: true,
@@ -82,6 +92,30 @@ const client = {
     filename: '[contenthash].client.js',
     path: path.resolve(buildPath, 'client'),
   },
+};
+
+const removeCfxOccurences = (filePath) => {
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error reading file:', err);
+      return;
+    }
+
+    // Remove occurrences of "Cfx.Client." and "Cfx."
+    const modifiedContent = data
+      .replace(/Cfx\.Client\./g, '')
+      .replace(/Cfx\.Server\./g, '')
+      .replace(/Cfx\./g, '');
+
+    // Write the modified content back to the file
+    fs.writeFile(filePath, modifiedContent, 'utf8', (err) => {
+      if (err) {
+        console.error('Error writing file:', err);
+        return;
+      }
+      console.log('Occurrences removed from file:', filePath);
+    });
+  });
 };
 
 module.exports = [server, client];

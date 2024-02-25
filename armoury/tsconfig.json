@@ -8,17 +8,14 @@
     "outDir": "./dist/",
     "noImplicitAny": false,
     "module": "es6",
-    "target": "es6",
+    "target": "es5",
+    "lib": ["ES2017"],
     "allowJs": true,
-    "lib": ["es2017"],
-    "types": [
-      "@citizenfx/client",
-      "@citizenfx/server",
-      "fivem-js",
-      "@types/node"
-    ],
+    "types": ["@types/node"],
     "moduleResolution": "node",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true
   },
   "include": ["./src/**/*"],
   "exclude": []
