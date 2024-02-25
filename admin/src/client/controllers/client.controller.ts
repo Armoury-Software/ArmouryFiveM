@@ -2,9 +2,10 @@ import { Inject } from 'injection-js';
 import {
   ClientSessionService,
   Command,
+  KeyBinding,
   EVENT_DIRECTIONS,
   EventListener,
-  FiveMController,
+  Controller,
 } from '@armoury/fivem-framework';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
@@ -21,35 +22,28 @@ import {
 
 import { WEAPON_NAMES } from '../../../../weapons/src/shared/weapon';
 
-// @FiveMController()
+@Controller()
 export class Client {
   private menuToggles: Map<string, boolean> = new Map<string, boolean>();
 
-  public constructor(@Inject(ClientSessionService) private _session: ClientSessionService) {
-    console.log('test');
-    console.log(this._session.getPlayerInfo('adminLevel'));
-    // this.registerKeyBindings();
-  }
+  public constructor(
+    // TODO: Migrate ClientSessionService to @armoury/fivem-gamemode
+    @Inject(ClientSessionService) private _session: ClientSessionService
+  ) { }
 
-  private registerKeyBindings(): void {
-    Cfx.Client.RegisterCommand(
-      '+openadminmenu',
-      () => {
-        if (<number>this._session.getPlayerInfo('adminLevel') > 0) {
-          if (this.menuToggles.get('admin-menu') === true) {
-            this.menuToggles.set('admin-menu', false);
-            Cfx.Client.emit('armoury-overlay:hide-context-menu');
-            return;
-          }
+  @Command()
+  @KeyBinding({ description: 'Open Admin Menu', defaultMapper: 'keyboard', key: 'f1' })
+  public openAdminMenu() {
+    if (<number>this._session.getPlayerInfo('adminLevel') > 0) {
+      if (this.menuToggles.get('admin-menu') === true) {
+        this.menuToggles.set('admin-menu', false);
+        Cfx.Client.emit('armoury-overlay:hide-context-menu');
+        return;
+      }
 
-          Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, ADMIN_MENU_MAIN);
-          this.menuToggles.set('admin-menu', true);
-        }
-      },
-      false
-    );
-
-    Cfx.Client.RegisterKeyMapping('+openadminmenu', 'Open Admin Menu', 'keyboard', 'f1');
+      Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, ADMIN_MENU_MAIN);
+      this.menuToggles.set('admin-menu', true);
+    }
   }
 
   @EventListener({

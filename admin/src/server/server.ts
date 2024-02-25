@@ -1,6 +1,4 @@
-import 'reflect-metadata';
-import { ReflectiveInjector } from 'injection-js';
+import { Server_Init } from '@armoury/fivem-framework';
 import { Server } from './controllers/server.controller';
 
-const injector = ReflectiveInjector.resolveAndCreate([Server]);
-injector.get(Server);
+Server_Init(Server);
