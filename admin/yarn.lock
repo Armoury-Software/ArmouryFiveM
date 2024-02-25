@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@armoury/fivem-framework@file:../../Armoury-FiveM-Framework":
+"@armoury/fivem-framework@file:../../../../../../Armoury-FiveM-Framework":
   version "1.0.4"
-  resolved "file:../../Armoury-FiveM-Framework"
+  resolved "file:../../../../../../Armoury-FiveM-Framework"
 
 "@discoveryjs/json-ext@^0.5.0":
   version "0.5.6"

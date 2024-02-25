@@ -1,473 +1,370 @@
-import { EventListener, ServerController } from '@armoury/fivem-framework';
+import { Command, EventListener, ServerController } from '@armoury/fivem-framework';
 
 import { TELEPORT_POINTS } from '@shared/teleport-locations';
 
 export class Server extends ServerController {
   private createdVehicles: number[] = [];
 
-  public constructor() {
-    super();
+  @Command({ adminLevelRequired: 1 })
+  public tp(source: number, locationOrPosX: string | number, posY: number, posZ: number) {
+    if (!locationOrPosX) {
+      console.log('Error! Use /tp <location>.');
+      return;
+    }
 
-    this.registerCommands();
+    if (TELEPORT_POINTS[locationOrPosX]) {
+      Cfx.Server.SetEntityCoords(
+        Cfx.Server.GetPlayerPed(source.toString()),
+        TELEPORT_POINTS[locationOrPosX].pos[0],
+        TELEPORT_POINTS[locationOrPosX].pos[1],
+        TELEPORT_POINTS[locationOrPosX].pos[2],
+        true,
+        false,
+        false,
+        false
+      );
+    } else if (Number(locationOrPosX) && Number(posY) && Number(posZ)) {
+      Cfx.Server.SetEntityCoords(
+        Cfx.Server.GetPlayerPed(source.toString()),
+        Number(locationOrPosX),
+        Number(posY),
+        Number(posZ),
+        true,
+        false,
+        false,
+        false
+      );
+
+      console.log(source, `${Cfx.Server.GetCurrentResourceName()}:send-updated-position`);
+
+      Cfx.Server.TriggerClientEvent(
+        `${Cfx.Server.GetCurrentResourceName()}:send-updated-position`,
+        source,
+        locationOrPosX,
+        posY,
+        posZ
+      );
+    } else {
+      console.log(`No teleport with name ${locationOrPosX}`);
+    }
   }
 
-  private registerCommands(): void {
-    this.RegisterAdminCommand(
-      'tp',
-      1,
-      (source: number, args: string[]) => {
-        if (!args.length) {
-          console.log('Error! Use /tp <location>.');
-          return;
-        }
+  @Command({ adminLevelRequired: 3 })
+  public veh(source: number, model: string, color: number) {
+    if (!model) {
+      console.log('ERROR! You should use /veh <vehiclename> <color>');
+      return;
+    }
 
-        if (TELEPORT_POINTS[args[0]]) {
-          Cfx.Server.SetEntityCoords(
-            Cfx.Server.GetPlayerPed(source.toString()),
-            TELEPORT_POINTS[args[0]].pos[0],
-            TELEPORT_POINTS[args[0]].pos[1],
-            TELEPORT_POINTS[args[0]].pos[2],
-            true,
-            false,
-            false,
-            false
-          );
-        } else if (Number(args[0]) && Number(args[1]) && Number(args[2])) {
-          Cfx.Server.SetEntityCoords(
-            Cfx.Server.GetPlayerPed(source.toString()),
-            Number(args[0]),
-            Number(args[1]),
-            Number(args[2]),
-            true,
-            false,
-            false,
-            false
-          );
-          setTimeout(() => {}, 800);
-          Cfx.Server.TriggerClientEvent(`${Cfx.Server.GetCurrentResourceName()}:send-updated-position`, source, args);
-        } else {
-          console.log(`No teleport with name ${args[0]}`);
-        }
-      },
-      false
+    const playerPosition: number[] = Cfx.Server.GetEntityCoords(Cfx.Server.GetPlayerPed(source.toString()));
+
+    const createdVehicle: number = Cfx.Server.CreateVehicle(
+      model,
+      playerPosition[0],
+      playerPosition[1],
+      playerPosition[2],
+      0,
+      true,
+      true
+    );
+    Cfx.Server.TaskWarpPedIntoVehicle(Cfx.Server.GetPlayerPed(source.toString()), createdVehicle, -1);
+    Cfx.Server.SetVehicleCustomPrimaryColour(createdVehicle, 0, 0, 0);
+    Cfx.Server.SetVehicleCustomSecondaryColour(createdVehicle, 0, 0, 0);
+    this.createdVehicles.push(createdVehicle);
+  }
+
+  @Command({ adminLevelRequired: 3 })
+  public destroyVehicles() {
+    this.createdVehicles.forEach((createdVehicle: number) => {
+      if (Cfx.Server.DoesEntityExist(createdVehicle)) {
+        Cfx.Server.DeleteEntity(createdVehicle);
+      }
+    });
+
+    this.createdVehicles = [];
+  }
+
+  @Command({ adminLevelRequired: 3 })
+  public goToVeh(source: number, vehicleId: number) {
+    if (!vehicleId) {
+      return;
+    }
+
+    const vehiclePosition: number[] = Cfx.Server.GetEntityCoords(vehicleId);
+    Cfx.Server.SetEntityCoords(
+      Cfx.Server.GetPlayerPed(source.toString()),
+      vehiclePosition[0],
+      vehiclePosition[1],
+      vehiclePosition[2],
+      true,
+      false,
+      false,
+      true
+    );
+  }
+
+  @Command({ adminLevelRequired: 3 })
+  public getVeh(source: number, vehicleId: number) {
+    if (!vehicleId) {
+      return;
+    }
+
+    const playerPosition: number[] = Cfx.Server.GetEntityCoords(Cfx.Server.GetPlayerPed(source.toString()));
+    Cfx.Server.SetEntityCoords(
+      vehicleId,
+      playerPosition[0],
+      playerPosition[1] + 1.0,
+      playerPosition[2] + 1.0,
+      true,
+      false,
+      false,
+      true
+    );
+  }
+
+  @Command({ adminLevelRequired: 1 })
+  public aSetRoutingBucket(source: number, targetPlayer: number, routingBucket: number) {
+    if (!targetPlayer && !routingBucket) {
+      console.log('ERROR! You should use /aSetroutingbucket <player-name> <routingBucket>');
+      return;
+    }
+
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
+
+    Cfx.Server.SetEntityRoutingBucket(Cfx.Server.GetPlayerPed(targetPlayer.toString()), routingBucket);
+  }
+
+  @Command({ adminLevelRequired: 1 })
+  public goTo(source: number, targetPlayer: number) {
+    if (!targetPlayer) {
+      console.log('ERROR! You should use /goto <player-id>');
+      return;
+    }
+
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
+
+    const targetPosition: number[] = Cfx.Server.GetEntityCoords(
+      Cfx.Server.GetPlayerPed(targetPlayer.toString()) /*,
+      true*/
+    );
+    Cfx.Server.SetEntityCoords(
+      Cfx.Server.GetPlayerPed(source.toString()),
+      targetPosition[0] + 1,
+      targetPosition[1],
+      targetPosition[2],
+      true,
+      false,
+      false,
+      true
+    );
+    Cfx.Server.SetEntityRoutingBucket(
+      Cfx.Server.GetPlayerPed(source.toString()),
+      Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(targetPlayer.toString()))
     );
 
-    this.RegisterAdminCommand(
-      'veh',
-      3,
-      (source: number, args: string[], _raw: boolean) => {
-        if (!args[0]) {
-          console.log('ERROR! You should use /veh <vehiclename> <color>');
-          return;
-        }
+    console.log(`Teleported to ${targetPlayer}.`);
+  }
 
-        const model: string = args[0].toString();
-        const playerPosition: number[] = Cfx.Server.GetEntityCoords(Cfx.Server.GetPlayerPed(source.toString()));
+  @Command({ adminLevelRequired: 2 })
+  public getHere(source: number, targetPlayer: number) {
+    if (!targetPlayer) {
+      console.log('ERROR! You should use /gethere <player-id>');
+      return;
+    }
 
-        const createdVehicle: number = Cfx.Server.CreateVehicle(
-          model,
-          playerPosition[0],
-          playerPosition[1],
-          playerPosition[2],
-          0,
-          true,
-          true
-        );
-        Cfx.Server.TaskWarpPedIntoVehicle(Cfx.Server.GetPlayerPed(source.toString()), createdVehicle, -1);
-        Cfx.Server.SetVehicleCustomPrimaryColour(createdVehicle, 0, 0, 0);
-        Cfx.Server.SetVehicleCustomSecondaryColour(createdVehicle, 0, 0, 0);
-        this.createdVehicles.push(createdVehicle);
-      },
-      false
+    const targetPosition: number[] = Cfx.Server.GetEntityCoords(
+      Cfx.Server.GetPlayerPed(source.toString()) /*,
+      true*/
     );
 
-    this.RegisterAdminCommand(
-      'destroyvehicles',
-      3,
-      (_source: number, _args: string[], _raw: boolean) => {
-        this.createdVehicles.forEach((createdVehicle: number) => {
-          if (Cfx.Server.DoesEntityExist(createdVehicle)) {
-            Cfx.Server.DeleteEntity(createdVehicle);
-          }
-        });
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
 
-        this.createdVehicles = [];
-      },
-      false
+    Cfx.Server.SetEntityCoords(
+      Cfx.Server.GetPlayerPed(targetPlayer.toString()),
+      targetPosition[0] + 1,
+      targetPosition[1],
+      targetPosition[2],
+      true,
+      false,
+      false,
+      true
     );
 
-    this.RegisterAdminCommand(
-      'gotoveh',
-      3,
-      (source: number, args: number[]) => {
-        if (!args.length) {
-          return;
-        }
-
-        const vehiclePosition: number[] = Cfx.Server.GetEntityCoords(Number(args[0]));
-        Cfx.Server.SetEntityCoords(
-          Cfx.Server.GetPlayerPed(source.toString()),
-          vehiclePosition[0],
-          vehiclePosition[1],
-          vehiclePosition[2],
-          true,
-          false,
-          false,
-          true
-        );
-      },
-      false
+    Cfx.Server.SetEntityRoutingBucket(
+      Cfx.Server.GetPlayerPed(targetPlayer.toString()),
+      Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(source.toString()))
     );
 
-    this.RegisterAdminCommand(
-      'getveh',
-      3,
-      (source: number, args: number[]) => {
-        if (!args.length) {
+    console.log(`Teleported ${targetPlayer} to you.`);
+  }
+
+  @Command({ adminLevelRequired: 5 })
+  public setStat(source: number, targetPlayer: number, stat: string, value: any) {
+    const availableStats: string[] = ['skills'];
+
+    if (targetPlayer == null || !stat || value == null) {
+      console.log('ERROR! You should use /setstat <player-id> <stat> <value>');
+      console.log(`Stats you can set: ${availableStats.join(', ')}`);
+      return;
+    }
+
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
+
+    switch (stat) {
+      case 'skills': {
+        if (!value) {
+          console.log(`Give a value to said skill, using /setstat <player-name> skills <skill> <value>`);
           return;
         }
 
-        const playerPosition: number[] = Cfx.Server.GetEntityCoords(Cfx.Server.GetPlayerPed(source.toString()));
-        Cfx.Server.SetEntityCoords(
-          Number(args[0]),
-          playerPosition[0],
-          playerPosition[1] + 1.0,
-          playerPosition[2] + 1.0,
-          true,
-          false,
-          false,
-          true
-        );
-      },
-      false
+        if (!Number(value)) {
+          console.log(`${value} is not a valid value.`);
+          return;
+        }
+
+        Cfx.exports['skills'].updatePlayerSkill(targetPlayer, stat, value);
+        console.log(`Skill ${stat} updated successfuly for player ${targetPlayer} `);
+
+        return;
+      }
+
+      default: {
+        console.log(`No stat with name ${stat} found`);
+        return;
+      }
+    }
+  }
+
+  @Command({ adminLevelRequired: 5 })
+  public setCash(source: number, targetPlayer: number, cash: number) {
+    if (targetPlayer == null || cash == null) {
+      console.log('ERROR! You should use /setcash <player-name> <value>');
+      return;
+    }
+
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
+
+    if (Number.isNaN(Number(cash))) {
+      console.log(`${cash} is not a valid value`);
+      return;
+    }
+
+    exports['authentication'].setPlayerInfo(targetPlayer, 'cash', cash, false);
+    console.log(`${targetPlayer}'s cash was set to ${cash}$.`);
+  }
+
+  @Command({ adminLevelRequired: 5 })
+  public giveCash(source: number, targetPlayer: number, cash: number) {
+    if (targetPlayer == null || Number.isNaN(Number(cash))) {
+      console.log('ERROR! You should use /givecash <player-name> <value>');
+      return;
+    }
+
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
+
+    const playerCash: number = exports['authentication'].getPlayerInfo(targetPlayer, 'cash');
+
+    exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(cash) + playerCash, false);
+    console.log(`${targetPlayer} received ${cash}$.`);
+  }
+
+  @Command({ adminLevelRequired: 4 })
+  public giveWeapon(source: number, targetPlayer: number, weapon: number, ammo: number) {
+    if (targetPlayer == null || Number.isNaN(Number(weapon)) || Number.isNaN(Number(ammo))) {
+      console.log('ERROR! You should use /giveweapons <player-id> <weapon-name> <ammo>');
+      return;
+    }
+
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
+
+    throw new Error('Not implemented');
+
+    /*const weapon: string = WeaponHash[args[1]] ? WeaponHash[args[1]] : '';
+    
+    if (!weapon) {
+      console.log(`Weapon ${args[1]} not found.`);
+      return;
+    }
+
+    Cfx.exports['weapons'].givePlayerWeapon(
+      targetPlayer,
+      WeaponHash[args[1]],
+      Number(args[2])
     );
+    console.log(
+      `Succesfuly gave ${args[0]} the following weapon: ${args[1]}.`
+    );*/
+  }
 
-    this.RegisterAdminCommand(
-      'setroutingbucket',
-      1,
-      (source: number, args: string[]) => {
-        if (!args.length) {
-          console.log('ERROR! You should use /setroutingbucket <player-name> <routingBucket>');
-          return;
-        }
+  @Command({ adminLevelRequired: 3 })
+  public removeWeapons(source: number, targetPlayer: number) {
+    if (targetPlayer == null) {
+      console.log('ERROR! You should use /removeweapons <player-id>');
+      return;
+    }
 
-        const targetPlayer: number = Number(args[0]);
-        const routingBucket: number = Number(args[1]);
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
 
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
+    Cfx.exports['weapons'].removePlayerWeapons(targetPlayer);
+    console.log(`Succesfully removed ${targetPlayer}'s weapons.`);
+  }
 
-        Cfx.Server.SetEntityRoutingBucket(Cfx.Server.GetPlayerPed(targetPlayer.toString()), routingBucket);
+  @Command({ adminLevelRequired: 5 })
+  public aGiveDrugs(source: number, targetPlayer: number, drugType: string, amount: number) {
+    if (targetPlayer == null || !drugType || Number.isNaN(Number(amount))) {
+      console.log('Error! Use /agivedrugs <target> <drug-type> <amount>');
+      return;
+    }
 
-        console.log(`Teleported to ${args[0]}.`);
-      },
-      false
-    );
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
 
-    Cfx.Server.RegisterCommand(
-      'stats',
-      (source: number) => {
-        console.log('Routing bucket:', Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(source.toString())));
-      },
-      false
-    );
+    if (Cfx.exports['drugs'].verifyDrugType(drugType)) {
+      Cfx.exports['drugs'].givePlayerDrugs(targetPlayer, drugType, amount);
+      console.log(`Succesfully gave ${targetPlayer} ${amount}g of ${drugType}.`);
+    } else {
+      console.log(`Invalid drug type (${drugType}). Types: cocaine/marijuana`);
+    }
+  }
 
-    this.RegisterAdminCommand(
-      'goto',
-      1,
-      (source: number, args: string[]) => {
-        if (!args.length) {
-          console.log('ERROR! You should use /goto <player-name>');
-          return;
-        }
+  @Command({ adminLevelRequired: 5 })
+  public aRemoveDrugs(source: number, targetPlayer: number, drugType: string, amount: number) {
+    if (targetPlayer == null || !drugType || Number.isNaN(Number(amount))) {
+      console.log('Error! Use /aremovedrugs <target> <drug-type> <amount?>');
+      return;
+    }
 
-        const targetPlayer: number = Number(args[0]);
+    if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
+      return;
+    }
 
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
+    if (Cfx.exports['drugs'].verifyDrugType(drugType)) {
+      Cfx.exports['drugs'].removePlayerDrugs(targetPlayer, drugType, amount);
+    } else {
+      console.log(`Invalid drug type (${drugType}). Types: cocaine/marijuana`);
+    }
+  }
 
-        const targetPosition: number[] = Cfx.Server.GetEntityCoords(
-          Cfx.Server.GetPlayerPed(targetPlayer.toString()) /*,
-          true*/
-        );
-        Cfx.Server.SetEntityCoords(
-          Cfx.Server.GetPlayerPed(source.toString()),
-          targetPosition[0] + 1,
-          targetPosition[1],
-          targetPosition[2],
-          true,
-          false,
-          false,
-          true
-        );
-        Cfx.Server.SetEntityRoutingBucket(
-          Cfx.Server.GetPlayerPed(source.toString()),
-          Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(targetPlayer.toString()))
-        );
-
-        console.log(`Teleported to ${args[0]}.`);
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'gethere',
-      2,
-      (source: number, args: string[]) => {
-        if (!args.length) {
-          console.log('ERROR! You should use /gethere <player-name>');
-          return;
-        }
-
-        const targetPosition: number[] = Cfx.Server.GetEntityCoords(
-          Cfx.Server.GetPlayerPed(source.toString()) /*,
-          true*/
-        );
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        Cfx.Server.SetEntityCoords(
-          Cfx.Server.GetPlayerPed(targetPlayer.toString()),
-          targetPosition[0] + 1,
-          targetPosition[1],
-          targetPosition[2],
-          true,
-          false,
-          false,
-          true
-        );
-
-        Cfx.Server.SetEntityRoutingBucket(
-          Cfx.Server.GetPlayerPed(targetPlayer.toString()),
-          Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(source.toString()))
-        );
-
-        console.log(`Teleported ${args[0]} to you.`);
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'setstat',
-      5,
-      (source: number, args: string[]) => {
-        const availableStats: string[] = ['skills'];
-
-        if (args.length < 3) {
-          console.log('ERROR! You should use /setstat <player-name> <stat> <value>');
-
-          console.log(`Stats you can set: ${availableStats.join(', ')}`);
-          return;
-        }
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        switch (args[1]) {
-          case 'skills': {
-            if (!args[3]) {
-              console.log(`Give a value to said skill, using /setstat <player-name> skills <skill> <value>`);
-              return;
-            }
-
-            if (!Number(args[3])) {
-              console.log(`${args[3]} is not a valid value.`);
-              return;
-            }
-
-            Cfx.exports['skills'].updatePlayerSkill(targetPlayer, args[2], args[3]);
-            console.log(`Skill ${args[2]} updated successfuly for player ${args[0]} `);
-
-            return;
-          }
-
-          default: {
-            console.log(`No stat with name ${args[1]} found`);
-            return;
-          }
-        }
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'setcash',
-      5,
-      (source: number, args: string[]) => {
-        if (args.length < 2) {
-          console.log('ERROR! You should use /setcash <player-name> <value>');
-          return;
-        }
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        if (!Number(args[1])) {
-          console.log(`${args[1]} is not a valid value`);
-          return;
-        }
-
-        exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[1]), false);
-        console.log(`${args[0]}'s cash was set to ${args[1]}$.`);
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'givecash',
-      5,
-      (source: number, args: string[]) => {
-        if (args.length < 2) {
-          console.log('ERROR! You should use /givecash <player-name> <value>');
-          return;
-        }
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        if (!Number(args[1])) {
-          console.log(`${args[1]} is not a valid value.`);
-          return;
-        }
-
-        const playerCash: number = exports['authentication'].getPlayerInfo(targetPlayer, 'cash');
-
-        exports['authentication'].setPlayerInfo(targetPlayer, 'cash', Number(args[1]) + playerCash, false);
-        console.log(`${args[0]} received ${args[1]}$.`);
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'giveweapon',
-      4,
-      (source: number, args: string[]) => {
-        if (args.length < 3) {
-          console.log('ERROR! You should use /giveweapons <player-name> <weapon-name> <no-of-bullets>');
-          return;
-        }
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        if (!Number(args[2])) {
-          console.log(`${args[2]} is not a valid value.`);
-          return;
-        }
-
-        throw new Error('Not implemented');
-
-        /*const weapon: string = WeaponHash[args[1]] ? WeaponHash[args[1]] : '';
-        
-                if (!weapon) {
-                  console.log(`Weapon ${args[1]} not found.`);
-                  return;
-                }
-        
-                Cfx.exports['weapons'].givePlayerWeapon(
-                  targetPlayer,
-                  WeaponHash[args[1]],
-                  Number(args[2])
-                );
-                console.log(
-                  `Succesfuly gave ${args[0]} the following weapon: ${args[1]}.`
-                );*/
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'removeweapons',
-      3,
-      (source: number, args: string[]) => {
-        if (!args.length) {
-          console.log('ERROR! You should use /removeweapons <player-name>');
-          return;
-        }
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        Cfx.exports['weapons'].removePlayerWeapons(targetPlayer);
-        console.log(`Succesfully removed ${args[0]}'s weapons.`);
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'agivedrugs',
-      5,
-      (source: number, args: string[]) => {
-        if (args.length < 3) {
-          console.log('Error! Use /agivedrugs <target> <drug-type> <amount>');
-          return;
-        }
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        if (!Number(args[2])) {
-          console.log(`${args[2]} is not a valid value.`);
-          return;
-        }
-
-        if (Cfx.exports['drugs'].verifyDrugType(args[1])) {
-          Cfx.exports['drugs'].givePlayerDrugs(targetPlayer, args[1], Number(args[2]));
-          console.log(`Succesfully gave ${args[0]} ${args[2]}g of ${args[1]}.`);
-        } else {
-          console.log(`Invalid drug type (${args[1]}). Types: cocaine/marijuana`);
-        }
-      },
-      false
-    );
-
-    this.RegisterAdminCommand(
-      'aremovedrugs',
-      5,
-      (source: number, args: string[]) => {
-        if (args.length < 2) {
-          console.log('Error! Use /aremovedrugs <target> <drug-type> <amount?>');
-          return;
-        }
-
-        const targetPlayer: number = Number(args[0]);
-
-        if (!Cfx.exports['armoury'].isPlayerOnline(targetPlayer)) {
-          return;
-        }
-
-        if (Cfx.exports['drugs'].verifyDrugType(args[1])) {
-          Cfx.exports['drugs'].removePlayerDrugs(targetPlayer, args[1], Number(args[2]));
-        } else {
-          console.log(`Invalid drug type (${args[1]}). Types: cocaine/marijuana`);
-        }
-      },
-      false
-    );
+  @Command()
+  public stats(source: number) {
+    console.log('Routing bucket:', Cfx.Server.GetEntityRoutingBucket(Cfx.Server.GetPlayerPed(source.toString())));
   }
 
   @EventListener({

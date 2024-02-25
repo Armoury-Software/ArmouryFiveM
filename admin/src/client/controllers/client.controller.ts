@@ -29,7 +29,7 @@ export class Client {
   public constructor(
     // TODO: Migrate ClientSessionService to @armoury/fivem-gamemode
     @Inject(ClientSessionService) private _session: ClientSessionService
-  ) { }
+  ) {}
 
   @Command()
   @KeyBinding({ description: 'Open Admin Menu', defaultMapper: 'keyboard', key: 'f1' })
@@ -43,6 +43,8 @@ export class Client {
 
       Cfx.Client.TriggerServerEvent(`${Cfx.Client.GetCurrentResourceName()}:open-admin-menu`, ADMIN_MENU_MAIN);
       this.menuToggles.set('admin-menu', true);
+    } else {
+      console.log('Insufficient admin level!');
     }
   }
 
@@ -184,17 +186,14 @@ export class Client {
   @EventListener({
     eventName: `${Cfx.Client.GetCurrentResourceName()}:send-updated-position`,
   })
-  public onAfterTeleport(args: string[]) {
-    let zCoord: [boolean, number, number[]] = Cfx.Client.GetGroundZAndNormalFor_3dCoord(
-      Number(args[0]),
-      Number(args[1]),
-      Number(args[2])
-    );
+  public onAfterTeleport(posX: number, posY: number, posZ: number) {
+    let zCoord: [boolean, number, number[]] = Cfx.Client.GetGroundZAndNormalFor_3dCoord(posX, posY, posZ);
+
     if (Cfx.Client.GetEntityCoords(Cfx.Client.GetPlayerPed(Cfx.source), true)[2] < zCoord[1]) {
       Cfx.Client.SetEntityCoords(
         Cfx.Client.GetPlayerPed(Cfx.source),
-        Number(args[0]),
-        Number(args[1]),
+        posX,
+        posY,
         Number(zCoord),
         true,
         false,
