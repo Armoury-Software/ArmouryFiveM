@@ -1,4 +1,18 @@
+import { ReflectiveInjector } from 'injection-js';
+import { Server_Init, ServerEnterableDatabase } from '@armoury/fivem-framework';
+import { Business } from '@shared/models/business.interface';
 import { Server } from './controllers/server.controller';
 
-// eslint-disable-next-line no-unused-vars
-const server = new Server('businesses');
+Server_Init(
+  Server,
+  ReflectiveInjector.resolveAndCreate([
+    { provide: 'tableName', useValue: 'businesses' },
+    { provide: 'loadEverythingAtStart', useValue: true },
+    {
+      provide: 'Database',
+      useFactory: (tableName: string, loadEverythingAtStart: boolean) =>
+        new ServerEnterableDatabase<Business>(tableName, loadEverythingAtStart),
+      deps: ['tableName', 'loadEverythingAtStart'],
+    },
+  ])
+);

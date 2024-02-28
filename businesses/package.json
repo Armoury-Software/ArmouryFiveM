@@ -1,37 +1,36 @@
 {
-  "name": "armoury",
+  "name": "armoury-businesses",
   "version": "1.0.0",
   "type": "commonjs",
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@citizenfx/client": "^2.0.5250-1",
-    "@citizenfx/server": "^2.0.5250-1",
-    "@types/node": "^17.0.10",
-    "events": "^3.3.0",
-    "fivem-js": "^1.5.2",
-    "remove-files-webpack-plugin": "^1.5.0"
+    "@armoury/fivem-framework": "^1.0.6"
   },
   "scripts": {
-    "build": "prettier --write . && webpack --mode=production --config ./webpack.config.js",
-    "watch": "webpack --mode=development --watch true",
+    "dev": "node esbuild.settings.js --watch",
+    "build": "prettier --write . && node esbuild.settings.js",
     "lint": "eslint -c .eslintrc.json --ext .ts src",
     "lint:init": "eslint --init"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
-    "eslint": "^8.7.0",
+    "@types/node": "^20.11.19",
+    "@typescript-eslint/eslint-plugin": "^5.14.0",
+    "@typescript-eslint/parser": "^5.14.0",
+    "esbuild": "^0.20.1",
+    "esbuild-plugin-tsc": "^0.4.0",
+    "eslint": "^8.11.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.4",
-    "eslint-webpack-plugin": "^3.1.1",
+    "injection-js": "^2.4.0",
     "prettier": "^2.5.1",
-    "ts-loader": "^9.2.6",
-    "typescript": "^4.5.5",
-    "webpack": "^5.67.0",
-    "webpack-cli": "^4.9.1"
+    "reflect-metadata": "^0.2.1",
+    "rxjs": "^7.8.1",
+    "string-replace-loader": "^3.1.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3"
   },
   "browser": {}
 }
