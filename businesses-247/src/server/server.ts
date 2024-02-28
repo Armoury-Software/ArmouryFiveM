@@ -1,4 +1,4 @@
+import { Server_Init } from '@armoury/fivem-roleplay-gamemode';
 import { Server } from './controllers/server.controller';
 
-// eslint-disable-next-line no-unused-vars
-const server = new Server();
+Server_Init(Server);
