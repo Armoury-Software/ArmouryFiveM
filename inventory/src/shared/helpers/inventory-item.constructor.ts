@@ -23,10 +23,7 @@ export class ItemConstructor {
       return null;
     }
 
-    const computedCategory: string =
-      this.category ||
-      ITEM_MAPPINGS[this.playerInfoKey]?.defaultCategory ||
-      'misc';
+    const computedCategory: string = this.category || ITEM_MAPPINGS[this.playerInfoKey]?.defaultCategory || 'misc';
 
     const originalMapped = {
       ...CATEGORY_MAPPINGS[computedCategory],
@@ -34,8 +31,7 @@ export class ItemConstructor {
     };
 
     if (ITEM_MAPPINGS[this.playerInfoKey].insertionCondition) {
-      const insertionConditionResult: boolean =
-        ITEM_MAPPINGS[this.playerInfoKey].insertionCondition(value);
+      const insertionConditionResult: boolean = ITEM_MAPPINGS[this.playerInfoKey].insertionCondition(value);
 
       if (!insertionConditionResult) {
         return null;
@@ -103,9 +99,7 @@ export class ItemConstructor {
     externalInventoryMapping: AdditionalInventory,
     customizations: object
   ): AdditionalInventory {
-    const _externalInventoryMapping: AdditionalInventory = JSON.parse(
-      JSON.stringify(externalInventoryMapping)
-    );
+    const _externalInventoryMapping: AdditionalInventory = JSON.parse(JSON.stringify(externalInventoryMapping));
 
     Object.keys(customizations).forEach((property) => {
       _externalInventoryMapping.items.forEach((item: Item) => {
@@ -116,35 +110,17 @@ export class ItemConstructor {
     return _externalInventoryMapping;
   }
 
-  public incrementFromSource(
-    sourceValue?: PlayerInfoType,
-    amount?: any,
-    key?: number | string
-  ): PlayerInfoType {
-    let _newPastValue: PlayerInfoType = JSON.parse(
-      JSON.stringify(this.func(this.playerInfoKey))
-    );
+  public incrementFromSource(sourceValue?: PlayerInfoType, amount?: any, key?: number | string): PlayerInfoType {
+    let _newPastValue: PlayerInfoType = JSON.parse(JSON.stringify(this.func(this.playerInfoKey)));
 
-    let _newSourceValue: PlayerInfoType = sourceValue
-      ? JSON.parse(JSON.stringify(sourceValue))
-      : undefined;
+    let _newSourceValue: PlayerInfoType = sourceValue ? JSON.parse(JSON.stringify(sourceValue)) : undefined;
 
     if (CATEGORY_MAPPINGS[this.category]?.incrementor) {
-      return CATEGORY_MAPPINGS[this.category]?.incrementor(
-        _newPastValue,
-        key,
-        amount,
-        _newSourceValue
-      );
+      return CATEGORY_MAPPINGS[this.category]?.incrementor(_newPastValue, key, amount, _newSourceValue);
     }
 
     if (ITEM_MAPPINGS[this.playerInfoKey].incrementor) {
-      return ITEM_MAPPINGS[this.playerInfoKey].incrementor(
-        _newPastValue,
-        key,
-        amount,
-        _newSourceValue
-      );
+      return ITEM_MAPPINGS[this.playerInfoKey].incrementor(_newPastValue, key, amount, _newSourceValue);
     }
 
     // prettier-ignore

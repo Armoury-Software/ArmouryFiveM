@@ -1,5 +1,5 @@
-import { Controller, Delay, EVENT_DIRECTIONS, EventListener } from '@armoury/fivem-framework';
-import { AuthenticationDTO } from '@shared/models/authentication.model';
+import { Controller, Delay, EventListener, UIListener } from '@armoury/fivem-framework';
+import { type IAuthenticationDTO } from '@shared/models/authentication.model';
 
 @Controller()
 export class Client {
@@ -15,9 +15,6 @@ export class Client {
     setTimeout(() => {
       this.blockActions();
     }, 3000);
-
-    // TODO: Add @armoury/fivem-framework decorator for RegisterNuiCallbackType
-    Cfx.Client.RegisterNuiCallbackType('authenticate');
   }
 
   private showAuthScreen() {
@@ -66,10 +63,9 @@ export class Client {
     Cfx.Client.StartAudioScene('DLC_MPHEIST_TRANSITION_TO_APT_FADE_IN_RADIO_SCENE');
   }
 
-  @EventListener({ eventName: '__cfx_nui:authenticate', direction: EVENT_DIRECTIONS.CLIENT_TO_CLIENT })
-  public onNuiAuthenticate(data: AuthenticationDTO, callback: Function) {
-    Cfx.TriggerServerEvent('authentication:authenticate', data);
-    callback('ok');
+  @UIListener({ eventName: 'authenticate' })
+  public onNuiAuthenticate(data: IAuthenticationDTO) {
+    Cfx.TriggerServerEvent(`${Cfx.Server.GetCurrentResourceName()}:authenticate`, data);
   }
 
   @EventListener({ eventName: `${Cfx.Client.GetCurrentResourceName()}:fade-out-in` })

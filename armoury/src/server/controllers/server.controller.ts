@@ -1,34 +1,25 @@
+import { Inject } from 'injection-js';
 import {
   Command,
   Controller,
   EventListener,
   Export,
-  ServerController,
-  calculateDistance,
+  ServerSessionService,
+  ServerVirtualWorldsService,
+  LocationUtils,
 } from '@armoury/fivem-framework';
 
 @Controller()
-export class Server extends ServerController {
-  protected _players: number[] = [];
+export class Server {
   private playersBlockedOnTimes: Map<number, number[]> = new Map();
 
-  public constructor() {
-    super();
-
+  public constructor(
+    @Inject(ServerSessionService) private readonly _session: ServerSessionService,
+    @Inject(ServerVirtualWorldsService) private readonly _virtualWorlds: ServerVirtualWorldsService
+  ) {
     this.registerTimers();
 
     Cfx.Server.SetRoutingBucketPopulationEnabled(0, false);
-    this._players = [];
-
-    try {
-      const authenticatedPlayers: number[] = global.exports['authentication'].getAuthenticatedPlayers();
-
-      if (authenticatedPlayers.length) {
-        this._players = [...this._players, ...authenticatedPlayers];
-      }
-    } catch (e) {
-      console.error("Attempted to grab the authenticated players into armoury's connected players, but couldn't.");
-    }
   }
 
   @Export()
@@ -37,14 +28,14 @@ export class Server extends ServerController {
     const vehiclePosition: number[] = Cfx.Server.GetEntityCoords(vehicleId);
 
     if (
-      calculateDistance([
+      LocationUtils.distance(
         playerPosition[0],
         playerPosition[1],
         playerPosition[2],
         vehiclePosition[0],
         vehiclePosition[1],
-        vehiclePosition[2],
-      ]) <= range
+        vehiclePosition[2]
+      ) <= range
     ) {
       return true;
     }
@@ -77,30 +68,21 @@ export class Server extends ServerController {
 
   @EventListener()
   public onPlayerConnect(): void {
-    this.setPlayerVirtualWorld(Cfx.source, 0);
-    this.updateTimeForPlayers(Cfx.source);
-    this._players.push(Cfx.source);
-  }
-
-  @Export()
-  public getPlayers(): number[] {
-    return this._players;
-  }
-
-  @Export()
-  public isPlayerOnline(playerId: number): boolean {
-    return this._players.includes(playerId);
+    const playerId = Cfx.source;
+    this._virtualWorlds.setPlayerVirtualWorld(playerId, 0);
+    this.updateTimeForPlayers(playerId);
   }
 
   @EventListener()
   public onPlayerDisconnect(): void {
-    super.onPlayerDisconnect();
-
-    if (this.playersBlockedOnTimes.has(Cfx.source)) {
-      this.playersBlockedOnTimes.delete(Cfx.source);
+    const playerId = Cfx.source;
+    if (this.playersBlockedOnTimes.has(playerId)) {
+      this.playersBlockedOnTimes.delete(playerId);
     }
 
-    this._players = this._players.filter((player: number) => player !== Cfx.source);
+    this._session.saveCritical(playerId);
+    this._session.clearPlayerInfo(playerId);
+    Cfx.emit(`${Cfx.Server.GetCurrentResourceName()}:player-logout`, Cfx.source);
   }
 
   @Command()
@@ -110,7 +92,7 @@ export class Server extends ServerController {
       return;
     }
 
-    this.updatePlayerClientsidedCacheKey(playerId, 'language', language);
+    // this.updatePlayerClientsidedCacheKey(playerId, 'language', language);
   }
 
   @Command({ adminLevelRequired: 6 })
@@ -132,8 +114,8 @@ export class Server extends ServerController {
 
   private updateTimeForPlayers(specificPlayerId?: number): void {
     const date: Date = new Date();
-    if (specificPlayerId || this._players.length) {
-      (specificPlayerId ? [specificPlayerId] : this._players).forEach((playerId: number) => {
+    if (specificPlayerId || this._session.players.length) {
+      (specificPlayerId ? [specificPlayerId] : this._session.players).forEach((playerId: number) => {
         let hour!: number, minute!: number, second!: number;
 
         if (this.playersBlockedOnTimes.has(playerId)) {

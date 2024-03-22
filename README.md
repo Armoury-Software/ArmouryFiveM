@@ -14,6 +14,7 @@ ensure chat-theme-armoury
 ensure spawnmanager
 ensure sessionmanager
 ensure armoury
+ensure armoury-roleplay
 ensure armoury-overlay
 ensure authentication
 ensure admin

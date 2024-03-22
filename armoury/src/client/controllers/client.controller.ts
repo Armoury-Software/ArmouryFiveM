@@ -1,4 +1,4 @@
-import { Controller, EVENT_DIRECTIONS, EventListener, Export, calculateDistance } from '@armoury/fivem-framework';
+import { Controller, EVENT_DIRECTIONS, EventListener, Export, LocationUtils } from '@armoury/fivem-framework';
 
 @Controller()
 export class Client {
@@ -102,14 +102,14 @@ export class Client {
       if (Cfx.Client.NetworkDoesEntityExistWithNetworkId(Cfx.Client.NetworkGetNetworkIdFromEntity(entity))) {
         const vehiclePosition: number[] = Cfx.Client.GetEntityCoords(entity, true);
         if (
-          calculateDistance([
+          LocationUtils.distance(
             playerPosition[0],
             playerPosition[1],
             playerPosition[2],
             vehiclePosition[0],
             vehiclePosition[1],
-            vehiclePosition[2],
-          ]) < 3.5
+            vehiclePosition[2]
+          ) < 3.5
         ) {
           vehiclesToReturn.push([
             Cfx.Client.VehToNet(entity),

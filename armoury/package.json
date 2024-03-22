@@ -1,37 +1,36 @@
 {
-  "name": "armoury-admin",
-  "version": "1.0.0",
-  "type": "commonjs",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {
-    "@armoury/fivem-framework": "^1.0.5"
-  },
-  "scripts": {
-    "build": "prettier --write . && webpack --mode=production --config ./webpack.config.js",
-    "watch": "webpack --mode=development --watch true",
-    "lint": "eslint -c .eslintrc.json --ext .ts src",
-    "lint:init": "eslint --init"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^20.11.19",
-    "@typescript-eslint/eslint-plugin": "^5.14.0",
-    "@typescript-eslint/parser": "^5.14.0",
-    "eslint": "^8.11.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-webpack-plugin": "^3.1.1",
-    "injection-js": "^2.4.0",
-    "prettier": "^2.5.1",
-    "reflect-metadata": "^0.2.1",
-    "remove-files-webpack-plugin": "^1.5.0",
-    "string-replace-loader": "^3.1.0",
-    "ts-loader": "^9.5.1",
-    "typescript": "^5.3.3",
-    "webpack": "^5.90.2",
-    "webpack-cli": "^5.1.4"
-  },
-  "browser": {}
+    "name": "armoury-base-resource",
+    "version": "1.0.0",
+    "type": "commonjs",
+    "description": "",
+    "main": "index.js",
+    "dependencies": {
+        "@armoury/fivem-framework": "^1.0.5"
+    },
+    "scripts": {
+        "dev": "node esbuild.settings.js --watch",
+        "build": "prettier --write . && node esbuild.settings.js",
+        "lint": "eslint -c .eslintrc.json --ext .ts src",
+        "lint:init": "eslint --init"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^20.11.19",
+        "@typescript-eslint/eslint-plugin": "^5.14.0",
+        "@typescript-eslint/parser": "^5.14.0",
+        "esbuild": "^0.20.1",
+        "esbuild-plugin-tsc": "^0.4.0",
+        "eslint": "^8.11.0",
+        "eslint-config-airbnb-base": "^15.0.0",
+        "eslint-plugin-import": "^2.25.4",
+        "injection-js": "^2.4.0",
+        "prettier": "^2.5.1",
+        "reflect-metadata": "^0.2.1",
+        "rxjs": "^7.8.1",
+        "string-replace-loader": "^3.1.0",
+        "ts-loader": "^9.5.1",
+        "typescript": "^5.3.3"
+    },
+    "browser": {}
 }

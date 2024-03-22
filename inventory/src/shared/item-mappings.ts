@@ -1,21 +1,7 @@
-import {
-  Weapon,
-  Weapons,
-} from '../../../weapons/src/shared/models/weapon.model';
-import {
-  WEAPON_NAMES,
-  WEAPON_NAMES_FOR_TESTS,
-} from '../../../weapons/src/shared/weapon';
-import {
-  numberWithCommas,
-  phoneFormatted,
-  toThousandsString,
-} from '../../../[utils]/utils';
-import {
-  Clothings,
-  Items,
-} from '../../../authentication/src/shared/models/player.model';
-import { WeaponHash } from 'fivem-js';
+import { StringFormatter } from '@armoury/fivem-framework';
+import { Weapon, Weapons } from '../../../weapons/src/shared/models/weapon.model';
+import { WEAPON_NAMES, WEAPON_NAMES_FOR_TESTS } from '../../../weapons/src/shared/weapon';
+import { Clothings, Items } from '../../../authentication/src/shared/models/player.model';
 import { Clothing } from './models/clothing.model';
 
 // Each key in this object is the exact match of one of the keys in the player interface in authentication resource
@@ -24,42 +10,29 @@ export const ITEM_MAPPINGS = {
   // TODO: bruteAmount NEEDS to have following parameters: (value (this would be image), piKey)
   housekeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) => [
-      'item_housekey_description',
-      { id: value },
-    ],
+    description: (value: number) => ['item_housekey_description', { id: value }],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
     isTransferrable: () => false,
   },
   businesskeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) => [
-      'item_businesskey_description',
-      { id: value },
-    ],
+    description: (value: number) => ['item_businesskey_description', { id: value }],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number) => value >= 0,
     isTransferrable: () => false,
   },
   vehiclekeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) => [
-      'item_vehiclekey_description',
-      { id: value },
-    ],
+    description: (value: number) => ['item_vehiclekey_description', { id: value }],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number[]) => !!value.length,
     isTransferrable: () => false,
-    image: (value: number) =>
-      global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value),
+    image: (value: number) => global.exports['vehicles'].getVehicleHashKeyFromVehicleDbId(value),
   },
   factionvehiclekeys: {
     bruteAmount: (piKey: number, piKeyParentValue?: number[]) => piKey,
-    description: (value: number) => [
-      'item_factionvehiclekey_description',
-      { id: value },
-    ],
+    description: (value: number) => ['item_factionvehiclekey_description', { id: value }],
     value: (value: number) => '#' + value,
     insertionCondition: (value: number[]) => !!value.length,
     isTransferrable: () => false,
@@ -67,9 +40,7 @@ export const ITEM_MAPPINGS = {
   },
   weapons: {
     type: 'Weapon',
-    description: (value: [number, Weapon]) => [
-      WEAPON_MAPPINGS[Number(value[0])]?.description || '',
-    ],
+    description: (value: [number, Weapon]) => [WEAPON_MAPPINGS[Number(value[0])]?.description || ''],
     bruteAmount: (
       piKey: number | string,
       piKeyParentValue: Weapons | number | string,
@@ -77,16 +48,14 @@ export const ITEM_MAPPINGS = {
     ) => {
       if (typeof piKey === 'string') {
         return (
-          secondaryPiKeyParentValue &&
-          typeof secondaryPiKeyParentValue === 'object'
+          secondaryPiKeyParentValue && typeof secondaryPiKeyParentValue === 'object'
             ? secondaryPiKeyParentValue
             : piKeyParentValue
         )[WeaponHash[piKey]]?.ammo;
       }
 
       return (
-        secondaryPiKeyParentValue &&
-        typeof secondaryPiKeyParentValue === 'object'
+        secondaryPiKeyParentValue && typeof secondaryPiKeyParentValue === 'object'
           ? secondaryPiKeyParentValue
           : piKeyParentValue
       )[Number(piKey)]?.ammo;
@@ -107,11 +76,7 @@ export const ITEM_MAPPINGS = {
       otherValue?: Weapons // When amount is < 0, this is the destinationValue. When it is >= 0, it is the sourceValue
     ) => {
       if (currentValue[WeaponHash[incrementWhich]]) {
-        if (
-          incrementBy < 0 &&
-          otherValue &&
-          !otherValue[WeaponHash[incrementWhich]]
-        ) {
+        if (incrementBy < 0 && otherValue && !otherValue[WeaponHash[incrementWhich]]) {
           delete currentValue[WeaponHash[incrementWhich]];
           return currentValue;
         }
@@ -122,11 +87,7 @@ export const ITEM_MAPPINGS = {
           currentValue[WeaponHash[incrementWhich]].ammo = 0;
         }
       } else {
-        if (
-          incrementBy >= 0 &&
-          otherValue &&
-          otherValue[WeaponHash[incrementWhich]]
-        ) {
+        if (incrementBy >= 0 && otherValue && otherValue[WeaponHash[incrementWhich]]) {
           currentValue[WeaponHash[incrementWhich]] = {
             ammo: otherValue[WeaponHash[incrementWhich]]?.ammo,
           };
@@ -137,14 +98,9 @@ export const ITEM_MAPPINGS = {
 
       return currentValue;
     },
-    shouldSkipAmountConfirmation: (
-      giver: Weapons,
-      receiver: Weapons,
-      type: number | string
-    ) => {
+    shouldSkipAmountConfirmation: (giver: Weapons, receiver: Weapons, type: number | string) => {
       if (giver && receiver) {
-        const computedHash: number =
-          typeof type === 'string' ? WeaponHash[type] : type;
+        const computedHash: number = typeof type === 'string' ? WeaponHash[type] : type;
 
         if (!receiver[computedHash] || !giver[computedHash]?.ammo) {
           return true;
@@ -156,46 +112,31 @@ export const ITEM_MAPPINGS = {
   },
   phone: {
     type: 'Electronics',
-    bruteAmount: (piKey: number | string, piKeyParentValue: number) =>
-      piKeyParentValue,
-    description: (value: number) => [
-      'item_electronics_phone_description',
-      { phone: phoneFormatted(value) },
-    ],
-    value: (value: number) => phoneFormatted(value),
+    bruteAmount: (piKey: number | string, piKeyParentValue: number) => piKeyParentValue,
+    description: (value: number) => ['item_electronics_phone_description', { phone: StringFormatter.phone(value) }],
+    value: (value: number) => StringFormatter.phone(value),
     insertionCondition: (value: number) => Number(value) > 0,
     isTransferrable: () => false,
   },
   cash: {
     type: 'Currency',
-    bruteAmount: (piKey: number | string, piKeyParentValue: number) =>
-      piKeyParentValue,
+    bruteAmount: (piKey: number | string, piKeyParentValue: number) => piKeyParentValue,
     description: (value: number) => [
       'item_currency_cash_description',
-      { cash: numberWithCommas(value) },
+      { cash: StringFormatter.numberWithCommas(value) },
     ],
-    value: (value: number) => toThousandsString(value),
+    value: (value: number) => StringFormatter.thousands(value),
     insertionCondition: (value: number) => Number(value) > 0,
   },
   items: {
     type: 'Miscellaneous',
-    bruteAmount: (
-      piKey: number | string,
-      piKeyParentValue: object,
-      piSecondaryKey?: string
-    ) => {
+    bruteAmount: (piKey: number | string, piKeyParentValue: object, piSecondaryKey?: string) => {
       return piKeyParentValue[piSecondaryKey || piKey];
     },
-    description: (value: [string, number]) => [
-      `item_Miscellaneous_${value[0]}_description`,
-    ],
+    description: (value: [string, number]) => [`item_Miscellaneous_${value[0]}_description`],
     value: (value: [string, number]) => value[1].toString(),
     image: (value: [string, number]) => value[0],
-    incrementor: (
-      currentValue: Items,
-      incrementWhich: string,
-      incrementBy: number
-    ) => {
+    incrementor: (currentValue: Items, incrementWhich: string, incrementBy: number) => {
       if (currentValue[incrementWhich]) {
         currentValue[incrementWhich] += incrementBy;
 
@@ -208,23 +149,15 @@ export const ITEM_MAPPINGS = {
 
       return currentValue;
     },
-    isTransferrable: (value: string) =>
-      MISC_ITEM_MAPPINGS[value].transferrable ?? true,
-    isRefridgeratable: (value: string) =>
-      MISC_ITEM_MAPPINGS[value].refridgeratable ?? false,
+    isTransferrable: (value: string) => MISC_ITEM_MAPPINGS[value].transferrable ?? true,
+    isRefridgeratable: (value: string) => MISC_ITEM_MAPPINGS[value].refridgeratable ?? false,
   },
   clothings: {
     type: 'Clothing',
-    bruteAmount: (
-      piKey: number | string,
-      piKeyParentValue: object,
-      _piSecondaryKey?: string
-    ) => {
+    bruteAmount: (piKey: number | string, piKeyParentValue: object, _piSecondaryKey?: string) => {
       return !!piKeyParentValue[piKey];
     },
-    description: (value: [string, number]) => [
-      `item_Clothing_${value[0].split('_')[0]}_description`,
-    ],
+    description: (value: [string, number]) => [`item_Clothing_${value[0].split('_')[0]}_description`],
     value: (value: [string, Clothing]) => '1',
     image: (value: [string, number]) => value[0].split('_')[0],
     incrementor: (
@@ -233,15 +166,10 @@ export const ITEM_MAPPINGS = {
       incrementBy: number | Clothing,
       otherValue?: Clothing
     ) => {
-      console.log('currentValue:', currentValue);
-      console.log('incrementWhich:', incrementWhich);
-      console.log('incrementBy:', incrementBy);
-      console.log('otherValue:', otherValue);
-      if (incrementBy < 0 && currentValue[incrementWhich]) {
+      if (typeof incrementBy === 'number' && incrementBy < 0 && currentValue[incrementWhich]) {
         delete currentValue[incrementWhich];
       } else if (typeof incrementBy === 'object') {
-        currentValue[incrementWhich] =
-          incrementBy[incrementWhich] || incrementBy || {};
+        currentValue[incrementWhich] = incrementBy[incrementWhich] || incrementBy || {};
       }
 
       return currentValue;
@@ -330,8 +258,7 @@ export const WEAPON_MAPPINGS = {
   /* AdvancedRifle */ 2937143193: {},
   /* CompactRifle */ 1649403952: {},
   /* MG  */ 2634544996: {
-    description:
-      'An auto-firing, rifled long-barrel autoloading firearm designed for sustained direct fire.',
+    description: 'An auto-firing, rifled long-barrel autoloading firearm designed for sustained direct fire.',
     maximumAmmoInClip: 54,
     type: 'Machine Gun',
   },
@@ -394,3 +321,131 @@ export const WEAPON_MAPPINGS = {
   /* HeavySniperMk2 */ 177293209: {},
   /* SMGMk2 */ 2024373456: {},
 };
+
+declare enum WeaponHash {
+  Knife = 2578778090,
+  Nightstick = 1737195953,
+  Hammer = 1317494643,
+  Bat = 2508868239,
+  GolfClub = 1141786504,
+  Crowbar = 2227010557,
+  Bottle = 4192643659,
+  SwitchBlade = 3756226112,
+  Pistol = 453432689,
+  CombatPistol = 1593441988,
+  APPistol = 584646201,
+  Pistol50 = 2578377531,
+  FlareGun = 1198879012,
+  MarksmanPistol = 3696079510,
+  Revolver = 3249783761,
+  MicroSMG = 324215364,
+  SMG = 736523883,
+  AssaultSMG = 4024951519,
+  CombatPDW = 171789620,
+  AssaultRifle = 3220176749,
+  CarbineRifle = 2210333304,
+  AdvancedRifle = 2937143193,
+  CompactRifle = 1649403952,
+  MG = 2634544996,
+  CombatMG = 2144741730,
+  PumpShotgun = 487013001,
+  SawnOffShotgun = 2017895192,
+  AssaultShotgun = 3800352039,
+  BullpupShotgun = 2640438543,
+  DoubleBarrelShotgun = 4019527611,
+  StunGun = 911657153,
+  SniperRifle = 100416529,
+  HeavySniper = 205991906,
+  GrenadeLauncher = 2726580491,
+  GrenadeLauncherSmoke = 1305664598,
+  RPG = 2982836145,
+  Minigun = 1119849093,
+  Grenade = 2481070269,
+  StickyBomb = 741814745,
+  SmokeGrenade = 4256991824,
+  BZGas = 2694266206,
+  Molotov = 615608432,
+  FireExtinguisher = 101631238,
+  PetrolCan = 883325847,
+  SNSPistol = 3218215474,
+  SpecialCarbine = 3231910285,
+  HeavyPistol = 3523564046,
+  BullpupRifle = 2132975508,
+  HomingLauncher = 1672152130,
+  ProximityMine = 2874559379,
+  Snowball = 126349499,
+  VintagePistol = 137902532,
+  Dagger = 2460120199,
+  Firework = 2138347493,
+  Musket = 2828843422,
+  MarksmanRifle = 3342088282,
+  HeavyShotgun = 984333226,
+  Gusenberg = 1627465347,
+  Hatchet = 4191993645,
+  Railgun = 1834241177,
+  Unarmed = 2725352035,
+  KnuckleDuster = 3638508604,
+  Machete = 3713923289,
+  MachinePistol = 3675956304,
+  Flashlight = 2343591895,
+  Ball = 600439132,
+  Flare = 1233104067,
+  NightVision = 2803906140,
+  Parachute = 4222310262,
+  SweeperShotgun = 317205821,
+  BattleAxe = 3441901897,
+  CompactGrenadeLauncher = 125959754,
+  MiniSMG = 3173288789,
+  PipeBomb = 3125143736,
+  PoolCue = 2484171525,
+  Wrench = 419712736,
+  PistolMk2 = 3219281620,
+  AssaultRifleMk2 = 961495388,
+  CarbineRifleMk2 = 4208062921,
+  CombatMGMk2 = 3686625920,
+  HeavySniperMk2 = 177293209,
+  SMGMk2 = 2024373456,
+}
+declare enum VehicleWeaponHash {
+  Invalid = -1,
+  Tank = 1945616459,
+  SpaceRocket = -123497569,
+  PlaneRocket = -821520672,
+  PlayerLaser = -268631733,
+  PlayerBullet = 1259576109,
+  PlayerBuzzard = 1186503822,
+  PlayerHunter = -1625648674,
+  PlayerLazer = -494786007,
+  EnemyLaser = 1566990507,
+  SearchLight = -844344963,
+  Radar = -764006018,
+}
+declare enum AmmoType {
+  Melee = 0,
+  FireExtinguisher = 1359393852,
+  Flare = 1808594799,
+  FlareGun = 1173416293,
+  PetrolCan = 3395492001,
+  Shotgun = 2416459067,
+  Pistol = 1950175060,
+  Ball = 4287981158,
+  Snowball = 2182627693,
+  Sniper = 1285032059,
+  AssaultRifle = 218444191,
+  SMG = 1820140472,
+  Molotov = 1446246869,
+  StunGun = 2955849184,
+  MG = 1788949567,
+  GrenadeLauncher = 1003267566,
+  RPG = 1742569970,
+  Minigun = 2680539266,
+  Firework = 2938367503,
+  Railgun = 2034517757,
+  HomingLauncher = 2568293933,
+  Grenade = 1003688881,
+  StickyBomb = 1411692055,
+  ProximityMine = 2938243239,
+  PipeBomb = 357983224,
+  SmokeGrenade = 3859679398,
+  BZGas = 2608103076,
+}

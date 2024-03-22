@@ -2,11 +2,11 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Armoury Development Team'
-description 'Armoury FiveM Inventory'
-version '1.0.0'
+description 'Armoury FiveM Inventory Resource'
+version '1.0.1'
 
-client_script 'dist/client/*.client.js'
 server_script 'dist/server/*.server.js'
+client_script 'dist/client/*.client.js'
 
 ui_page 'dist/ui/index.html'
 files {

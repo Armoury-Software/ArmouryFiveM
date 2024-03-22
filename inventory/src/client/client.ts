@@ -1,4 +1,14 @@
+import { ClientTranslateService } from '@armoury/fivem-framework';
+import { Client_Init } from '@armoury/fivem-roleplay-gamemode';
+import { i18n } from '@shared/i18n';
+
 import { Client } from './controllers/client.controller';
 
-// eslint-disable-next-line no-unused-vars
-const client = new Client();
+Client_Init(
+  Client,
+  {
+    provide: 'translations',
+    useValue: i18n,
+  },
+  ClientTranslateService
+);

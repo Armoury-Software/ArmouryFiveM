@@ -1,0 +1,18 @@
+{
+  "locationItems": "iteme {{location}} ({{number}})",
+  "totalItems": "Total iteme: {{ number }} din {{ max }}",
+  "business keys": "Chei Afaceri",
+  "house keys": "Chei Case",
+  "vehicles": "Vehicule",
+  "weapons": "Arme",
+  "misc": "Diverse",
+  "transferDialog": {
+    "adjustAmount": "Mai jos poti ajusta cantitatea.",
+    "amountConfirmation": "Ajustare cantitate",
+    "buy": "Iau",
+    "transfer": "Transfer",
+    "youAreAboutToBuy": "Vei cumpara {{ number }} bucati din acest item pentru ${{ price }}.",
+    "youAreAboutToTransfer": "Vei transfera {{ number }} bucati din acest item.",
+    "youWillPay": "Vei plati"
+  }
+}
