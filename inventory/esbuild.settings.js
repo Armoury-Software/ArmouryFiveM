@@ -17,6 +17,27 @@ const config = (entryPoint, outputFile) => ({
     minifyWhitespace: true,
     minifyIdentifiers: false, // Minifying identifiers is disabled because of issues with the NUI callback listener
     minifySyntax: true,
+    external: [
+        '@mikro-orm/better-sqlite',
+        '@mikro-orm/migrations',
+        '@mikro-orm/entity-generator',
+        '@mikro-orm/mariadb',
+        '@mikro-orm/mongodb',
+        '@mikro-orm/mysql',
+        '@mikro-orm/mssql',
+        '@mikro-orm/seeder',
+        '@mikro-orm/sqlite',
+        '@mikro-orm/libsql',
+        '@vscode/sqlite3',
+        'sqlite3',
+        'better-sqlite3',
+        'mysql',
+        'mysql2',
+        'oracledb',
+        'pg-native',
+        'pg-query-stream',
+        'tedious',
+    ]
 });
 
 async function bundle() {

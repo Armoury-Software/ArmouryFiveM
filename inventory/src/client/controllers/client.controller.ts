@@ -16,7 +16,7 @@ export class Client {
   //   beginningTimestamp?: number;
   // })[] = [];
   // private cachedTimeouts: Map<string, NodeJS.Timeout> = new Map();
-  //
+  // 
   public constructor(
     @Inject(ClientTicksService) private _ticks: ClientTicksService,
     @Inject(ClientUIService) private _ui: ClientUIService,
